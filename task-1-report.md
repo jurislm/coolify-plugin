@@ -5,7 +5,7 @@
 - Branch: `codex/coolify-plugin`
 - Version baseline commit: `fee9f18d1bc958b2b90cbab4476e0e95da0830a0` (pushed to public `main`)
 - Round 3 implementation commit: `b858d57101a1e010e603330a9caa0b851e6f9825`
-- Package bootstrap: `@jurislm/coolify-plugin@3.6.0`; first Release Please publish is `3.7.0` (publicly publishable, local-stdio runtime)
+- Package bootstrap: `@jurislm/coolify-plugin@3.6.0`; published release: `@jurislm/coolify-plugin@3.7.1` (`v3.7.1`) after the `v3.7.0` verify failure (public, local-stdio runtime)
 - Authoritative snapshot: `https://raw.githubusercontent.com/coollabsio/coolify/main/openapi.json`
 - Snapshot SHA-256: `4dbb392aac5e0a46186c4e6e5237f86d9534bb99bf6b8b82351a513598af3900`
 - Contract: OpenAPI document version 3.1.0, info version 0.1, 192 paths, 275 operations
@@ -94,9 +94,9 @@ This report is inside the target repository because the later instruction prohib
 
 ## Final readback
 
-- Fresh `bun run check`: exit 0, 38 tests/89 assertions; official plugin validator: exit 0; GitHub readback before this report update: `jurislm/coolify-plugin` PUBLIC, `main` at `fee9f18d1bc958b2b90cbab4476e0e95da0830a0`, package manifest `3.6.0`, no tags/releases.
+- Fresh `bun run check`: exit 0, 38 tests/89 assertions; official plugin validator: exit 0; GitHub readback: `jurislm/coolify-plugin` PUBLIC, release merge `edde68d122e67cc00470ba056862013b31aec10a`, package manifest `3.7.1`, tags `v3.7.0` and `v3.7.1`.
 - Codex local marketplace install/readback: `coolify-plugin@jurislm-local`, bootstrap version `3.6.0`, installed manifest and `mcp.json` present in local cache.
-- `npm pack --dry-run --json`: `@jurislm/coolify-plugin@3.6.0`, 36 files. NPM publish remains blocked by `npm whoami` E401; package readback is E404. No `v0.1.0` tag, publish, or legacy deprecation was attempted.
+- `npm pack --dry-run --json`: `@jurislm/coolify-plugin@3.6.0`, 36 files. NPM readback: latest `3.7.1`, tarball URL returned `200`, and tarball `package.json` is `3.7.1`. The earlier `v3.7.0` tag verify failed on the fixed `3.6.0` test expectation and did not publish; no `v0.1.0` tag was created.
 
 ## Release automation alignment
 
@@ -108,6 +108,11 @@ This report is inside the target repository because the later instruction prohib
 
 - `jurislm/coolify-plugin` is active and public as Woodpecker repo `23`.
 - Secret metadata is configured without value readback: `npm_token` for `tag`, and `personal_access_tokens_fine_grained_tokens_jurislm` for `push`.
+- Main pipeline `#23`, release-branch/PR checks `#21/#22`, and tag publish pipeline `#24` for `v3.7.1` succeeded.
+
+## Legacy closeout
+
+- Deprecation of `@jurislm/coolify-mcp@*` was rejected by npm `E403`: 2FA or a granular token with 2FA bypass is required. The old package remains active and the old repo remains unarchived.
 
 ## Fix round 5
 
