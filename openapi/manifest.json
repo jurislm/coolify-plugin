@@ -1,8 +1,9 @@
 {
   "sourceUrl": "https://raw.githubusercontent.com/coollabsio/coolify/main/openapi.json",
-  "fetchedAt": "2026-09-16T08:32:14.109Z",
+  "fetchedAt": "2026-09-16T08:49:27.999Z",
   "sha256": "4dbb392aac5e0a46186c4e6e5237f86d9534bb99bf6b8b82351a513598af3900",
-  "specVersion": "0.1",
+  "openapiVersion": "3.1.0",
+  "infoVersion": "0.1",
   "pathCount": 192,
   "operationCount": 275
 }

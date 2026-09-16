@@ -1,11 +1,10 @@
 {
   "name": "@jurislm/coolify-plugin",
   "version": "0.1.0",
-  "description": "Private local stdio MCP plugin for Coolify",
-  "private": true,
+  "description": "Portable local stdio MCP plugin for Coolify",
   "type": "module",
   "bin": { "coolify-plugin": "dist/index.js" },
-  "files": ["dist", "README.md", "LICENSE", "plugin.json", "mcp.json", ".mcp.json", ".codex-plugin", "skills"],
+  "files": ["dist", "README.md", "LICENSE", "plugin.json", "mcp.json", ".mcp.json", ".mcp.json.example", ".app.json.example", ".codex-plugin", "skills"],
   "engines": { "bun": ">=1.1.0" },
   "scripts": {
     "clean": "rm -rf dist",

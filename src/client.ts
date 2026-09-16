@@ -16,6 +16,16 @@ export interface BinaryEnvelope {
 
 export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 type Operation = Pick<GeneratedOperation, "method" | "path" | "parameters">;
+const sensitiveKey = /(^value$|real_?value|private_?key|token|secret|password|authorization|cookie)/iu;
+
+export function redactSensitive<T>(value: T): T {
+  if (Array.isArray(value)) return value.map(redactSensitive) as T;
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, child]) => [
+    key,
+    sensitiveKey.test(key) ? "[REDACTED]" : redactSensitive(child),
+  ])) as T;
+}
 
 function pathValue(value: unknown, name: string): string {
   if (value === undefined || value === null) throw new Error(`Missing required path parameter: ${name}`);
@@ -67,7 +77,7 @@ export class CoolifyClient {
       else if (contentType.startsWith("text/") || contentType.includes("xml")) data = await response.text();
       else data = { encoding: "base64", contentType: contentType || "application/octet-stream", value: base64(await response.arrayBuffer()) };
     }
-    return { data, status: response.status, request: { method: operation.method, path } };
+    return redactSensitive({ data, status: response.status, request: { method: operation.method, path } });
   }
 }
 

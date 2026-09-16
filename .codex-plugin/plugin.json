@@ -1,7 +1,7 @@
 {
   "name": "coolify-plugin",
   "version": "0.1.0",
-  "description": "Private local stdio MCP tools generated from the Coolify OpenAPI contract.",
+  "description": "Fallback Codex metadata for local stdio Coolify tools.",
   "author": { "name": "JurisLM" },
   "license": "MIT",
   "skills": "./skills/",

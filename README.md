@@ -1,6 +1,6 @@
 # @jurislm/coolify-plugin
 
-Private, local-only Coolify MCP plugin. It exposes 275 focused `coolify_*` stdio tools generated from the committed official Coolify OpenAPI snapshot.
+Portable Coolify MCP plugin. It exposes focused `coolify_*` stdio tools generated from the committed official Coolify OpenAPI snapshot.
 
 ## Configure
 

@@ -32,4 +32,27 @@ describe("CoolifyClient", () => {
     expect(error).toBeInstanceOf(CoolifyApiError);
     expect(error.message).not.toContain("secret-token");
   });
+
+  test("redacts successful nested environment and private-key values", async () => {
+    const client = new CoolifyClient(config, async () => new Response(JSON.stringify({
+      value: "env-secret", nested: { real_value: "actual", private_key: "pem", token: "token" }, keys: [{ client_secret: "secret" }],
+    }), { headers: { "content-type": "application/json" } }));
+    await expect(client.request(operation, { uuid: "app" })).resolves.toMatchObject({
+      data: { value: "[REDACTED]", nested: { real_value: "[REDACTED]", private_key: "[REDACTED]", token: "[REDACTED]" }, keys: [{ client_secret: "[REDACTED]" }] },
+    });
+  });
+
+  test("uses a timeout AbortSignal and never retries a mutation", async () => {
+    let calls = 0;
+    let signal: AbortSignal | undefined;
+    const client = new CoolifyClient({ ...config, timeoutMs: 1 }, async (_url, init) => {
+      calls++;
+      signal = init?.signal as AbortSignal;
+      await new Promise<void>((resolve) => signal?.addEventListener("abort", () => resolve(), { once: true }));
+      throw signal?.reason;
+    });
+    await expect(client.request({ ...operation, method: "POST" }, { uuid: "app", body: {} })).rejects.toBeInstanceOf(CoolifyApiError);
+    expect(signal?.aborted).toBe(true);
+    expect(calls).toBe(1);
+  });
 });

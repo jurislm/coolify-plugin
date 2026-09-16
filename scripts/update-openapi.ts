@@ -8,7 +8,7 @@ const methods = new Set(["get", "put", "post", "delete", "patch", "head", "optio
 const response = await fetch(sourceUrl);
 if (!response.ok) throw new Error(`OpenAPI download failed: ${response.status} ${response.statusText}`);
 const text = await response.text();
-const spec = Bun.YAML.parse(text) as { info?: { version?: string }; paths?: Record<string, Record<string, unknown>> };
+const spec = Bun.YAML.parse(text) as { openapi?: string; info?: { version?: string }; paths?: Record<string, Record<string, unknown>> };
 const hash = new Bun.CryptoHasher("sha256");
 hash.update(text);
 const operationCount = Object.values(spec.paths ?? {}).reduce(
@@ -22,7 +22,8 @@ await Bun.write(manifestPath, `${JSON.stringify({
   sourceUrl,
   fetchedAt: new Date().toISOString(),
   sha256: hash.digest("hex"),
-  specVersion: spec.info?.version ?? "unknown",
+  openapiVersion: spec.openapi ?? "unknown",
+  infoVersion: spec.info?.version ?? "unknown",
   pathCount: Object.keys(spec.paths ?? {}).length,
   operationCount,
 }, null, 2)}\n`);

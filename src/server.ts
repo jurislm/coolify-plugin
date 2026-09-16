@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { CoolifyApiError, CoolifyClient } from "./client.js";
+import { CoolifyApiError, CoolifyClient, redactSensitive } from "./client.js";
+import { registerV36Capabilities } from "./capabilities.js";
 import type { FetchLike } from "./client.js";
 import type { CoolifyConfig } from "./config.js";
 import { operations } from "./generated/operations.js";
@@ -23,7 +24,7 @@ export function createServer(config: CoolifyConfig, fetchImpl?: FetchLike): McpS
     }, async (input) => {
       try {
         const envelope = await client.request(operation, input as Record<string, unknown>);
-        const structuredContent = { data: envelope.data, status: envelope.status, request: envelope.request };
+        const structuredContent = redactSensitive({ data: envelope.data, status: envelope.status, request: envelope.request });
         return { structuredContent, content: [{ type: "text" as const, text: JSON.stringify(structuredContent) }] };
       } catch (error) {
         const details = error instanceof CoolifyApiError
@@ -33,5 +34,6 @@ export function createServer(config: CoolifyConfig, fetchImpl?: FetchLike): McpS
       }
     });
   }
+  registerV36Capabilities(server, client);
   return server;
 }

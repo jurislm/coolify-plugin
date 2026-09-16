@@ -3,11 +3,14 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import { expect, test } from "bun:test";
 
 test("serves the generated tool catalog over local stdio", async () => {
+  const configured = JSON.parse(await Bun.file("mcp.json").text()) as { mcpServers: { coolify: { command: string; args: string[]; cwd?: string } } };
+  const server = configured.mcpServers.coolify;
+  expect(Bun.spawnSync([process.execPath, "run", "build"], { cwd: process.cwd() }).exitCode).toBe(0);
   const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
   const transport = new StdioClientTransport({
-    command: process.execPath,
-    args: ["src/index.ts"],
-    cwd: process.cwd(),
+    command: server.command,
+    args: server.args,
+    cwd: server.cwd ? new URL(server.cwd, `file://${process.cwd()}/`).pathname : process.cwd(),
     env: { ...env, COOLIFY_URL: "https://coolify.example", COOLIFY_TOKEN: "test-token" },
     stderr: "pipe",
   });
