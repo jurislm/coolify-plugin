@@ -227,6 +227,32 @@ async function testFailureGuards(): Promise<void> {
   );
   assert(!failedChecksRequests.some((request) => request.method === "PUT"), "failed required checks must not merge");
 
+  const slowChecksRequests: Request[] = [];
+  const pendingChecks = { state: "pending", statuses: [
+    { context: "ci/woodpecker/push/ci", state: "pending" },
+    { context: "ci/woodpecker/pr/ci", state: "pending" },
+  ] };
+  const slowChecksResponses = [
+    jsonResponse([candidate()]), jsonResponse(candidate()), jsonResponse(validFiles()),
+    contentResponse(contents.baseManifestText), contentResponse(contents.headManifestText),
+    contentResponse(contents.basePackageText), contentResponse(contents.headPackageText),
+    contentResponse(contents.basePluginManifestText), contentResponse(contents.headPluginManifestText),
+    contentResponse(contents.baseFallbackManifestText), contentResponse(contents.headFallbackManifestText),
+    contentResponse(contents.baseChangelogText), contentResponse(contents.headChangelogText),
+    ...Array.from({ length: 6 }, () => jsonResponse(pendingChecks)),
+    jsonResponse({ state: "success", statuses: [
+      { context: "ci/woodpecker/push/ci", state: "success" },
+      { context: "ci/woodpecker/pr/ci", state: "success" },
+    ] }),
+    jsonResponse({ ...candidate(), mergeable: true }),
+    jsonResponse({ ref: "refs/heads/main", object: { sha: BASE_SHA } }),
+    jsonResponse({ merged: true, sha: "slow-merge-sha" }),
+  ];
+  const slowChecksResult = await runReleasePrAutoMerge({
+    token: "token", expectedBaseSha: BASE_SHA, fetchImpl: fakeFetch(slowChecksResponses, slowChecksRequests), sleep: async () => {},
+  });
+  assert(slowChecksResult.status === "merged", "slow required checks must eventually merge");
+
   const logs: string[] = [];
   await runReleasePrAutoMerge({
     token: "secret-must-not-log",
