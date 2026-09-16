@@ -3,7 +3,7 @@
 ## Status
 
 - Branch: `codex/coolify-plugin`
-- Implementation commit: `6fde449befd1f2f91af25ece67dc58b7fbcb5a5a` (final public `main`)
+- Implementation commit: `32ef86e0089c6f4c41b2ea0f10281e916cf1fbe4` (final public `main`)
 - Round 3 implementation commit: `b858d57101a1e010e603330a9caa0b851e6f9825`
 - Package: `@jurislm/coolify-plugin@0.1.0` (publicly publishable, local-stdio runtime)
 - Authoritative snapshot: `https://raw.githubusercontent.com/coollabsio/coolify/main/openapi.json`
@@ -94,7 +94,7 @@ This report is inside the target repository because the later instruction prohib
 
 ## Final readback
 
-- Final local HEAD: `6fde449befd1f2f91af25ece67dc58b7fbcb5a5a`.
+- Final local HEAD: `32ef86e0089c6f4c41b2ea0f10281e916cf1fbe4`.
 - Fresh `bun run check`: exit 0, 38 tests/89 assertions; official plugin validator: exit 0; GitHub readback: `jurislm/coolify-plugin` PUBLIC, `main` at the same SHA.
 - Codex local marketplace install/readback: `coolify-plugin@jurislm-local`, version `0.1.0`, installed manifest and `mcp.json` present in local cache.
 - NPM publish remains blocked by `npm whoami` E401; package readback is E404. No publish or legacy deprecation was attempted.
