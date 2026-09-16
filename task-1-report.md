@@ -3,7 +3,7 @@
 ## Status
 
 - Branch: `codex/coolify-plugin`
-- Implementation commit: `8859c577152799c1f0d90739596fc6b072bad792`
+- Implementation commit: `6fde449befd1f2f91af25ece67dc58b7fbcb5a5a` (final public `main`)
 - Round 3 implementation commit: `b858d57101a1e010e603330a9caa0b851e6f9825`
 - Package: `@jurislm/coolify-plugin@0.1.0` (publicly publishable, local-stdio runtime)
 - Authoritative snapshot: `https://raw.githubusercontent.com/coollabsio/coolify/main/openapi.json`
@@ -91,6 +91,13 @@ This report is inside the target repository because the later instruction prohib
 - Refreshed active unarchived OpenSpec contracts to the generated `coolify_*`/`registerTool`/Bun architecture. `openspec/changes/archive/` remained unchanged. README now states NPM release is allowed and remote MCP, OAuth, vault, hosting, and OpenAI Plugin Directory submission are out of scope.
 - Exact round-4 evidence: `bun run check` exit 0 (35 tests, 83 assertions); `bun run build` exit 0; `bun pm pack --dry-run` exit 0 (34 files, including `api/manifest.json` and `openapi/coolify-openapi.json`); official plugin validator exit 0; `git diff --check` exit 0; `bun install --frozen-lockfile` exit 0; release tag check exit 0 for `CI_COMMIT_TAG=v0.1.0`; offline OpenAPI verification exit 0.
 - No live Coolify acceptance, GitHub CI run, NPM publish, or external readback was claimed or performed.
+
+## Final readback
+
+- Final local HEAD: `6fde449befd1f2f91af25ece67dc58b7fbcb5a5a`.
+- Fresh `bun run check`: exit 0, 38 tests/89 assertions; official plugin validator: exit 0; GitHub readback: `jurislm/coolify-plugin` PUBLIC, `main` at the same SHA.
+- Codex local marketplace install/readback: `coolify-plugin@jurislm-local`, version `0.1.0`, installed manifest and `mcp.json` present in local cache.
+- NPM publish remains blocked by `npm whoami` E401; package readback is E404. No publish or legacy deprecation was attempted.
 
 ## Fix round 5
 
