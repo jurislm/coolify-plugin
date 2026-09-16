@@ -17,7 +17,7 @@ const RELEASE_FILES = [
   ".codex-plugin/plugin.json",
 ] as const;
 const GITHUB_API = "https://api.github.com";
-const DEFAULT_MERGEABLE_ATTEMPTS = 12;
+const DEFAULT_MERGEABLE_ATTEMPTS = 24;
 const DEFAULT_POLL_DELAY_MS = 5_000;
 const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 const REQUIRED_CHECK_CONTEXTS = ["ci/woodpecker/push/ci", "ci/woodpecker/pr/ci"] as const;

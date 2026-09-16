@@ -239,7 +239,7 @@ async function testFailureGuards(): Promise<void> {
     contentResponse(contents.basePluginManifestText), contentResponse(contents.headPluginManifestText),
     contentResponse(contents.baseFallbackManifestText), contentResponse(contents.headFallbackManifestText),
     contentResponse(contents.baseChangelogText), contentResponse(contents.headChangelogText),
-    ...Array.from({ length: 6 }, () => jsonResponse(pendingChecks)),
+    ...Array.from({ length: 12 }, () => jsonResponse(pendingChecks)),
     jsonResponse({ state: "success", statuses: [
       { context: "ci/woodpecker/push/ci", state: "success" },
       { context: "ci/woodpecker/pr/ci", state: "success" },
