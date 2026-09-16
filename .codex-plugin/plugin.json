@@ -1,8 +1,10 @@
 {
   "name": "coolify-plugin",
-  "version": "3.6.0",
+  "version": "3.7.0",
   "description": "Fallback Codex metadata for local stdio Coolify tools.",
-  "author": { "name": "JurisLM" },
+  "author": {
+    "name": "JurisLM"
+  },
   "license": "MIT",
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
@@ -12,7 +14,12 @@
     "longDescription": "Generated local stdio tools for a configured Coolify instance.",
     "developerName": "JurisLM",
     "category": "Developer Tools",
-    "capabilities": ["MCP", "Local"],
-    "defaultPrompt": ["List my Coolify resources."]
+    "capabilities": [
+      "MCP",
+      "Local"
+    ],
+    "defaultPrompt": [
+      "List my Coolify resources."
+    ]
   }
 }

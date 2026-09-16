@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [3.7.0](https://github.com/jurislm/coolify-plugin/compare/v3.6.0...v3.7.0) (2026-09-16)
+
+
+### Features
+
+* add release automation ([32ef86e](https://github.com/jurislm/coolify-plugin/commit/32ef86e0089c6f4c41b2ea0f10281e916cf1fbe4))
+* split Coolify into local plugin ([8859c57](https://github.com/jurislm/coolify-plugin/commit/8859c577152799c1f0d90739596fc6b072bad792))
+
+
+### Bug Fixes
+
+* align Coolify API and release artifacts ([b858d57](https://github.com/jurislm/coolify-plugin/commit/b858d57101a1e010e603330a9caa0b851e6f9825))
+* align Coolify release metadata ([10e1534](https://github.com/jurislm/coolify-plugin/commit/10e1534735d66411f68ea2c169a4a4bc2ede8e5f))
+* align plugin version with source baseline ([fee9f18](https://github.com/jurislm/coolify-plugin/commit/fee9f18d1bc958b2b90cbab4476e0e95da0830a0))
+* build before CI tests ([513d4e7](https://github.com/jurislm/coolify-plugin/commit/513d4e7e8a8f7ee64514a420499cacbbb0d9655c))
+* harden Coolify collection boundaries ([262c83d](https://github.com/jurislm/coolify-plugin/commit/262c83d3aca8a394395f35f7fbf5cec9f23fb855))
+* harden Coolify plugin delivery ([95de627](https://github.com/jurislm/coolify-plugin/commit/95de6272bd6e2efe670ae01460251a70b1f1eea9))
+* make CI checks deterministic ([c400828](https://github.com/jurislm/coolify-plugin/commit/c4008282dd317156f34c9350ff4059a16cd1371a))
+* restore Coolify runtime compatibility ([d8a95c7](https://github.com/jurislm/coolify-plugin/commit/d8a95c7b1babdb214e61e5f3b28e4dc18ae7174b))
+* validate Coolify wrapper requests ([67569a6](https://github.com/jurislm/coolify-plugin/commit/67569a6e644e5043b4300e567e6360dbbbe88939))
+* verify package before publish ([6fde449](https://github.com/jurislm/coolify-plugin/commit/6fde449befd1f2f91af25ece67dc58b7fbcb5a5a))
+
+
+### Documentation
+
+* record Coolify round three evidence ([d32ab13](https://github.com/jurislm/coolify-plugin/commit/d32ab13207e43a3ff733641c02f4c6df7d51d281))
+* record Coolify Woodpecker setup ([7e8cb51](https://github.com/jurislm/coolify-plugin/commit/7e8cb51317882e1ca0a350606caff7db66555bc6))
+* record final Coolify readback ([84ad8e0](https://github.com/jurislm/coolify-plugin/commit/84ad8e0cf735b35794a285af54e54dc73bb74eec))
+* refresh Coolify version readback ([6fcbaf4](https://github.com/jurislm/coolify-plugin/commit/6fcbaf4f4284a6e16d1035ef555dcaeb8a06b459))
+* update Coolify release readback ([f7616b6](https://github.com/jurislm/coolify-plugin/commit/f7616b62ecf21f8684f7fbe2c721bbd5da3b4502))
+
 ## [3.6.0](https://github.com/jurislm/coolify-mcp/compare/v3.5.3...v3.6.0) (2026-07-11)
 
 
