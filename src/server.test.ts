@@ -143,7 +143,7 @@ describe("generated Coolify MCP server", () => {
     let calls = 0;
     const { server, client } = await connected(async () => { calls++; return json({}); });
     const result = await client.callTool({ name: "coolify_get_mcp_version", arguments: {} });
-    expect(result.structuredContent).toMatchObject({ data: { name: "@jurislm/coolify-plugin", version: "0.1.0" } });
+    expect(result.structuredContent).toMatchObject({ data: { name: "@jurislm/coolify-plugin", version: "3.6.0" } });
     expect(calls).toBe(0);
     await client.close();
     await server.close();

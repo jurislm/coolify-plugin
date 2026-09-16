@@ -30,7 +30,7 @@ async function expectRejects(run: () => Promise<unknown>, expected: string): Pro
   throw new Error(`expected rejection containing ${expected}`);
 }
 
-const VERSION = "0.1.1";
+const VERSION = "3.7.0";
 const BASE_SHA = "base-sha";
 const HEAD_SHA = "head-sha";
 const RELEASE_BRANCH = "release-please--branches--main--components--coolify-plugin";
@@ -63,16 +63,16 @@ function validFiles(): Array<{ filename: string; status: string }> {
 }
 
 function validContents(): Parameters<typeof validateReleaseContents>[0] {
-  const basePackage = { name: "@jurislm/coolify-plugin", version: "0.1.0", private: false };
+  const basePackage = { name: "@jurislm/coolify-plugin", version: "3.6.0", private: false };
   const headPackage = { ...basePackage, version: VERSION };
-  const basePlugin = { name: "coolify-plugin", version: "0.1.0", description: "plugin" };
+  const basePlugin = { name: "coolify-plugin", version: "3.6.0", description: "plugin" };
   const headPlugin = { ...basePlugin, version: VERSION };
   const changelogPreamble = "All notable changes to this project will be documented in this file.\n\n";
-  const oldHistory = "## [0.1.0](https://github.com/jurislm/coolify-plugin/releases/tag/v0.1.0)\n\nInitial release\n";
+  const oldHistory = "## [3.6.0](https://github.com/jurislm/coolify-plugin/releases/tag/v3.6.0)\n\nInitial release\n";
   const newBlock = `## [${VERSION}](https://github.com/jurislm/coolify-plugin/releases/tag/v${VERSION})\n\n### Bug Fixes\n\n* safe release\n\n`;
   return {
     version: VERSION,
-    baseManifestText: JSON.stringify({ ".": "0.1.0" }),
+    baseManifestText: JSON.stringify({ ".": "3.6.0" }),
     headManifestText: JSON.stringify({ ".": VERSION }),
     basePackageText: JSON.stringify(basePackage),
     headPackageText: JSON.stringify(headPackage),

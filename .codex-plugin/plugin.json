@@ -1,6 +1,6 @@
 {
   "name": "coolify-plugin",
-  "version": "0.1.0",
+  "version": "3.6.0",
   "description": "Fallback Codex metadata for local stdio Coolify tools.",
   "author": { "name": "JurisLM" },
   "license": "MIT",

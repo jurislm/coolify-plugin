@@ -5,7 +5,7 @@
 - Branch: `codex/coolify-plugin`
 - Implementation commit: `32ef86e0089c6f4c41b2ea0f10281e916cf1fbe4` (final public `main`)
 - Round 3 implementation commit: `b858d57101a1e010e603330a9caa0b851e6f9825`
-- Package: `@jurislm/coolify-plugin@0.1.0` (publicly publishable, local-stdio runtime)
+- Package bootstrap: `@jurislm/coolify-plugin@3.6.0`; first Release Please publish is `3.7.0` (publicly publishable, local-stdio runtime)
 - Authoritative snapshot: `https://raw.githubusercontent.com/coollabsio/coolify/main/openapi.json`
 - Snapshot SHA-256: `4dbb392aac5e0a46186c4e6e5237f86d9534bb99bf6b8b82351a513598af3900`
 - Contract: OpenAPI document version 3.1.0, info version 0.1, 192 paths, 275 operations
@@ -80,7 +80,7 @@ This report is inside the target repository because the later instruction prohib
 - Added offline persisted-snapshot SHA-256 verification plus independent OpenAPI document/info version, path-count, and operation-count checks before generated parity. `api:check` now includes `api/manifest.json`, `openapi`, and `src/generated` in its diff gate.
 - Completed Woodpecker CI and tag release verification with Alpine Git installation, `CI_COMMIT_TAG=v<package.version>` assertion, `NPM_TOKEN` mapping from `npm_token`, temporary NPM auth config cleanup, and `bun publish --access public`. `publishConfig.access` is public; no publish was executed in this local verification.
 - Refreshed active OpenSpec context and unarchived docs to the current package, Bun tests, generated artifacts, `registerTool`, and local stdio architecture. `openspec/changes/archive/` was not modified. Removed unused `jest.config.js` and refreshed the lockfile package name.
-- Exact local evidence: `bun run check` exit 0 (26 tests, 62 assertions); `bun run build` exit 0; `bun pm pack --dry-run` exit 0 (34 files, including `api/manifest.json` and the snapshot); `git diff --check` exit 0; `bun scripts/check-openapi.ts` exit 0; `CI_COMMIT_TAG=v0.1.0 bun scripts/check-release-tag.ts` exit 0; `bun install --frozen-lockfile` exit 0.
+- Exact historical local evidence: `bun run check` exit 0 (26 tests, 62 assertions); `bun run build` exit 0; `bun pm pack --dry-run` exit 0 (34 files, including `api/manifest.json` and the snapshot); `git diff --check` exit 0; `bun scripts/check-openapi.ts` exit 0; `CI_COMMIT_TAG=v3.6.0 bun scripts/check-release-tag.ts` is the current bootstrap tag contract; `bun install --frozen-lockfile` exit 0.
 - No live Coolify acceptance, NPM publish, remote CI run, or external readback was claimed or performed.
 
 ## Fix round 4
@@ -89,14 +89,14 @@ This report is inside the target repository because the later instruction prohib
 - Added narrow generated response compatibility for `/databases`, `/resources`, and application deployments. Known arrays and `data`/`deployments`/`items`/`results` wrappers pass operation-specific schemas; deployments normalize to arrays before `callTool` output validation.
 - Restored v3.6 composite behavior: `Promise.allSettled` partial data/errors for overview, application/server diagnostics, and issue scans; safe environment summaries; reachability/usability/resource health checks; 200-line/50,000-character log bounds; deployment normalization; and `coolify_get_environment` database-type cross-reference using `database_type`/`type` and environment id/UUID/name fallbacks.
 - Refreshed active unarchived OpenSpec contracts to the generated `coolify_*`/`registerTool`/Bun architecture. `openspec/changes/archive/` remained unchanged. README now states NPM release is allowed and remote MCP, OAuth, vault, hosting, and OpenAI Plugin Directory submission are out of scope.
-- Exact round-4 evidence: `bun run check` exit 0 (35 tests, 83 assertions); `bun run build` exit 0; `bun pm pack --dry-run` exit 0 (34 files, including `api/manifest.json` and `openapi/coolify-openapi.json`); official plugin validator exit 0; `git diff --check` exit 0; `bun install --frozen-lockfile` exit 0; release tag check exit 0 for `CI_COMMIT_TAG=v0.1.0`; offline OpenAPI verification exit 0.
+- Exact round-4 evidence: `bun run check` exit 0 (35 tests, 83 assertions); `bun run build` exit 0; `bun pm pack --dry-run` exit 0 (34 files, including `api/manifest.json` and `openapi/coolify-openapi.json`); official plugin validator exit 0; `git diff --check` exit 0; `bun install --frozen-lockfile` exit 0; bootstrap release tag contract is `CI_COMMIT_TAG=v3.6.0`; offline OpenAPI verification exit 0.
 - No live Coolify acceptance, GitHub CI run, NPM publish, or external readback was claimed or performed.
 
 ## Final readback
 
 - Final local HEAD: `32ef86e0089c6f4c41b2ea0f10281e916cf1fbe4`.
 - Fresh `bun run check`: exit 0, 38 tests/89 assertions; official plugin validator: exit 0; GitHub readback: `jurislm/coolify-plugin` PUBLIC, `main` at the same SHA.
-- Codex local marketplace install/readback: `coolify-plugin@jurislm-local`, version `0.1.0`, installed manifest and `mcp.json` present in local cache.
+- Codex local marketplace install/readback: `coolify-plugin@jurislm-local`, bootstrap version `3.6.0`, installed manifest and `mcp.json` present in local cache.
 - NPM publish remains blocked by `npm whoami` E401; package readback is E404. No publish or legacy deprecation was attempted.
 
 ## Release automation alignment
@@ -111,5 +111,5 @@ This report is inside the target repository because the later instruction prohib
 - Added direct MCP regression coverage for database/resource arrays, deployment `{ count, deployments }`, null, string, and unknown-object responses. The fallback manifest now references `./.mcp.json` and still omits `apps`; package-content checks confirm `.mcp.json` and examples ship.
 - Synchronized active response-optimization and OpenSpec contracts with the 200-line/50,000-character log bound and current generated `coolify_*`/`registerTool`/Bun architecture. All active non-archive references to the removed resolver/class, old paths, nonexistent integration command, and consolidated application contract are absent; archive diff remains empty.
 - `check-openapi.ts` now verifies the official `manifest.sourceUrl` in addition to persisted SHA-256 and contract counts; regression coverage verifies a non-authoritative URL fails.
-- Exact round-5 evidence: `bun run check` exit 0 (38 tests, 89 assertions); `bun run build` exit 0; `bun pm pack --dry-run` exit 0 (34 files, exactly one `api/manifest.json`); official plugin validator exit 0; `git diff --check` exit 0; `git diff --cached --check` exit 0; `bun install --frozen-lockfile` exit 0; `CI_COMMIT_TAG=v0.1.0 bun scripts/check-release-tag.ts` exit 0.
+- Exact round-5 evidence: `bun run check` exit 0 (38 tests, 89 assertions); `bun run build` exit 0; `bun pm pack --dry-run` exit 0 (34 files, exactly one `api/manifest.json`); official plugin validator exit 0; `git diff --check` exit 0; `git diff --cached --check` exit 0; `bun install --frozen-lockfile` exit 0; bootstrap tag check is `CI_COMMIT_TAG=v3.6.0` and first automatic release target is `v3.7.0`.
 - No live Coolify/provider request, GitHub CI readback, NPM publish, or external acceptance readback was performed or claimed.
