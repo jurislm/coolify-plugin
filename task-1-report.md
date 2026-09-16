@@ -99,6 +99,12 @@ This report is inside the target repository because the later instruction prohib
 - Codex local marketplace install/readback: `coolify-plugin@jurislm-local`, version `0.1.0`, installed manifest and `mcp.json` present in local cache.
 - NPM publish remains blocked by `npm whoami` E401; package readback is E404. No publish or legacy deprecation was attempted.
 
+## Release automation alignment
+
+- Main push: `.woodpecker/release.yml` runs Release Please GitHub Release then Release PR; `.woodpecker/release-pr-auto-merge.yml` serializes and validates the Release PR before merge.
+- Tag push: `.woodpecker/npm-release.yml` verifies `v<package.version>` and runs Bun-native pack before token-scoped public publish.
+- `release-please-config.json` synchronizes `package.json`, `plugin.json`, and `.codex-plugin/plugin.json`; local release workflow tests are included in `bun run check`.
+
 ## Fix round 5
 
 - Collection compatibility is now fail-closed and limited to `/databases`, `/resources`, `/deployments`, and `/deployments/applications/{uuid}`. Arrays and named array wrappers (`data`, `items`, `results`, `databases`, `resources`, `deployments`) normalize to arrays; null, strings, and unknown objects throw safe errors. Generated schemas are `z.array(z.unknown())` only for those normalized paths, and `src/server.ts` parses every generated response schema before emitting structured output.
