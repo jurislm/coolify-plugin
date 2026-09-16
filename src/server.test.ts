@@ -4,6 +4,7 @@ import { describe, expect, test } from "bun:test";
 import type { CoolifyConfig } from "./config.js";
 import { operations } from "./generated/operations.js";
 import { createServer } from "./server.js";
+import { pluginVersion } from "./version.js";
 
 const config: CoolifyConfig = { baseUrl: "https://coolify.example/api/v1", token: "secret", timeoutMs: 30_000 };
 const json = (value: unknown) => new Response(JSON.stringify(value), { headers: { "content-type": "application/json" } });
@@ -143,7 +144,7 @@ describe("generated Coolify MCP server", () => {
     let calls = 0;
     const { server, client } = await connected(async () => { calls++; return json({}); });
     const result = await client.callTool({ name: "coolify_get_mcp_version", arguments: {} });
-    expect(result.structuredContent).toMatchObject({ data: { name: "@jurislm/coolify-plugin", version: "3.6.0" } });
+    expect(result.structuredContent).toMatchObject({ data: { name: "@jurislm/coolify-plugin", version: pluginVersion } });
     expect(calls).toBe(0);
     await client.close();
     await server.close();

@@ -20,6 +20,7 @@ const GITHUB_API = "https://api.github.com";
 const DEFAULT_MERGEABLE_ATTEMPTS = 6;
 const DEFAULT_POLL_DELAY_MS = 5_000;
 const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
+const REQUIRED_CHECK_CONTEXTS = ["ci/woodpecker/push/ci", "ci/woodpecker/pr/ci"] as const;
 
 type FetchLike = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
@@ -288,6 +289,35 @@ export async function runReleasePrAutoMerge(options: AutoMergeOptions): Promise<
     return requiredString(requiredRecord(value.object, "base branch ref.object").sha, "base branch ref.object.sha");
   }
 
+  async function waitForRequiredChecks(commit: string): Promise<void> {
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      const value = requiredRecord(
+        await githubRequest(`/repos/${REPOSITORY}/commits/${encodeURIComponent(commit)}/status`),
+        "commit status",
+      );
+      const statuses = value.statuses;
+      if (!Array.isArray(statuses)) throw new Error("commit status statuses must be an array");
+      let pending = false;
+      for (const context of REQUIRED_CHECK_CONTEXTS) {
+        const status = statuses.find((entry) => isRecord(entry) && entry.context === context);
+        if (!status) {
+          pending = true;
+          continue;
+        }
+        if (status.state === "failure" || status.state === "error") {
+          throw new Error(`required checks failed: ${context}`);
+        }
+        if (status.state !== "success" && status.state !== "pending") {
+          throw new Error(`invalid required check state: ${context}`);
+        }
+        if (status.state !== "success") pending = true;
+      }
+      if (!pending) return;
+      if (attempt < maxAttempts) await sleep(pollDelayMs);
+    }
+    throw new Error("required checks did not complete");
+  }
+
   const candidatePullNumber = options.candidatePullNumber;
   const query = new URLSearchParams({ state: "open", base: BASE_BRANCH, head: `jurislm:${RELEASE_BRANCH}`, per_page: "100" });
   const candidateValue = candidatePullNumber === undefined
@@ -336,6 +366,7 @@ export async function runReleasePrAutoMerge(options: AutoMergeOptions): Promise<
     baseChangelogText: files[8]!, headChangelogText: files[9]!,
   });
   if (options.dryRun) return { status: "validated", pullNumber: detail.number };
+  await waitForRequiredChecks(detail.headSha);
 
   let mergeable = false;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {

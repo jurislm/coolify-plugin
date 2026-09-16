@@ -128,6 +128,10 @@ async function testMergeAndNoOp(): Promise<void> {
     contentResponse(contents.basePluginManifestText), contentResponse(contents.headPluginManifestText),
     contentResponse(contents.baseFallbackManifestText), contentResponse(contents.headFallbackManifestText),
     contentResponse(contents.baseChangelogText), contentResponse(contents.headChangelogText),
+    jsonResponse({ state: "success", statuses: [
+      { context: "ci/woodpecker/push/ci", state: "success" },
+      { context: "ci/woodpecker/pr/ci", state: "success" },
+    ] }),
     jsonResponse({ ...candidate(), mergeable: null }),
     jsonResponse({ ...candidate(), mergeable: true }),
     jsonResponse({ ref: "refs/heads/main", object: { sha: BASE_SHA } }),
@@ -192,6 +196,10 @@ async function testFailureGuards(): Promise<void> {
     contentResponse(contents.basePluginManifestText), contentResponse(contents.headPluginManifestText),
     contentResponse(contents.baseFallbackManifestText), contentResponse(contents.headFallbackManifestText),
     contentResponse(contents.baseChangelogText), contentResponse(contents.headChangelogText),
+    jsonResponse({ state: "success", statuses: [
+      { context: "ci/woodpecker/push/ci", state: "success" },
+      { context: "ci/woodpecker/pr/ci", state: "success" },
+    ] }),
     jsonResponse({ ...candidate(), mergeable: false }),
   ];
   await expectRejects(
@@ -199,6 +207,25 @@ async function testFailureGuards(): Promise<void> {
     "not mergeable",
   );
   assert(!blockedRequests.some((request) => request.method === "PUT"), "blocked release PR must not merge");
+
+  const failedChecksRequests: Request[] = [];
+  const failedChecksResponses = [
+    jsonResponse([candidate()]), jsonResponse(candidate()), jsonResponse(validFiles()),
+    contentResponse(contents.baseManifestText), contentResponse(contents.headManifestText),
+    contentResponse(contents.basePackageText), contentResponse(contents.headPackageText),
+    contentResponse(contents.basePluginManifestText), contentResponse(contents.headPluginManifestText),
+    contentResponse(contents.baseFallbackManifestText), contentResponse(contents.headFallbackManifestText),
+    contentResponse(contents.baseChangelogText), contentResponse(contents.headChangelogText),
+    jsonResponse({ state: "failure", statuses: [
+      { context: "ci/woodpecker/push/ci", state: "failure" },
+      { context: "ci/woodpecker/pr/ci", state: "success" },
+    ] }),
+  ];
+  await expectRejects(
+    () => runReleasePrAutoMerge({ token: "token", expectedBaseSha: BASE_SHA, fetchImpl: fakeFetch(failedChecksResponses, failedChecksRequests) }),
+    "required checks",
+  );
+  assert(!failedChecksRequests.some((request) => request.method === "PUT"), "failed required checks must not merge");
 
   const logs: string[] = [];
   await runReleasePrAutoMerge({
