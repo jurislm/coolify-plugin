@@ -3,7 +3,7 @@
 ## Status
 
 - Branch: `codex/coolify-plugin`
-- Implementation commit: `32ef86e0089c6f4c41b2ea0f10281e916cf1fbe4` (final public `main`)
+- Version baseline commit: `fee9f18d1bc958b2b90cbab4476e0e95da0830a0` (pushed to public `main`)
 - Round 3 implementation commit: `b858d57101a1e010e603330a9caa0b851e6f9825`
 - Package bootstrap: `@jurislm/coolify-plugin@3.6.0`; first Release Please publish is `3.7.0` (publicly publishable, local-stdio runtime)
 - Authoritative snapshot: `https://raw.githubusercontent.com/coollabsio/coolify/main/openapi.json`
@@ -19,7 +19,7 @@ This report is inside the target repository because the later instruction prohib
 - Generated API contract: `openapi/coolify-openapi.json`, `api/manifest.json`, `src/generated/coolify-api.ts`, `src/generated/coolify-zod.ts`, `src/generated/operations.ts`.
 - Reproducibility and validation: `scripts/update-openapi.ts`, `scripts/generate-openapi.ts`, `scripts/check-openapi.ts`, `scripts/validate-plugin-manifests.ts`, `scripts/package-contents-check.ts`, `scripts/check-release-tag.ts`.
 - Tests: config, client/redaction, generated contract, collection-response compatibility, MCP metadata/annotations/ToolEnvelope, v3.6 wrapper partial results and environment cross-reference, package-path parsing, release tag, stream parsing, stdio transport, and actual stdio protocol.
-- Delivery assets: `skills/coolify/SKILL.md`, `.woodpecker/ci.yml`, `.woodpecker/release.yml`.
+- Delivery assets: `skills/coolify/SKILL.md`, `.woodpecker/ci.yml`, `.woodpecker/release.yml`, `.woodpecker/release-pr-auto-merge.yml`, `.woodpecker/npm-release.yml`, and `scripts/ci/` release checks.
 - Removed: legacy consolidated MCP/client/types/tests, old local OpenAPI documentation, Docker/public NPM/release configuration, GitHub Actions release pipeline, and orphaned Husky lint-staged hook.
 
 ## Commands and exit codes
@@ -94,10 +94,9 @@ This report is inside the target repository because the later instruction prohib
 
 ## Final readback
 
-- Final local HEAD: `32ef86e0089c6f4c41b2ea0f10281e916cf1fbe4`.
-- Fresh `bun run check`: exit 0, 38 tests/89 assertions; official plugin validator: exit 0; GitHub readback: `jurislm/coolify-plugin` PUBLIC, `main` at the same SHA.
+- Fresh `bun run check`: exit 0, 38 tests/89 assertions; official plugin validator: exit 0; GitHub readback before this report update: `jurislm/coolify-plugin` PUBLIC, `main` at `fee9f18d1bc958b2b90cbab4476e0e95da0830a0`, package manifest `3.6.0`, no tags/releases.
 - Codex local marketplace install/readback: `coolify-plugin@jurislm-local`, bootstrap version `3.6.0`, installed manifest and `mcp.json` present in local cache.
-- NPM publish remains blocked by `npm whoami` E401; package readback is E404. No publish or legacy deprecation was attempted.
+- `npm pack --dry-run --json`: `@jurislm/coolify-plugin@3.6.0`, 36 files. NPM publish remains blocked by `npm whoami` E401; package readback is E404. No `v0.1.0` tag, publish, or legacy deprecation was attempted.
 
 ## Release automation alignment
 
