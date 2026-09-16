@@ -1,3 +1,5 @@
+> Current contract: use the generated `coolify_*` operations in `src/generated/operations.ts` and explicit wrappers registered with `registerTool` in `src/server.ts`; older action-oriented examples in this artifact are superseded. Executable checks live in Bun tests.
+
 ## 1. 確認真實 API 回傳形狀（先做，避免盲修）
 
 - [x] 1.1 在 `.worktrees/develop` 確認當前位置：`git worktree list && pwd && git branch --show-current`

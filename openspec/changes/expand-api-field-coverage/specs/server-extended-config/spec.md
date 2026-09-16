@@ -1,3 +1,5 @@
+> Current contract: use the generated `coolify_*` operations in `src/generated/operations.ts` and explicit wrappers registered with `registerTool` in `src/server.ts`; older action-oriented examples in this artifact are superseded. Executable checks live in Bun tests.
+
 ## ADDED Requirements
 
 ### Requirement: Server update supports build and monitoring configuration

@@ -48,7 +48,10 @@ function toolName(operation: JsonObject, method: string, path: string, used: Set
 }
 function responseInfo(operation: JsonObject, path: string): { schema: string; kind: string } {
   if (path === "/databases" || path === "/resources" || path === "/deployments/applications/{uuid}") {
-    return { schema: "z.union([z.array(z.unknown()), z.record(z.string(), z.unknown()), z.string()])", kind: "json" };
+    return { schema: "z.array(z.unknown())", kind: "json" };
+  }
+  if (path === "/deployments") {
+    return { schema: "z.array(z.unknown())", kind: "json" };
   }
   const response = Object.entries(operation.responses ?? {}).find(([status]) => /^2\d\d$/u.test(status))?.[1] as JsonObject | undefined;
   const content = response?.content ?? {};

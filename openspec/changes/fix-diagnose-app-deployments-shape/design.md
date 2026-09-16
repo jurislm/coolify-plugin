@@ -1,3 +1,5 @@
+> Current contract: use the generated `coolify_*` operations in `src/generated/operations.ts` and explicit wrappers registered with `registerTool` in `src/server.ts`; older action-oriented examples in this artifact are superseded. Executable checks live in Bun tests.
+
 ## Context
 
 `coolify_diagnose_application` 是 `src/capabilities.ts` 的明確 wrapper，內部用 `Promise.allSettled` 平行收集 application、logs、env vars、deployments 四個 generated operations，任一失敗不影響其他。部署結果先由 `src/client.ts` 在已知 collection wrapper 下歸一化，再由 wrapper 安全處理，避免因 shape 不符而拋例外。

@@ -45,10 +45,15 @@ function base64(bytes: ArrayBuffer): string {
 }
 
 function normalizeKnownCollection(path: string, value: unknown): unknown {
-  if (Array.isArray(value) || !value || typeof value !== "object") return value;
-  const keys = path === "/deployments/applications/{uuid}" ? ["deployments", "data", "items", "results"] : [path.slice(1), "data", "items", "results"];
-  for (const key of keys) if (Array.isArray((value as Record<string, unknown>)[key])) return (value as Record<string, unknown>)[key];
-  return value;
+  const collectionPaths = new Set(["/databases", "/resources", "/deployments", "/deployments/applications/{uuid}"]);
+  if (!collectionPaths.has(path)) return value;
+  if (Array.isArray(value)) return value;
+  if (!value || typeof value !== "object") throw new Error(`Coolify collection response for ${path} must be an array or named array wrapper`);
+  for (const key of ["data", "items", "results", "databases", "resources", "deployments"]) {
+    const nested = (value as Record<string, unknown>)[key];
+    if (Array.isArray(nested)) return nested;
+  }
+  throw new Error(`Coolify collection response for ${path} must be an array or named array wrapper`);
 }
 
 export class CoolifyClient {

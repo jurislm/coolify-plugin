@@ -1,6 +1,7 @@
 import { access, readFile } from "node:fs/promises";
 
 type Manifest = {
+  sourceUrl: string;
   sha256: string;
   openapiVersion: string;
   infoVersion: string;
@@ -9,8 +10,10 @@ type Manifest = {
 };
 type Document = { openapi?: string; info?: { version?: string }; paths?: Record<string, Record<string, unknown>> };
 const methods = new Set(["get", "put", "post", "delete", "patch", "head", "options", "trace"]);
+const officialSourceUrl = "https://raw.githubusercontent.com/coollabsio/coolify/main/openapi.json";
 
 export function verifySnapshot(snapshot: string, manifest: Manifest): void {
+  if (manifest.sourceUrl !== officialSourceUrl) throw new Error("OpenAPI sourceUrl is not authoritative");
   const hash = new Bun.CryptoHasher("sha256");
   hash.update(snapshot);
   if (hash.digest("hex") !== manifest.sha256) throw new Error("OpenAPI snapshot sha256 mismatch");

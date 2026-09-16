@@ -1,3 +1,5 @@
+> Current contract: use the generated `coolify_*` operations in `src/generated/operations.ts` and explicit wrappers registered with `registerTool` in `src/server.ts`; older action-oriented examples in this artifact are superseded. Executable checks live in Bun tests.
+
 ## Why
 
 Issue [#24](https://github.com/jurislm/coolify-plugin/issues/24)：`coolify_diagnose_application` 工具對任何合法 query（UUID / name / domain）都固定噴錯 `Error: deployments.slice is not a function`，導致主要的診斷工具完全不可用。根因是 `listApplicationDeployments` 用 `Promise<Deployment[]>` 強制斷言型別，但實際 Coolify API 在某些版本回傳 pagination wrapper 物件（非 array），TypeScript 的型別斷言只是編譯期說明，runtime 沒有驗證 — 違反 common rule「validate at system boundaries」。OpenAPI 文件雖宣稱回傳 array，但 active plugin documentation 已明示 OpenAPI 不可靠，必須以實際 API 為準。

@@ -9,6 +9,7 @@ for (const file of ["plugin.json", ".codex-plugin/plugin.json"]) {
   const manifest = parsed[file];
   if (manifest.name !== "coolify-plugin" || manifest.version !== "0.1.0") throw new Error(`${file} is not the portable Coolify manifest`);
 }
+if (parsed[".codex-plugin/plugin.json"].mcpServers !== "./.mcp.json" || "apps" in parsed[".codex-plugin/plugin.json"]) throw new Error("fallback manifest must reference ./.mcp.json and omit apps");
 const server = (parsed[".mcp.json"].mcpServers as Json).coolify as Json;
 if (server.type !== "stdio" || server.command !== "bun" || server.cwd !== "./" || "url" in server || "serverUrl" in server) throw new Error(".mcp.json must define local stdio only with cwd ./");
 if (JSON.stringify(parsed[".mcp.json"].mcpServers) !== JSON.stringify(parsed["mcp.json"].mcpServers)) throw new Error("Codex and portable MCP registrations must agree");

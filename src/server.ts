@@ -24,7 +24,8 @@ export function createServer(config: CoolifyConfig, fetchImpl?: FetchLike): McpS
     }, async (input) => {
       try {
         const envelope = await client.request(operation, input as Record<string, unknown>);
-        const structuredContent = redactSensitive({ data: envelope.data, status: envelope.status, request: envelope.request });
+        const data = operation.responseSchema.parse(envelope.data);
+        const structuredContent = redactSensitive({ data, status: envelope.status, request: envelope.request });
         return { structuredContent, content: [{ type: "text" as const, text: JSON.stringify(structuredContent) }] };
       } catch (error) {
         const details = error instanceof CoolifyApiError

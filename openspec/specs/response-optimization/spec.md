@@ -4,6 +4,9 @@ version: 1.0.0
 date: 2026-04-07
 ---
 
+> Current contract: use the generated `coolify_*` operations in `src/generated/operations.ts` and explicit wrappers registered with `registerTool` in `src/server.ts`; older action-oriented examples in this artifact are superseded. Executable checks live in Bun tests.
+
+
 ## Purpose
 
 Define token-efficient response behavior and payload safety constraints for MCP responses.
@@ -44,12 +47,12 @@ Application log handling MUST enforce size limits to avoid unbounded payload gro
 
 #### Scenario: Log content exceeds limits
 
-- **WHEN** logs exceed configured line or character boundaries (default: 100 lines, 50,000 characters)
+- **WHEN** logs exceed configured line or character boundaries (default: 200 lines, 50,000 characters)
 - **THEN** output is truncated to the most recent content and clearly indicates truncation with the prefix `"...[truncated]...\n"` prepended to the retained tail
 
 #### Scenario: Log content within limits
 
-- **WHEN** logs are below both the line limit (100) and character limit (50,000)
+- **WHEN** logs are below both the line limit (200) and character limit (50,000)
 - **THEN** logs are returned without truncation artifacts
 
 #### Scenario: Truncation precedence

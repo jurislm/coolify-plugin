@@ -1,3 +1,5 @@
+> Current contract: use the generated `coolify_*` operations in `src/generated/operations.ts` and explicit wrappers registered with `registerTool` in `src/server.ts`; older action-oriented examples in this artifact are superseded. Executable checks live in Bun tests.
+
 ## Why
 
 coolify-plugin v3.2.1 covers all Coolify API endpoints but many request types have incomplete field coverage. Application update/create types are missing ~30 fields (domains, static app flags, deployment commands, Docker registry fields). Server update is missing 6 configuration fields. Database operations lack `public_port_timeout`. Backup types miss retention storage limits and timeout. Deploy endpoint lacks `pull_request_id` and `docker_tag` parameters. This limits what AI assistants can configure through MCP tools.

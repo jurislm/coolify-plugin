@@ -1,3 +1,5 @@
+> Current contract: use the generated `coolify_*` operations in `src/generated/operations.ts` and explicit wrappers registered with `registerTool` in `src/server.ts`; older action-oriented examples in this artifact are superseded. Executable checks live in Bun tests.
+
 ## Context
 
 coolify-plugin already covers All 192 Coolify API paths and 275 operations. The first alignment pass (align-coolify-api-fields) fixed env var fields, stop/delete params, and service request types. This second pass addresses the remaining field gaps: application has ~30 missing optional fields, server update has 6, databases lack `public_port_timeout`, backups miss retention limits, and deploy lacks PR/tag params.

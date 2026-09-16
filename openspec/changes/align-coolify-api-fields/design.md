@@ -1,3 +1,5 @@
+> Current contract: use the generated `coolify_*` operations in `src/generated/operations.ts` and explicit wrappers registered with `registerTool` in `src/server.ts`; older action-oriented examples in this artifact are superseded. Executable checks live in Bun tests.
+
 ## Context
 
 coolify-plugin wraps the official generated Coolify REST contract into focused `coolify_*` MCP tools. The codebase follows the current layering: persisted API snapshot/manifest → generated types and operations → client → explicit capabilities → `registerTool` → Bun tests. The generated contract currently contains 192 paths and 275 operations; wrapper behavior is kept separately for v3.6 composite workflows.

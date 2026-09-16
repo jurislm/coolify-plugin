@@ -112,6 +112,33 @@ describe("generated Coolify MCP server", () => {
     await server.close();
   });
 
+  test("rejects null and unknown collection responses at the generated boundary", async () => {
+    const nullResult = await (async () => {
+      const { server, client } = await connected(async () => json(null));
+      const result = await client.callTool({ name: "coolify_list_databases", arguments: {} });
+      await client.close();
+      await server.close();
+      return result;
+    })();
+    const unknownResult = await (async () => {
+      const { server, client } = await connected(async () => json({ unknown: true }));
+      const result = await client.callTool({ name: "coolify_list_resources", arguments: {} });
+      await client.close();
+      await server.close();
+      return result;
+    })();
+    expect(nullResult.isError).toBe(true);
+    expect(unknownResult.isError).toBe(true);
+  });
+
+  test("rejects a string deployment response instead of widening the generated schema", async () => {
+    const { server, client } = await connected(async () => json("not-a-deployment-collection"));
+    const result = await client.callTool({ name: "coolify_list_deployments_by_app_uuid", arguments: { uuid: "app" } });
+    expect(result.isError).toBe(true);
+    await client.close();
+    await server.close();
+  });
+
   test("returns the v3.6 plugin-version wrapper without a provider request", async () => {
     let calls = 0;
     const { server, client } = await connected(async () => { calls++; return json({}); });

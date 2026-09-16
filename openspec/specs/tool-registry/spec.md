@@ -4,6 +4,9 @@ version: 2.0.0
 date: 2026-09-16
 ---
 
+> Current contract: use the generated `coolify_*` operations in `src/generated/operations.ts` and explicit wrappers registered with `registerTool` in `src/server.ts`; older action-oriented examples in this artifact are superseded. Executable checks live in Bun tests.
+
+
 ## Purpose
 
 Define the MCP surface produced by `@jurislm/coolify-plugin`: generated `coolify_*` tools from the pinned OpenAPI contract plus explicit v3.6 composite wrappers.

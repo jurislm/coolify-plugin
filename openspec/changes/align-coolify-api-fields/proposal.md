@@ -1,3 +1,5 @@
+> Current contract: use the generated `coolify_*` operations in `src/generated/operations.ts` and explicit wrappers registered with `registerTool` in `src/server.ts`; older action-oriented examples in this artifact are superseded. Executable checks live in Bun tests.
+
 ## Why
 
 coolify-plugin v3.2.1 covers all Coolify API endpoints but several request/response types are missing fields that Coolify v4.0.0-beta.471 now supports. This causes silent data loss (e.g., env var `comment` field dropped), incorrect field names (`is_build_time` vs `is_runtime`/`is_buildtime`), and missing parameters (`docker_cleanup` on stop, `force` on server delete). Aligning now prevents user confusion and ensures the MCP tools expose the full API surface.

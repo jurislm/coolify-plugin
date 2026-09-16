@@ -1,3 +1,5 @@
+> Current contract: use the generated `coolify_*` operations in `src/generated/operations.ts` and explicit wrappers registered with `registerTool` in `src/server.ts`; older action-oriented examples in this artifact are superseded. Executable checks live in Bun tests.
+
 ## 1. Types — src/generated/coolify-api.ts
 
 - [x] 1.1 Add ~25 optional fields to `UpdateApplicationRequest` (domains, static flags, deployment commands, Docker registry, webhooks, container config)
