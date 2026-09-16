@@ -1,6 +1,6 @@
 ## Context
 
-coolify-mcp already covers all 143 Coolify API routes. The first alignment pass (align-coolify-api-fields) fixed env var fields, stop/delete params, and service request types. This second pass addresses the remaining field gaps: application has ~30 missing optional fields, server update has 6, databases lack `public_port_timeout`, backups miss retention limits, and deploy lacks PR/tag params.
+coolify-plugin already covers All 192 Coolify API paths and 275 operations. The first alignment pass (align-coolify-api-fields) fixed env var fields, stop/delete params, and service request types. This second pass addresses the remaining field gaps: application has ~30 missing optional fields, server update has 6, databases lack `public_port_timeout`, backups miss retention limits, and deploy lacks PR/tag params.
 
 ## Goals / Non-Goals
 

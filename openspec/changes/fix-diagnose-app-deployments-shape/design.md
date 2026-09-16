@@ -1,10 +1,10 @@
 ## Context
 
-`diagnose_app` 是 v2.0.0 整併出的 composite tool，內部用 `Promise.allSettled` 平行收集 application、logs、env vars、deployments 四個來源（`src/lib/coolify-client.ts:1705-1710`），任一失敗不影響其他。但 deployments 這條路徑在 settled / fulfilled 時，回傳值未經 shape 驗證就直接被當成 `Deployment[]` 呼叫 `.slice()`（line 1750），造成整個 `diagnoseApplication` 拋例外、整支工具不可用。
+`diagnose_app` 是 v2.0.0 整併出的 composite tool，內部用 `Promise.allSettled` 平行收集 application、logs、env vars、deployments 四個來源（`src/client.ts:1705-1710`），任一失敗不影響其他。但 deployments 這條路徑在 settled / fulfilled 時，回傳值未經 shape 驗證就直接被當成 `Deployment[]` 呼叫 `.slice()`（line 1750），造成整個 `diagnoseApplication` 拋例外、整支工具不可用。
 
 目前 client 對 `/deployments/applications/{uuid}` 只用 TypeScript 斷言 `request<Deployment[]>`（line 1089）— TypeScript 斷言只在編譯期；runtime 的 `request()` 直接 `JSON.parse` 後 cast 出去，沒有驗證。
 
-issue 提交者環境是自架 Coolify + Traefik 3.6.14；但同一 client 其他 endpoint（`get_application`, `list_applications`, `list_databases`, `projects`）都正常，代表問題只出在 deployments。Coolify OpenAPI 雖宣稱 `type: array`（`docs/coolify-openapi.yaml:4203`），CLAUDE.md 已警示 OpenAPI 不可靠，必須以實機為準。
+issue 提交者環境是自架 Coolify + Traefik 3.6.14；但同一 client 其他 endpoint（`get_application`, `list_applications`, `list_databases`, `projects`）都正常，代表問題只出在 deployments。Coolify OpenAPI 雖宣稱 `type: array`（`openapi/coolify-openapi.json:4203`），active plugin documentation 已警示 OpenAPI 不可靠，必須以實機為準。
 
 ## Goals / Non-Goals
 
@@ -76,15 +76,15 @@ function normalizeDeploymentsResponse(raw: unknown): Deployment[] {
 
 ### Decision 3：歸一化函式作為私有 helper 不 export
 
-**選擇**：在 `coolify-client.ts` 內定義 `normalizeDeploymentsResponse` 為 module-private function（不加 `export`）。
+**選擇**：在 `client.ts` 內定義 `normalizeDeploymentsResponse` 為 module-private function（不加 `export`）。
 
 **理由**：
 
 - 不污染 public API surface。
 - 本次只解一個 endpoint 的問題，沒有跨 module 重用需求（YAGNI）。
-- 仍可被 `coolify-client.test.ts` 透過 client 方法的 mock response 間接測試。
+- 仍可被 `client.test.ts` 透過 native-fetch response fixture 間接測試。
 
-**替代方案**：放到 `src/lib/utils.ts`（若存在）或 export 出去。
+**替代方案**：放到新的通用 utility module 或 export 出去。
 **否決理由**：未來真有第二個 endpoint 出現同樣問題再抽出；目前抽出是 speculative generality。
 
 ### Decision 4：用 `unknown` + type guard 取代 type 斷言
@@ -103,7 +103,7 @@ function normalizeDeploymentsResponse(raw: unknown): Deployment[] {
   **緩解**：在 `normalizeDeploymentsResponse` 命中 fallback 時用 `console.warn` 記錄 raw shape 摘要（例如 `typeof raw`、top-level keys），方便日後 debug，但不丟錯。對純 MCP 用途的 stderr 寫入無副作用。
 
 - **風險**：實際 Coolify 回傳的 wrapper key 不是 `data` 也不是 `deployments`，仍走 fallback。  
-  **緩解**：先用 integration smoke test（`src/__tests__/integration/diagnostics.integration.test.ts`）打真實 Coolify、`console.log` 一次 raw response shape 並寫入 verification log。若是其他 key，補一條 case，本 change 即可解決；若是更怪的形狀（如雙層 wrapper），再開 follow-up。
+  **緩解**：先用 integration smoke test（`src/server.test.ts`）打真實 Coolify、`console.log` 一次 raw response shape 並寫入 verification log。若是其他 key，補一條 case，本 change 即可解決；若是更怪的形狀（如雙層 wrapper），再開 follow-up。
 
 - **風險**：未來 Coolify 改 API、加新 wrapper，又靜默走 fallback。  
   **緩解**：上面 `console.warn` 提供早期信號；CHANGELOG 記下這條歸一化規則供下次 maintainer 找。
@@ -115,10 +115,10 @@ function normalizeDeploymentsResponse(raw: unknown): Deployment[] {
 無 schema migration、無 breaking change：
 
 1. 修 `listApplicationDeployments` + 加 helper。
-2. 跑 `bun run build && bun run test && bun run lint`。
+2. 跑 `bun run build && bun run test && bun run check`。
 3. 跑 integration smoke：`bun run test:integration`（需 `.env`）— 必須覆蓋 issue 列出的三種 query 形式（UUID / name / domain）並驗證 raw shape。
-4. PR `develop → main`，Release Please 自動 patch bump。
-5. 合併後從 main `npm publish --access public`。
+4. PR `develop → main`，Woodpecker tag release 自動 patch bump。
+5. 合併後從 main `bun publish --access public`。
 
 **Rollback**：revert PR，patch 版本即可（無資料變更、無外部介面破壞）。
 

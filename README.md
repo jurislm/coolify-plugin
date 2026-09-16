@@ -23,7 +23,7 @@ bun dist/index.js
 
 ## OpenAPI contract
 
-`openapi/coolify-openapi.json` is fetched from the official Coolify repository. `openapi/manifest.json` records its source, fetch time, SHA-256, path count, and operation count.
+`openapi/coolify-openapi.json` is fetched from the official Coolify repository. `api/manifest.json` records its source, fetch time, persisted-snapshot SHA-256, document/info versions, path count, and operation count. `bun run api:check` verifies the snapshot offline before checking generated parity.
 
 ```sh
 bun run api:fetch

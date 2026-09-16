@@ -1,6 +1,6 @@
 ## Why
 
-coolify-mcp v3.2.1 covers all Coolify API endpoints but many request types have incomplete field coverage. Application update/create types are missing ~30 fields (domains, static app flags, deployment commands, Docker registry fields). Server update is missing 6 configuration fields. Database operations lack `public_port_timeout`. Backup types miss retention storage limits and timeout. Deploy endpoint lacks `pull_request_id` and `docker_tag` parameters. This limits what AI assistants can configure through MCP tools.
+coolify-plugin v3.2.1 covers all Coolify API endpoints but many request types have incomplete field coverage. Application update/create types are missing ~30 fields (domains, static app flags, deployment commands, Docker registry fields). Server update is missing 6 configuration fields. Database operations lack `public_port_timeout`. Backup types miss retention storage limits and timeout. Deploy endpoint lacks `pull_request_id` and `docker_tag` parameters. This limits what AI assistants can configure through MCP tools.
 
 ## What Changes
 
@@ -46,8 +46,8 @@ coolify-mcp v3.2.1 covers all Coolify API endpoints but many request types have 
 
 ## Impact
 
-- **Types**: `src/types/coolify.ts` — ~10 interfaces modified
-- **Client**: `src/lib/coolify-client.ts` — `deployByTagOrUuid` gains new params
-- **MCP Server**: `src/lib/mcp-server.ts` — `application`, `server`, `database`, `database_backups`, `storages`, `deploy` tool schemas updated
+- **Types**: `src/generated/coolify-api.ts` — ~10 interfaces modified
+- **Client**: `src/client.ts` — `deployByTagOrUuid` gains new params
+- **MCP Server**: `src/server.ts` — `application`, `server`, `database`, `database_backups`, `storages`, `deploy` tool schemas updated
 - **Tests**: New test cases for added fields/parameters
 - **No breaking changes**: All additions are optional fields

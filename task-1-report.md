@@ -15,7 +15,7 @@ This report is inside the target repository because the later instruction prohib
 
 - Package and local distribution: `package.json`, `bun.lock`, `README.md`, `LICENSE`, `plugin.json`, `mcp.json`, `.mcp.json`, `.codex-plugin/plugin.json`, `.mcp.json.example`, `.app.json.example`.
 - Plugin behavior: `src/config.ts`, `src/client.ts`, `src/errors.ts`, `src/capabilities.ts`, `src/server.ts`, `src/stream.ts`, `src/transports/stdio.ts`, `src/index.ts`.
-- Generated API contract: `openapi/coolify-openapi.json`, `openapi/manifest.json`, `src/generated/coolify-api.ts`, `src/generated/coolify-zod.ts`, `src/generated/operations.ts`.
+- Generated API contract: `openapi/coolify-openapi.json`, `api/manifest.json`, `src/generated/coolify-api.ts`, `src/generated/coolify-zod.ts`, `src/generated/operations.ts`.
 - Reproducibility and validation: `scripts/update-openapi.ts`, `scripts/generate-openapi.ts`, `scripts/validate-plugin-manifests.ts`, `scripts/package-contents-check.ts`.
 - Tests: config, client/redaction, generated contract, MCP metadata/annotations/ToolEnvelope, stream parsing, stdio transport, and actual stdio protocol.
 - Delivery assets: `skills/coolify/SKILL.md`, `.woodpecker/ci.yml`, `.woodpecker/release.yml`.
@@ -55,7 +55,7 @@ This report is inside the target repository because the later instruction prohib
 
 - Successful JSON responses now recursively redact environment values, private keys, tokens, secrets, passwords, authorization data, and cookies before both `structuredContent` and text serialization. Regression tests cover nested values, the MCP output boundary, timeout `AbortSignal`, and one-call/no-retry mutation behavior.
 - Restored v3.6 composite capabilities as focused `coolify_*` wrappers: plugin version, infrastructure overview, application/server diagnostics, issue scan, project restart/redeploy, bulk application-env update, emergency stop-all, and Docker network alias remediation. Direct legacy API capabilities remain covered by the focused generated operations.
-- `openapi/manifest.json` now records `openapiVersion` and `infoVersion` separately and tests both values.
+- `api/manifest.json` now records `openapiVersion` and `infoVersion` separately, and `api:check` verifies the persisted snapshot SHA-256 offline before generated parity.
 - Root `plugin.json` is the Agent Plugins 1.0 portable manifest with its canonical `$schema` and `extensions.com.openai.interface`; root `mcp.json` uses the matching Agent Plugins MCP schema and local stdio configuration. `.codex-plugin/plugin.json` remains fallback metadata only.
 - Removed `private: true`; the package and requested examples are included in the dry-run tarball. `.mcp.json.example` is secret-free.
 - Fix-round checks: `bun run api:check`, `bun run manifest:check`, `bun run build`, `bun test`, `bun run check`, `npm pack --dry-run`, and `git diff --check` all exited 0.

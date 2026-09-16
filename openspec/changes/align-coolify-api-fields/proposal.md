@@ -1,6 +1,6 @@
 ## Why
 
-coolify-mcp v3.2.1 covers all Coolify API endpoints but several request/response types are missing fields that Coolify v4.0.0-beta.471 now supports. This causes silent data loss (e.g., env var `comment` field dropped), incorrect field names (`is_build_time` vs `is_runtime`/`is_buildtime`), and missing parameters (`docker_cleanup` on stop, `force` on server delete). Aligning now prevents user confusion and ensures the MCP tools expose the full API surface.
+coolify-plugin v3.2.1 covers all Coolify API endpoints but several request/response types are missing fields that Coolify v4.0.0-beta.471 now supports. This causes silent data loss (e.g., env var `comment` field dropped), incorrect field names (`is_build_time` vs `is_runtime`/`is_buildtime`), and missing parameters (`docker_cleanup` on stop, `force` on server delete). Aligning now prevents user confusion and ensures the MCP tools expose the full API surface.
 
 ## What Changes
 
@@ -25,8 +25,8 @@ coolify-mcp v3.2.1 covers all Coolify API endpoints but several request/response
 
 ## Impact
 
-- **Types**: `src/types/coolify.ts` — 6 interfaces modified
-- **Client**: `src/lib/coolify-client.ts` — 4 methods gain new parameters, service update/create payloads expanded
-- **MCP Server**: `src/lib/mcp-server.ts` — `env_vars`, `control`, `server`, `service` tool schemas updated
-- **Tests**: `src/__tests__/coolify-client.test.ts` and `src/__tests__/mcp-server.test.ts` — new test cases for added fields/parameters
+- **Types**: `src/generated/coolify-api.ts` — 6 interfaces modified
+- **Client**: `src/client.ts` — 4 methods gain new parameters, service update/create payloads expanded
+- **MCP Server**: `src/server.ts` — `env_vars`, `control`, `server`, `service` tool schemas updated
+- **Tests**: `src/client.test.ts` and `src/server.test.ts` — new test cases for added fields/parameters
 - **No breaking changes**: All new fields are optional; existing callers unaffected

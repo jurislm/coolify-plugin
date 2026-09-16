@@ -1,19 +1,9 @@
 # OpenSpec Directory
 
-This directory stores OpenSpec artifacts used for spec-driven change workflow in this repository.
+This directory stores spec-driven artifacts for `@jurislm/coolify-plugin`.
 
-## What is here
+`api/manifest.json` and the persisted snapshot under `openapi/` are the API-contract source of truth for generation. Runtime code lives in `src/`; generated operations are registered with MCP `registerTool`; explicit v3.6 composite behavior lives in `src/capabilities.ts`.
 
-- `config.yaml`: Shared guidance and validation defaults for OpenSpec artifacts.
-- `specs/`: Stable spec documents that define expected behavior and acceptance scenarios.
-- `changes/`: Per-change proposal/design/tasks artifacts and archived change records.
+Tests are colocated as `src/*.test.ts` and `scripts/*.test.ts` and run with Bun. The package exposes local stdio only and accepts the canonical `COOLIFY_URL` and `COOLIFY_TOKEN` environment variables.
 
-## How it is used
-
-- Authors draft or update specs before implementation.
-- Specs provide reviewable, testable requirements for behavior.
-- Implementation and tests should align with the requirements in these specs.
-
-## Scope
-
-These files are workflow and documentation artifacts. Runtime code is in `src/` and tests are in `src/__tests__/`.
+`specs/` contains active requirements. `changes/archive/` contains historical records and is intentionally preserved unchanged.

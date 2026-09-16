@@ -1,55 +1,57 @@
 schema: spec-driven
 
 context: |
-  Project: @jurislm/coolify-mcp
-  Purpose: TypeScript MCP server that wraps Coolify REST API into token-optimized tools.
+  Project: @jurislm/coolify-plugin
+  Purpose: Portable Agent Plugin exposing Coolify REST operations and explicit v3.6 composite capabilities through local stdio MCP.
 
   Tech stack:
-  - TypeScript (ESM, strict mode), Node.js >= 18
-  - @modelcontextprotocol/sdk, zod
-  - Jest for tests, ESLint + Prettier for quality
+  - Bun >= 1.1, TypeScript ESM in strict mode
+  - @modelcontextprotocol/sdk 1.30.0 and zod 4.6.5
+  - Native fetch only for provider requests
+  - openapi-typescript 7.13.0, json-schema-to-zod 2.8.1, yaml 2.9.1 for generation
+  - Bun test for tests
 
-  Key files:
-  - src/lib/coolify-client.ts (HTTP client)
-  - src/lib/mcp-server.ts (tool definitions/handlers)
-  - src/types/coolify.ts (API types)
-  - src/__tests__/coolify-client.test.ts and src/__tests__/mcp-server.test.ts (required coverage)
+  Current architecture:
+  - api/manifest.json is the canonical API manifest; openapi/coolify-openapi.json is the persisted official snapshot.
+  - scripts/check-openapi.ts verifies the persisted SHA-256, document version, info version, path count, and operation count offline.
+  - src/generated/coolify-api.ts, src/generated/coolify-zod.ts, and src/generated/operations.ts are generated artifacts.
+  - src/client.ts owns native fetch, path/query encoding, timeout, ToolEnvelope responses, and recursive response redaction.
+  - src/capabilities.ts owns explicit v3.6 composite wrappers; src/server.ts registers generated operations and wrappers with registerTool.
+  - src/transports/stdio.ts and src/index.ts provide the only MCP transport: local stdio.
+  - Tests are colocated as src/*.test.ts and scripts/*.test.ts.
 
   Implementation conventions:
-  - Add new API support in order: types -> client -> server tool -> tests.
-  - Keep list endpoints summary-first to reduce token usage.
-  - UUID path params must use encodeURIComponent(String(value)).
-  - Numeric IDs should use String(id) (no encodeURIComponent).
-  - Application domain input maps fqdn -> domains before API calls.
-  - docker_compose_raw is base64-encoded by client before API requests.
-  - Use explicit field allowlists for update handlers (avoid object spread injection).
-  - Prefer immutable updates and explicit error handling.
+  - Keep the authoritative snapshot and api/manifest.json in sync; never add a handwritten API fallback.
+  - Validate generated operation inputs before fetch and reject unsupported wrapper fields at the MCP boundary.
+  - Encode path parameters with encodeURIComponent(String(value)) and append only defined query parameters.
+  - Preserve explicit false values and never retry provider mutations.
+  - Recursively redact environment values, private keys, tokens, secrets, passwords, authorization data, and cookies before structuredContent and text output.
+  - Keep wrapper behavior explicit for diagnostics, infrastructure overview, issue scans, batch operations, and Docker network alias remediation.
 
   Workflow and release:
-  - Conventional Commits required (feat/fix/refactor/docs/test/chore/perf/ci).
-  - Release Please controls versioning/changelog on main; do not manually bump package version.
-  - Default validation commands: bun run build && bun run test && bun run lint && bun run format:check.
+  - Use Conventional Commits.
+  - The package is publishable with publishConfig.access public; release verification requires CI_COMMIT_TAG=v<package.version>.
+  - Woodpecker CI must install git before Bun commands, run bun run check, and package checks must include npm pack --dry-run.
+  - Do not claim live Coolify acceptance without configured COOLIFY_URL and COOLIFY_TOKEN evidence.
 
 rules:
   proposal:
     - Keep proposal focused and concise (target under 600 words).
-    - Include: Problem, Goals, Non-goals, Scope, Risks, and Validation approach.
-    - Explicitly state user-visible behavior changes and backward compatibility impact.
-    - If API surface changes, list affected tools and whether response shape changes.
+    - Include Problem, Goals, Non-goals, Scope, Risks, and Validation approach.
+    - State user-visible tool and response changes and any compatibility impact.
 
   design:
-    - Document affected files using this sequence: types -> client -> mcp-server -> tests -> docs.
-    - Specify request/response typing changes and validation strategy (zod + TypeScript types).
-    - Describe token-usage impact for list/summary responses.
-    - Capture Coolify API compatibility considerations (fqdn/domains, base64 fields, id encoding).
+    - Document affected files in this order: API manifest/snapshot -> generated artifacts -> client -> capabilities -> registerTool server -> tests -> docs.
+    - Specify request/response validation, timeout, redaction, and annotation behavior.
+    - Record whether behavior comes from the official generated contract or an explicit v3.6 wrapper.
 
   tasks:
     - Write atomic, testable tasks with clear done criteria.
-    - Include test tasks for both client and MCP layers when adding/modifying endpoints.
-    - Include docs updates when tool count, behavior, or usage examples change.
-    - End with a verification task running: build, tests, lint, format check.
+    - Include generated-contract and wrapper request assertions for changed capabilities.
+    - Include docs and package-content updates when paths, tools, or release behavior change.
+    - End with a verification task running bun run check, bun run build, npm pack --dry-run, and git diff --check.
 
   spec:
     - Prefer concrete, verifiable requirements over vague guidance.
     - For each behavioral change, include at least one acceptance scenario.
-    - Note error handling and edge-case behavior (invalid ids, API validation errors, partial failures).
+    - Note invalid identifiers, provider errors, partial batch failures, secret redaction, and absent live credentials.

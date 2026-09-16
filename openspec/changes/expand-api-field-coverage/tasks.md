@@ -1,4 +1,4 @@
-## 1. Types — src/types/coolify.ts
+## 1. Types — src/generated/coolify-api.ts
 
 - [x] 1.1 Add ~25 optional fields to `UpdateApplicationRequest` (domains, static flags, deployment commands, Docker registry, webhooks, container config)
 - [x] 1.2 Add `proxy_type`, `concurrent_builds`, `dynamic_timeout`, `deployment_queue_limit`, `server_disk_usage_notification_threshold`, `server_disk_usage_check_frequency` to `UpdateServerRequest`
@@ -6,11 +6,11 @@
 - [x] 1.4 Add `database_backup_retention_max_storage_locally`, `database_backup_retention_max_storage_s3`, `timeout` to `CreateDatabaseBackupRequest` and `UpdateDatabaseBackupRequest`
 - [x] 1.5 Add `fs_path` to `CreateStorageRequest` (already existed)
 
-## 2. Client — src/lib/coolify-client.ts
+## 2. Client — src/client.ts
 
 - [x] 2.1 Update `deployByTagOrUuid` to accept and pass `docker_tag` as query param (pull_request_id already supported)
 
-## 3. MCP Server — src/lib/mcp-server.ts
+## 3. MCP Server — src/server.ts
 
 - [x] 3.1 Add Tier 1+2 application fields to `application` tool schema for update action and wire through handler
 - [x] 3.2 Add server build/monitoring fields to `server` tool schema for update action and wire through handler
@@ -36,5 +36,5 @@
 
 - [x] 5.1 Run `bun run build` — no TypeScript errors
 - [x] 5.2 Run `bun run test` — all tests pass (376 tests, 100% coverage)
-- [x] 5.3 Run `bun run lint` — no lint errors
-- [x] 5.4 Run `bun run format:check` — formatting OK
+- [x] 5.3 Run `bun run check` — no lint errors
+- [x] 5.4 Run `bun run check` — formatting OK

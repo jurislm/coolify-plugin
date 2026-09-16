@@ -1,4 +1,4 @@
-## 1. Types — src/types/coolify.ts
+## 1. Types — src/generated/coolify-api.ts
 
 - [x] 1.1 Add `comment?: string` to `CreateEnvVarRequest`, `UpdateEnvVarRequest`
 - [x] 1.2 Add `is_runtime?: boolean` and `is_buildtime?: boolean` to `CreateEnvVarRequest`, `UpdateEnvVarRequest`
@@ -7,7 +7,7 @@
 - [x] 1.5 Expand `UpdateServiceRequest` with `urls`, `force_domain_override`, `is_container_label_escape_enabled`, `connect_to_docker_network`; remove deprecated `fqdn?: never`
 - [x] 1.6 Add `StopOptions` interface with `dockerCleanup?: boolean`
 
-## 2. Client — src/lib/coolify-client.ts
+## 2. Client — src/client.ts
 
 - [x] 2.1 Update `stopApplication(uuid, options?: StopOptions)` to pass `docker_cleanup` as query param
 - [x] 2.2 Update `stopDatabase(uuid, options?: StopOptions)` to pass `docker_cleanup` as query param
@@ -16,7 +16,7 @@
 - [x] 2.5 Update `updateService()` to include new fields in the payload allowlist
 - [x] 2.6 Update `createService()` to include new fields in the payload
 
-## 3. MCP Server — src/lib/mcp-server.ts
+## 3. MCP Server — src/server.ts
 
 - [x] 3.1 Add `comment` parameter to `env_vars` tool schema for create/update/bulk_create actions
 - [x] 3.2 Add `is_runtime` and `is_buildtime` parameters to `env_vars` tool schema
@@ -40,5 +40,5 @@
 
 - [x] 5.1 Run `bun run build` — no TypeScript errors
 - [x] 5.2 Run `bun run test` — all tests pass (366 tests, 100% coverage)
-- [x] 5.3 Run `bun run lint` — no lint errors
-- [x] 5.4 Run `bun run format:check` — formatting OK
+- [x] 5.3 Run `bun run check` — no lint errors
+- [x] 5.4 Run `bun run check` — formatting OK

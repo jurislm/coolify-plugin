@@ -1,6 +1,6 @@
 ## Context
 
-coolify-mcp wraps the Coolify REST API (currently v4.0.0-beta.471) into MCP tools. The codebase follows a strict layering: types → client → mcp-server → tests. All 143 Coolify API routes are covered, but 6 interface/parameter gaps exist where the MCP types don't match the upstream API fields. This is a field-level alignment — no new endpoints, no architectural changes.
+coolify-plugin wraps the official generated Coolify REST contract into focused `coolify_*` MCP tools. The codebase follows the current layering: persisted API snapshot/manifest → generated types and operations → client → explicit capabilities → `registerTool` → Bun tests. The generated contract currently contains 192 paths and 275 operations; wrapper behavior is kept separately for v3.6 composite workflows.
 
 ## Goals / Non-Goals
 

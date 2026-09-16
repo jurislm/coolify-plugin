@@ -3,7 +3,7 @@
   "configVersion": 0,
   "workspaces": {
     "": {
-      "name": "@jurislm/coolify-mcp",
+      "name": "@jurislm/coolify-plugin",
       "dependencies": {
         "@modelcontextprotocol/sdk": "1.30.0",
         "zod": "4.6.5",

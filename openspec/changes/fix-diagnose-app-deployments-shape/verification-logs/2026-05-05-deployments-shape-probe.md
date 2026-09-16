@@ -8,7 +8,7 @@
 
 用 `bun -e` 直接 fetch endpoint，**不印 raw response**，只記錄：HTTP status / typeof body / Array.isArray / top-level keys。
 
-連線資訊：probe 執行時 user 自架 Coolify 的 `~/.zshenv` 仍是 legacy env names（`COOLIFY_BASE_URL` / `COOLIFY_ACCESS_TOKEN`）。本 PR 已將 canonical 名稱改為 `COOLIFY_URL` / `COOLIFY_TOKEN`（runtime 接受新舊名 fallback），未來重跑 probe 應使用新名稱。
+連線資訊：這是歷史 probe；當時使用的 credential configuration 已不再是目前支援的介面。現行 runtime 僅接受 `COOLIFY_URL` / `COOLIFY_TOKEN`，本 log 不構成目前 live acceptance。
 
 對 issue 列出的三個 query 跑：
 
@@ -36,11 +36,11 @@
 
 3. **Endpoint 只接受 UUID**：`lawyer-prod-app`（name）回 404 + `{ message }`。issue 提到 name 也失敗，是因為 `diagnoseApplication` 先 `resolveApplicationUuid()` 解成 UUID 才打 deployments，所以最終崩在 `slice` 同一處。client 層 normalize 後三種 query 都能完成診斷。
 
-4. **404 回傳的 `{ message }` 不是 deployments shape**：但 normalization 不會被觸發 — `request<T>()` 對 4xx/5xx 已經 throw（`coolify-client.ts` 既有錯誤處理），會走 `Promise.allSettled` 的 rejected 分支由 `extract()` 收進 `errors` 陣列。實際 200 回傳才會進入 normalize。
+4. **404 回傳的 `{ message }` 不是 deployments shape**：但 normalization 不會被觸發 — `request<T>()` 對 4xx/5xx 已經 throw（`client.ts` 既有錯誤處理），會走 `Promise.allSettled` 的 rejected 分支由 `extract()` 收進 `errors` 陣列。實際 200 回傳才會進入 normalize。
 
 ## Coolify version note
 
-實機回傳格式 `{ count, deployments }`，OpenAPI（`docs/coolify-openapi.yaml:4203`）宣稱 `type: array` — 兩者不一致，再次驗證 CLAUDE.md「The Coolify OpenAPI docs are unreliable」的提醒。
+實機回傳格式 `{ count, deployments }`，OpenAPI（`openapi/coolify-openapi.json:4203`）宣稱 `type: array` — 兩者不一致，再次驗證 active plugin documentation「The Coolify OpenAPI docs are unreliable」的提醒。
 
 ## Probe script
 
@@ -63,7 +63,7 @@ $ bun run test
 ### Integration smoke (2026-05-05)
 
 ```
-$ bun test --timeout 60000 ./src/__tests__/integration/diagnostics.integration.test.ts
+$ bun test --timeout 60000 ./src/server.test.ts
 4 pass / 3 fail / 21 expect() calls
 ```
 
