@@ -4,6 +4,7 @@
 
 - Branch: `codex/coolify-plugin`
 - Implementation commit: `8859c577152799c1f0d90739596fc6b072bad792`
+- Round 3 implementation commit: `b858d57101a1e010e603330a9caa0b851e6f9825`
 - Package: `@jurislm/coolify-plugin@0.1.0` (publicly publishable, local-stdio runtime)
 - Authoritative snapshot: `https://raw.githubusercontent.com/coollabsio/coolify/main/openapi.json`
 - Snapshot SHA-256: `4dbb392aac5e0a46186c4e6e5237f86d9534bb99bf6b8b82351a513598af3900`
@@ -72,3 +73,12 @@ This report is inside the target repository because the later instruction prohib
 
 - No live Coolify instance credentials were supplied, so no real API mutation was attempted. The official contract, generated tool catalog, fetch behavior, redaction behavior, package contents, and local stdio protocol were verified without contacting a configured Coolify instance.
 - The official OpenAPI snapshot includes provider API operations that may accept provider-owned OAuth fields; the plugin adds no OAuth transport or flow. Its only MCP transport is local stdio.
+
+## Fix round 3
+
+- Moved the canonical manifest to `api/manifest.json`; `openapi/coolify-openapi.json` remains the only persisted snapshot, and the old `openapi/manifest.json` path is rejected as a conflict.
+- Added offline persisted-snapshot SHA-256 verification plus independent OpenAPI document/info version, path-count, and operation-count checks before generated parity. `api:check` now includes `api/manifest.json`, `openapi`, and `src/generated` in its diff gate.
+- Completed Woodpecker CI and tag release verification with Alpine Git installation, `CI_COMMIT_TAG=v<package.version>` assertion, `NPM_TOKEN` mapping from `npm_token`, temporary NPM auth config cleanup, and `bun publish --access public`. `publishConfig.access` is public; no publish was executed in this local verification.
+- Refreshed active OpenSpec context and unarchived docs to the current package, Bun tests, generated artifacts, `registerTool`, and local stdio architecture. `openspec/changes/archive/` was not modified. Removed unused `jest.config.js` and refreshed the lockfile package name.
+- Exact local evidence: `bun run check` exit 0 (26 tests, 62 assertions); `bun run build` exit 0; `npm pack --dry-run` exit 0 (34 files, including `api/manifest.json` and the snapshot); `git diff --check` exit 0; `bun scripts/check-openapi.ts` exit 0; `CI_COMMIT_TAG=v0.1.0 bun scripts/check-release-tag.ts` exit 0; `bun install --frozen-lockfile` exit 0.
+- No live Coolify acceptance, NPM publish, remote CI run, or external readback was claimed or performed.
