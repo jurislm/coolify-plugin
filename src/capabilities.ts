@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { CoolifyClient, redactSensitive } from "./client.js";
 import { operations } from "./generated/operations.js";
+import { pluginVersion } from "./version.js";
 
 const outputSchema = z.object({ data: z.unknown(), status: z.number(), request: z.object({ method: z.string(), path: z.string() }) });
 const databaseTypes = ["dragonfly", "keydb", "clickhouse"] as const;
@@ -82,7 +83,7 @@ export function registerV36Capabilities(server: McpServer, client: CoolifyClient
     return servers.find((item) => [item.uuid, item.name, item.ip].some((value) => typeof value === "string" && value.toLowerCase().includes(query.toLowerCase())));
   };
 
-  register("coolify_get_mcp_version", "Get the local Coolify plugin version.", z.object({}), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async () => ({ name: "@jurislm/coolify-plugin", version: "0.1.0" }));
+  register("coolify_get_mcp_version", "Get the local Coolify plugin version.", z.object({}), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async () => ({ name: "@jurislm/coolify-plugin", version: pluginVersion }));
   register("coolify_get_infrastructure_overview", "Summarize Coolify infrastructure.", z.object({}), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, overview);
   register("coolify_diagnose_application", "Diagnose an application by UUID, name, or domain.", z.object({ query: z.string() }), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async ({ query }) => {
     let app: RecordValue | undefined;

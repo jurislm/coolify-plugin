@@ -5,13 +5,14 @@ import { registerV36Capabilities } from "./capabilities.js";
 import type { FetchLike } from "./client.js";
 import type { CoolifyConfig } from "./config.js";
 import { operations } from "./generated/operations.js";
+import { pluginVersion } from "./version.js";
 
 const outputRequestSchema = z.object({ method: z.string(), path: z.string() });
 
 export function createServer(config: CoolifyConfig, fetchImpl?: FetchLike): McpServer {
   const client = new CoolifyClient(config, fetchImpl);
   const server = new McpServer(
-    { name: "coolify-plugin", version: "0.1.0" },
+    { name: "coolify-plugin", version: pluginVersion },
     { instructions: "Use read tools to identify exact Coolify resources before mutations. Never expose tokens or secret values." },
   );
   for (const operation of operations) {
