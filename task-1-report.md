@@ -112,7 +112,8 @@ This report is inside the target repository because the later instruction prohib
 
 ## Legacy closeout
 
-- Deprecation of `@jurislm/coolify-mcp@*` was rejected by npm `E403`: 2FA or a granular token with 2FA bypass is required. The old package remains active and the old repo remains unarchived.
+- `@jurislm/coolify-mcp@*` was deprecated through the npm web UI; registry readback returns the deprecation message for version `3.6.0`.
+- `jurislm/coolify-mcp` is archived and public (`isArchived=true`); no alias package was created.
 
 ## Fix round 5
 
