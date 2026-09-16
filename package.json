@@ -1,12 +1,31 @@
 {
   "name": "@jurislm/coolify-plugin",
-  "version": "3.6.0",
+  "version": "3.7.0",
   "description": "Portable local stdio MCP plugin for Coolify",
-  "publishConfig": { "access": "public" },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
-  "bin": { "coolify-plugin": "dist/index.js" },
-  "files": ["dist", "api", "openapi", "README.md", "LICENSE", "plugin.json", "mcp.json", ".mcp.json", ".mcp.json.example", ".app.json.example", ".codex-plugin", "skills"],
-  "engines": { "bun": ">=1.1.0" },
+  "bin": {
+    "coolify-plugin": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "api",
+    "openapi",
+    "README.md",
+    "LICENSE",
+    "plugin.json",
+    "mcp.json",
+    ".mcp.json",
+    ".mcp.json.example",
+    ".app.json.example",
+    ".codex-plugin",
+    "skills"
+  ],
+  "engines": {
+    "bun": ">=1.1.0"
+  },
   "scripts": {
     "clean": "rm -rf dist",
     "build": "bun run clean && tsc",
@@ -23,7 +42,10 @@
     "check": "bun run manifest:check && bun run api:check && bun run typecheck && bun run typecheck:tests && bun run build && bun test && bun run release:test && bun pm pack --dry-run 2>&1 | bun scripts/package-contents-check.ts",
     "prepublishOnly": "bun run check"
   },
-  "dependencies": { "@modelcontextprotocol/sdk": "1.30.0", "zod": "4.6.5" },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "zod": "4.6.5"
+  },
   "devDependencies": {
     "@types/bun": "1.4.2",
     "json-schema-to-zod": "2.8.1",
