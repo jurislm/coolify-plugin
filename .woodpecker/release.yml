@@ -18,6 +18,7 @@ steps:
     commands:
       - apk add --no-cache git
       - bun install --frozen-lockfile
+      - bun pm pack --dry-run
       - trap 'rm -f "$HOME/.npmrc"' EXIT
       - printf '//registry.npmjs.org/:_authToken=%s\n' "$NPM_TOKEN" > "$HOME/.npmrc"
       - bun publish --access public
