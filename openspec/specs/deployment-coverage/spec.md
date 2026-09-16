@@ -1,43 +1,28 @@
-# deployment-coverage Specification
+---
+title: Deployment Coverage Specification
+version: 2.0.0
+date: 2026-09-16
+---
 
 ## Purpose
 
-TBD - created by archiving change improve-test-coverage-100. Update Purpose after archive.
+Specify deployment operations generated from the official Coolify OpenAPI document and registered with MCP `registerTool`.
 
 ## Requirements
 
-### Requirement: deployment get without logs returns deployment with HATEOAS actions
+### Requirement: Focused deployment operations are exposed
 
-The `deployment` tool `get` action without `lines` param SHALL call `wrapWithActions` and return a deployment object with `_actions` (lines 1448-1451).
+The catalog SHALL include `coolify_list_deployments`, `coolify_get_deployment_by_uuid`, `coolify_cancel_deployment_by_uuid`, `coolify_deploy_by_tag_or_uuid`, and `coolify_list_deployments_by_app_uuid` with generated schemas and method/path metadata.
 
-#### Scenario: deployment get without lines returns HATEOAS actions
+### Requirement: Deployment collection wrappers are accepted
 
-- **WHEN** `deployment` tool is called with `{ action: 'get', uuid: 'dep-uuid' }`
-- **THEN** `client.getDeployment` is called and the response text contains `_actions`
+`coolify_list_deployments_by_app_uuid` SHALL normalize arrays and known `{ count, deployments }`, `{ data: [...] }`, `{ items: [...] }`, and `{ results: [...] }` responses before returning its `ToolEnvelope`.
 
-### Requirement: deployment get with lines includes truncated logs
+#### Scenario: List deployments for an application
 
-The `deployment` tool `get` action with `lines` param SHALL fetch deployment with logs and truncate them (lines 1434-1445).
+- **WHEN** the provider returns `{ count: 1, deployments: [{ uuid: "dep-uuid" }] }`
+- **THEN** `callTool` succeeds and structured data contains an array with `dep-uuid`
 
-#### Scenario: deployment get with lines parameter includes logs
+### Requirement: Destructive annotations are accurate
 
-- **WHEN** `deployment` tool is called with `{ action: 'get', uuid: 'dep-uuid', lines: 100 }`
-- **THEN** `client.getDeployment` is called with `{ includeLogs: true }` and the response includes the deployment data
-
-### Requirement: deployment cancel dispatches to cancelDeployment
-
-The `deployment` tool `cancel` action SHALL call `client.cancelDeployment` (line 1453).
-
-#### Scenario: deployment cancel dispatches correctly
-
-- **WHEN** `deployment` tool is called with `{ action: 'cancel', uuid: 'dep-uuid' }`
-- **THEN** `client.cancelDeployment` is called with `'dep-uuid'`
-
-### Requirement: deployment list_for_app dispatches to listApplicationDeployments
-
-The `deployment` tool `list_for_app` action SHALL call `client.listApplicationDeployments` (lines 1454-1455).
-
-#### Scenario: deployment list_for_app dispatches correctly
-
-- **WHEN** `deployment` tool is called with `{ action: 'list_for_app', uuid: 'app-uuid' }`
-- **THEN** `client.listApplicationDeployments` is called with `'app-uuid'`
+Cancel and delete operations SHALL be marked non-read-only and destructive where the generated HTTP operation deletes or cancels a resource; list/get operations SHALL be read-only.

@@ -27,11 +27,11 @@ The `UpdateApplicationRequest` type SHALL include all optional fields accepted b
 - **WHEN** a caller updates with `pre_deployment_command: "php artisan migrate"` and `post_deployment_command: "php artisan cache:clear"`
 - **THEN** both command fields are included in the PATCH request body
 
-### Requirement: MCP application tool exposes high-impact update fields
+### Requirement: Generated application update operation exposes high-impact fields
 
-The `application` MCP tool SHALL expose Tier 1 and selected Tier 2 fields in its Zod schema for the `update` action: `domains`, `is_static`, `is_spa`, `static_image`, `is_auto_deploy_enabled`, `is_force_https_enabled`, `docker_registry_image_name`, `docker_registry_image_tag`, `redirect`, `custom_labels`, `custom_docker_run_options`, `pre_deployment_command`, `post_deployment_command`, `watch_paths`.
+The generated `coolify_update_application_by_uuid` operation SHALL expose Tier 1 and selected Tier 2 fields in its generated Zod schema: `domains`, `is_static`, `is_spa`, `static_image`, `is_auto_deploy_enabled`, `is_force_https_enabled`, `docker_registry_image_name`, `docker_registry_image_tag`, `redirect`, `custom_labels`, `custom_docker_run_options`, `pre_deployment_command`, `post_deployment_command`, `watch_paths`.
 
 #### Scenario: MCP update application domains
 
-- **WHEN** the `application` tool is called with action `update` and `domains: "https://app.example.com"`
+- **WHEN** `coolify_update_application_by_uuid` is called with `uuid` and a body containing `domains: "https://app.example.com"`
 - **THEN** the domains field is passed to `updateApplication` client method

@@ -44,6 +44,13 @@ function base64(bytes: ArrayBuffer): string {
   return btoa(text);
 }
 
+function normalizeKnownCollection(path: string, value: unknown): unknown {
+  if (Array.isArray(value) || !value || typeof value !== "object") return value;
+  const keys = path === "/deployments/applications/{uuid}" ? ["deployments", "data", "items", "results"] : [path.slice(1), "data", "items", "results"];
+  for (const key of keys) if (Array.isArray((value as Record<string, unknown>)[key])) return (value as Record<string, unknown>)[key];
+  return value;
+}
+
 export class CoolifyClient {
   constructor(private readonly config: CoolifyConfig, private readonly fetchImpl: FetchLike = fetch) {}
 
@@ -73,7 +80,7 @@ export class CoolifyClient {
     let data: T | null | string | BinaryEnvelope = null;
     if (response.status !== 204) {
       const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
-      if (contentType.includes("json")) data = await response.json() as T;
+      if (contentType.includes("json")) data = normalizeKnownCollection(operation.path, await response.json()) as T;
       else if (contentType.startsWith("text/") || contentType.includes("xml")) data = await response.text();
       else data = { encoding: "base64", contentType: contentType || "application/octet-stream", value: base64(await response.arrayBuffer()) };
     }

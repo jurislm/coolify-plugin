@@ -10,7 +10,7 @@ Define the MCP tool surface for managing database backup schedules and their exe
 
 ## Requirements
 
-### Requirement: The database_backups tool must support eight actions via a consolidated action parameter
+### Requirement: The database_backups tool must support eight actions via a focused generated action parameter
 
 The `database_backups` MCP tool MUST support: `list_schedules`, `get_schedule`, `list_executions`, `get_execution`, `delete_execution`, `create`, `update`, `delete`. All actions require `database_uuid`.
 

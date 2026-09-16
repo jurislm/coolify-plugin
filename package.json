@@ -18,8 +18,8 @@
     "api:generate": "bun scripts/generate-openapi.ts",
     "api:check": "bun scripts/check-openapi.ts && bun run api:generate && git diff --exit-code -- api/manifest.json openapi src/generated",
     "manifest:check": "bun scripts/validate-plugin-manifests.ts",
-    "package:check": "bun scripts/package-contents-check.ts",
-    "check": "bun run api:check && bun run manifest:check && bun run typecheck && bun run typecheck:tests && bun test && bun run build && bun run package:check",
+    "package:check": "bun pm pack --dry-run 2>&1 | bun scripts/package-contents-check.ts",
+    "check": "bun run api:check && bun run manifest:check && bun run typecheck && bun run typecheck:tests && bun test && bun run build && bun pm pack --dry-run 2>&1 | bun scripts/package-contents-check.ts",
     "prepublishOnly": "bun run check"
   },
   "dependencies": { "@modelcontextprotocol/sdk": "1.30.0", "zod": "4.6.5" },

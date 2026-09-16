@@ -1,58 +1,39 @@
 ---
 title: Batch Operations Specification
-version: 1.0.0
-date: 2026-05-02
+version: 2.0.0
+date: 2026-09-16
 ---
 
 ## Purpose
 
-Define the behavior of the four batch operation tools (`restart_project_apps`, `bulk_env_update`, `stop_all_apps`, `redeploy_project`) that fan out across multiple resources and return aggregated `BatchOperationResult` responses.
+Define the explicit `coolify_*` batch wrappers in `src/capabilities.ts`.
 
 ## Requirements
 
-### Requirement: All batch operations must return a BatchOperationResult with summary, succeeded, and failed arrays
+### Requirement: Batch wrappers return partial aggregate results
 
-Every batch tool response contains:
+`coolify_restart_project_applications`, `coolify_bulk_update_application_env`, `coolify_stop_all_applications`, and `coolify_redeploy_project_applications` SHALL use `Promise.allSettled` for per-resource mutations and return `{ summary, succeeded, failed }`.
 
-- `summary`: `{ total, succeeded, failed }` integer counts
-- `succeeded`: array of `{ uuid, name }` for each resource that completed without error
-- `failed`: array of `{ uuid, name, error }` for each resource that threw an exception
+#### Scenario: Mixed mutation results
 
-When the filtered resource set is empty, the response is `{ summary: { total: 0, succeeded: 0, failed: 0 }, succeeded: [], failed: [] }` without making any API calls.
+- **WHEN** one resource mutation fails
+- **THEN** successful resources remain in `succeeded`, the failure is in `failed` with an error message, and the batch completes
 
-#### Scenario: Mixed success and failure
+### Requirement: Project restart and redeploy use generated operations
 
-- **WHEN** some resources succeed and others throw errors during `Promise.allSettled`
-- **THEN** successful resources appear in `succeeded` and failing resources appear in `failed` with the error message; the operation does not abort on first failure
+- **WHEN** a project UUID is supplied
+- **THEN** the wrapper lists applications, filters `project_uuid`, and calls the generated restart or deploy operation for each match
 
-### Requirement: restart_project_apps must restart all applications belonging to a project
+### Requirement: Bulk env update uses only supported generated fields
 
-#### Scenario: Restart project apps
+- **WHEN** application UUIDs, `key`, and `value` are supplied
+- **THEN** the wrapper sends only `{ key, value }` to the generated environment update schema
+- **WHEN** the UUID list is empty
+- **THEN** no provider request is made and the aggregate is empty
 
-- **WHEN** a caller provides a `project_uuid`
-- **THEN** the client calls `listApplications()`, filters by `app.project_uuid === project_uuid`, then calls `restartApplication(uuid)` for each match in parallel
+### Requirement: Emergency stop requires confirmation
 
-### Requirement: bulk_env_update must apply an environment variable to a caller-supplied list of application UUIDs
-
-#### Scenario: Bulk environment variable update
-
-- **WHEN** a caller provides `app_uuids`, `key`, `value`, and optional `is_build_time` (default: false)
-- **THEN** the client fetches app names via `listApplications()` for richer response labels, then calls `updateApplicationEnvVar(uuid, { key, value, is_build_time })` for each UUID in parallel
-
-### Requirement: stop_all_apps must require explicit confirmation and only stop running applications
-
-The `stop_all_apps` tool uses a `confirm_stop_all_apps: true` literal parameter as a double confirmation guard. The MCP schema enforces `z.literal(true)` and the handler also checks at runtime.
-
-#### Scenario: Emergency stop all running apps
-
-- **WHEN** `confirm_stop_all_apps` is `true`
-- **THEN** the client calls `listApplications()`, filters to apps whose status contains "running" or "healthy", then calls `stopApplication(uuid)` for each in parallel
-- **WHEN** `confirm_stop_all_apps` is not `true`
-- **THEN** the handler returns `"Error: confirm_stop_all_apps=true required"` without any API calls
-
-### Requirement: redeploy_project must redeploy all applications in a project via force-deploy
-
-#### Scenario: Redeploy project apps
-
-- **WHEN** a caller provides `project_uuid` and optional `force` (default: `true`)
-- **THEN** the client calls `listApplications()`, filters by `project_uuid`, then calls `deployByTagOrUuid(app.uuid, force)` for each app in parallel
+- **WHEN** `confirm_stop_all_applications` is not literal `true`
+- **THEN** the wrapper rejects the call before any provider request
+- **WHEN** confirmation is true
+- **THEN** only applications with running or healthy status are stopped

@@ -23,11 +23,11 @@
 - [x] 3.2 新增 2 個 `diagnoseApplication` mock test：`{ count, deployments }` wrapper（實機）+ unrecognized shape；皆斷言 `errors` 不含 `slice`
 - [x] 3.3 跑 `bun run test` 全綠（383 pass / 0 fail）
 
-## 4. Integration smoke test
+## 4. Local contract test
 
-- [x] 4.1 在 `src/server.test.ts` 新增 self-discovery 的 issue #24 regression test（runtime 從 `listApplications` 找真實 app UUID，避免 hardcode 環境特定值；可選 `INTEGRATION_APP_UUID` 覆寫）
-- [x] 4.2 跑 `bun run test:integration` 確認 regression test 通過（3 個既有失敗為 stale TEST_DATA，不在本 change 範圍）
-- [x] 4.3 把 integration 結果寫入 verification log
+- [x] 4.1 在 `src/server.test.ts` 新增 mocked generated-operation regression test，避免 hardcoded live infrastructure
+- [x] 4.2 跑 `bun test` 確認 local contract regression test 通過
+- [x] 4.3 明確記錄 live credentials 缺席時不宣稱 external acceptance
 
 ## 5. 品質檢核（commit 前必須全綠）
 

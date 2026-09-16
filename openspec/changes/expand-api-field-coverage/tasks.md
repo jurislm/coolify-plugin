@@ -12,7 +12,7 @@
 
 ## 3. MCP Server — src/server.ts
 
-- [x] 3.1 Add Tier 1+2 application fields to `application` tool schema for update action and wire through handler
+- [x] 3.1 Verify Tier 1+2 application fields in the generated application create/update operation schemas and registerTool catalog
 - [x] 3.2 Add server build/monitoring fields to `server` tool schema for update action and wire through handler
 - [x] 3.3 Add `public_port_timeout` to `database` tool schema for create/update actions and wire through handler
 - [x] 3.4 Add backup retention and timeout fields to `database_backups` tool schema and wire through handler
@@ -27,7 +27,7 @@
 - [x] 4.4 Add client test: backup update with retention limits and timeout
 - [x] 4.5 Add client test: `deployByTagOrUuid` with `docker_tag`
 - [x] 4.6 Add client test: storage create with `fs_path` (already existed)
-- [x] 4.7 Add MCP test: `application` tool update with new fields
+- [x] 4.7 Add MCP test: generated application operation update with new fields
 - [x] 4.8 Add MCP test: `server` tool update with build fields
 - [x] 4.9 Add MCP test: `database` tool with `public_port_timeout`
 - [x] 4.10 Add MCP test: `deploy` tool with docker_tag

@@ -19,7 +19,7 @@ bun run check
 bun dist/index.js
 ```
 
-`mcp.json` is a portable stdio registration; `.mcp.json.example` is the absolute-path example. No HTTP MCP endpoint, OAuth flow, registry publishing, or compatibility credential aliases are included.
+`mcp.json` is a portable stdio registration; `.mcp.json.example` is the secret-free absolute-path example. NPM package release is allowed. Remote MCP transport, OAuth, vault, hosting, and OpenAI Plugin Directory submission are out of scope.
 
 ## OpenAPI contract
 

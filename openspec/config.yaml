@@ -31,7 +31,7 @@ context: |
   Workflow and release:
   - Use Conventional Commits.
   - The package is publishable with publishConfig.access public; release verification requires CI_COMMIT_TAG=v<package.version>.
-  - Woodpecker CI must install git before Bun commands, run bun run check, and package checks must include npm pack --dry-run.
+  - Woodpecker CI must install git before Bun commands, run bun run check, and package checks must include bun pm pack --dry-run.
   - Do not claim live Coolify acceptance without configured COOLIFY_URL and COOLIFY_TOKEN evidence.
 
 rules:
@@ -49,7 +49,7 @@ rules:
     - Write atomic, testable tasks with clear done criteria.
     - Include generated-contract and wrapper request assertions for changed capabilities.
     - Include docs and package-content updates when paths, tools, or release behavior change.
-    - End with a verification task running bun run check, bun run build, npm pack --dry-run, and git diff --check.
+    - End with a verification task running bun run check, bun run build, bun pm pack --dry-run, and git diff --check.
 
   spec:
     - Prefer concrete, verifiable requirements over vague guidance.

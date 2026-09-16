@@ -24,7 +24,7 @@ describe("generated Coolify MCP server", () => {
     await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
 
     const result = await client.listTools();
-    expect(result.tools).toHaveLength(operations.length + 10);
+    expect(result.tools).toHaveLength(operations.length + 11);
     expect(result.tools.every((tool) => tool.name.startsWith("coolify_"))).toBe(true);
     const deleteTool = result.tools.find((tool) => tool.name === "coolify_delete_application_by_uuid");
     expect(deleteTool?.annotations?.destructiveHint).toBe(true);
@@ -81,6 +81,33 @@ describe("generated Coolify MCP server", () => {
     const result = await client.callTool({ name: "coolify_list_envs_by_application_uuid", arguments: { uuid: "app" } });
     expect(JSON.stringify(result.structuredContent)).not.toContain("postgres://secret");
     expect(JSON.stringify(result.content)).not.toContain("postgres://secret");
+    await client.close();
+    await server.close();
+  });
+
+  test("accepts array responses from list_databases", async () => {
+    const { server, client } = await connected(async () => json([{ uuid: "db" }]));
+    const result = await client.callTool({ name: "coolify_list_databases", arguments: {} });
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toMatchObject({ data: [{ uuid: "db" }] });
+    await client.close();
+    await server.close();
+  });
+
+  test("accepts array responses from list_resources", async () => {
+    const { server, client } = await connected(async () => json([{ uuid: "resource", type: "application" }]));
+    const result = await client.callTool({ name: "coolify_list_resources", arguments: {} });
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toMatchObject({ data: [{ uuid: "resource", type: "application" }] });
+    await client.close();
+    await server.close();
+  });
+
+  test("normalizes a deployment collection wrapper before callTool output validation", async () => {
+    const { server, client } = await connected(async () => json({ count: 1, deployments: [{ uuid: "deployment", status: "finished" }] }));
+    const result = await client.callTool({ name: "coolify_list_deployments_by_app_uuid", arguments: { uuid: "app" } });
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toMatchObject({ data: [{ uuid: "deployment", status: "finished" }] });
     await client.close();
     await server.close();
   });
@@ -199,6 +226,87 @@ describe("generated Coolify MCP server", () => {
     const { server, client } = await connected(async () => json({ ip: "10.0.0.1", user: "root", port: 22 }));
     const result = await client.callTool({ name: "coolify_docker_network_alias", arguments: { server_uuid: "server", db_uuid: "db", name: "database" } });
     expect(JSON.stringify(result.structuredContent)).toContain("docker network connect 'coolify' 'db' --alias 'database'");
+    expect(JSON.stringify(result.structuredContent)).toContain("coolify_get_database_by_uuid");
+    await client.close();
+    await server.close();
+  });
+
+  test("returns overview partial results and named errors", async () => {
+    const { server, client } = await connected(async (url) => {
+      const path = new URL(String(url)).pathname;
+      if (path.endsWith("/projects")) throw new Error("projects unavailable");
+      return json(path.endsWith("/servers") ? [{ uuid: "server" }] : path.endsWith("/applications") ? [{ uuid: "app" }] : []);
+    });
+    const result = await client.callTool({ name: "coolify_get_infrastructure_overview", arguments: {} });
+    expect(result.structuredContent).toMatchObject({ data: { servers: [{ uuid: "server" }], projects: [], errors: ["projects: Coolify request failed for GET /projects: projects unavailable"] } });
+    await client.close();
+    await server.close();
+  });
+
+  test("returns partial application diagnostics with safe env summaries and bounded logs", async () => {
+    const log = Array.from({ length: 201 }, (_, index) => `${index}-${"x".repeat(400)}`).join("\n");
+    const { server, client } = await connected(async (url) => {
+      const path = new URL(String(url)).pathname;
+      if (path === "/api/v1/applications") return json([{ uuid: "app", name: "api", status: "running" }]);
+      if (path === "/api/v1/applications/app") throw new Error("details unavailable");
+      if (path.endsWith("/logs")) return json({ logs: log });
+      if (path.endsWith("/envs")) return json([{ key: "DB_URL", is_buildtime: true, value: "secret" }, { key: "MODE", is_runtime: true, value: "prod" }]);
+      return json({ count: 1, deployments: [{ uuid: "deployment", status: "failed" }] });
+    });
+    const result = await client.callTool({ name: "coolify_diagnose_application", arguments: { query: "api" } });
+    const data = result.structuredContent as { data: Record<string, any> };
+    expect(data.data.errors).toEqual(["application: Coolify request failed for GET /applications/app: details unavailable"]);
+    expect(data.data.health.status).toBe("unhealthy");
+    expect(data.data.logs).toContain("...[truncated]...");
+    expect(data.data.logs.length).toBeLessThanOrEqual(50_000);
+    expect(data.data.environment_variables.variables).toEqual([{ key: "DB_URL", is_build_time: true }, { key: "MODE", is_build_time: false }]);
+    expect(JSON.stringify(data.data)).not.toContain("secret");
+    await client.close();
+    await server.close();
+  });
+
+  test("returns partial server diagnostics with reachability and resource issues", async () => {
+    const { server, client } = await connected(async (url) => {
+      const path = new URL(String(url)).pathname;
+      if (path === "/api/v1/servers") return json([{ uuid: "server", name: "edge", is_reachable: false, is_usable: false }]);
+      if (path.endsWith("/resources")) return json([{ uuid: "resource", name: "api", status: "unhealthy", type: "application" }]);
+      if (path.endsWith("/domains")) return json([]);
+      if (path.endsWith("/validate")) throw new Error("validation unavailable");
+      return json({ uuid: "server", name: "edge", is_reachable: false, is_usable: false });
+    });
+    const result = await client.callTool({ name: "coolify_diagnose_server", arguments: { query: "edge" } });
+    const data = result.structuredContent as { data: Record<string, any> };
+    expect(data.data.health.status).toBe("unhealthy");
+    expect(data.data.health.issues).toEqual(expect.arrayContaining(["Server is not reachable", "Server is not usable", "1 unhealthy resource(s)"]));
+    expect(data.data.errors).toEqual(["validation: Coolify request failed for POST /servers/server/validate: validation unavailable"]);
+    await client.close();
+    await server.close();
+  });
+
+  test("returns find-issues partial results and provider errors", async () => {
+    const { server, client } = await connected(async (url) => {
+      const path = new URL(String(url)).pathname;
+      if (path.endsWith("/servers")) return json([{ uuid: "server", is_reachable: false }]);
+      if (path.endsWith("/applications")) return json([{ uuid: "app", status: "stopped" }]);
+      if (path.endsWith("/databases")) return json([{ uuid: "db", status: "error" }]);
+      throw new Error("services unavailable");
+    });
+    const result = await client.callTool({ name: "coolify_find_issues", arguments: {} });
+    const data = result.structuredContent as { data: Record<string, any> };
+    expect(data.data.summary.total_issues).toBe(3);
+    expect(data.data.errors).toEqual(["services: Coolify request failed for GET /services: services unavailable"]);
+    await client.close();
+    await server.close();
+  });
+
+  test("gets an environment and cross-references database types and identity fields", async () => {
+    const { server, client } = await connected(async (url) => {
+      const path = new URL(String(url)).pathname;
+      if (path === "/api/v1/projects/project/production") return json({ id: 7, uuid: "environment", name: "production" });
+      return json([{ uuid: "db", database_type: "dragonfly", environment_id: 7 }, { uuid: "other", type: "keydb", environment_uuid: "environment" }, { uuid: "none", type: "clickhouse", environment_name: "staging" }]);
+    });
+    const result = await client.callTool({ name: "coolify_get_environment", arguments: { project_uuid: "project", environment_name_or_uuid: "production" } });
+    expect(result.structuredContent).toMatchObject({ data: { id: 7, dragonflys: [{ uuid: "db" }], keydbs: [{ uuid: "other" }], missing_database_types: ["clickhouse"] } });
     await client.close();
     await server.close();
   });

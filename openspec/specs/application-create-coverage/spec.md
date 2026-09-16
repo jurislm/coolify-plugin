@@ -1,43 +1,38 @@
-# application-create-coverage Specification
+---
+title: Application Create Coverage Specification
+version: 2.0.0
+date: 2026-09-16
+---
 
 ## Purpose
 
-TBD - created by archiving change improve-test-coverage-100. Update Purpose after archive.
+Specify the focused generated application-create and delete operations registered through `registerTool`.
 
 ## Requirements
 
-### Requirement: application create_public dispatches to createApplicationPublic
+### Requirement: Public application creation uses the generated contract
 
-The `application` tool `create_public` action SHALL call `client.createApplicationPublic` with all required fields (lines 588-600).
+The server SHALL expose `coolify_create_public_application` with the required project, server, environment, repository, branch, and build-pack fields.
 
-#### Scenario: create_public with all required fields dispatches correctly
+#### Scenario: Create a public application
 
-- **WHEN** `application` tool is called with `{ action: 'create_public', project_uuid: 'p', server_uuid: 's', git_repository: 'https://github.com/x/y', git_branch: 'main', build_pack: 'nixpacks', ports_exposes: '3000' }`
-- **THEN** `client.createApplicationPublic` is called with those fields
+- **WHEN** `coolify_create_public_application` is called with the required fields
+- **THEN** the client sends them as the generated request body to `POST /applications/public`
 
-### Requirement: application create_github dispatches to createApplicationPrivateGH
+### Requirement: Private application creation uses focused generated tools
 
-The `application` tool `create_github` action SHALL call `client.createApplicationPrivateGH` with all required fields (lines 620-633).
+The server SHALL expose `coolify_create_private_github_app_application` and `coolify_create_private_deploy_key_application` with their generated schemas.
 
-#### Scenario: create_github with required fields dispatches correctly
+#### Scenario: Create a private application
 
-- **WHEN** `application` tool is called with `{ action: 'create_github', project_uuid: 'p', server_uuid: 's', github_app_uuid: 'g', git_repository: 'repo', git_branch: 'main' }`
-- **THEN** `client.createApplicationPrivateGH` is called with those fields
+- **WHEN** either focused operation is called with its generated required fields
+- **THEN** the client sends the validated body to the corresponding official Coolify endpoint
 
-### Requirement: application create_key dispatches to createApplicationPrivateKey
+### Requirement: Application deletion uses the generated operation
 
-The `application` tool `create_key` action SHALL call `client.createApplicationPrivateKey` with all required fields (lines 653-666).
+The server SHALL expose `coolify_delete_application_by_uuid` with its generated UUID and deletion-option schema and mark it destructive.
 
-#### Scenario: create_key with required fields dispatches correctly
+#### Scenario: Delete an application
 
-- **WHEN** `application` tool is called with `{ action: 'create_key', project_uuid: 'p', server_uuid: 's', private_key_uuid: 'k', git_repository: 'repo', git_branch: 'main' }`
-- **THEN** `client.createApplicationPrivateKey` is called with those fields
-
-### Requirement: application delete dispatches to deleteApplication
-
-The `application` tool `delete` action SHALL call `client.deleteApplication` (line 775).
-
-#### Scenario: delete with uuid dispatches to deleteApplication
-
-- **WHEN** `application` tool is called with `{ action: 'delete', uuid: 'app-uuid' }`
-- **THEN** `client.deleteApplication` is called with `'app-uuid'`
+- **WHEN** `coolify_delete_application_by_uuid` is called with a UUID
+- **THEN** the client sends the validated request to `DELETE /applications/{uuid}` and returns a redacted `ToolEnvelope`

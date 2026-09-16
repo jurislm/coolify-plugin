@@ -1,6 +1,6 @@
 ## Context
 
-`diagnose_app` 是 v2.0.0 整併出的 composite tool，內部用 `Promise.allSettled` 平行收集 application、logs、env vars、deployments 四個來源（`src/client.ts:1705-1710`），任一失敗不影響其他。但 deployments 這條路徑在 settled / fulfilled 時，回傳值未經 shape 驗證就直接被當成 `Deployment[]` 呼叫 `.slice()`（line 1750），造成整個 `diagnoseApplication` 拋例外、整支工具不可用。
+`coolify_diagnose_application` 是 `src/capabilities.ts` 的明確 wrapper，內部用 `Promise.allSettled` 平行收集 application、logs、env vars、deployments 四個 generated operations，任一失敗不影響其他。部署結果先由 `src/client.ts` 在已知 collection wrapper 下歸一化，再由 wrapper 安全處理，避免因 shape 不符而拋例外。
 
 目前 client 對 `/deployments/applications/{uuid}` 只用 TypeScript 斷言 `request<Deployment[]>`（line 1089）— TypeScript 斷言只在編譯期；runtime 的 `request()` 直接 `JSON.parse` 後 cast 出去，沒有驗證。
 
@@ -10,7 +10,7 @@ issue 提交者環境是自架 Coolify + Traefik 3.6.14；但同一 client 其�
 
 **Goals:**
 
-- 讓 `diagnose_app` 在任何 Coolify 版本回傳的 deployments shape 下都能完成診斷，不因 deployments 異常而整個失敗。
+- 讓 `coolify_diagnose_application` 在任何已知 deployments shape 下都能完成診斷，不因 deployments 異常而整個失敗。
 - 在 client 層歸一化 deployments shape，所有現有 / 未來 caller 都受益，不在 caller 散落 patch。
 - 用 runtime type guard 取代盲目斷言，符合 typescript/coding-style.md 對 `unknown` 的要求。
 - 保持 `Promise<Deployment[]>` 公開簽章，避免 breaking change。
@@ -21,7 +21,7 @@ issue 提交者環境是自架 Coolify + Traefik 3.6.14；但同一 client 其�
 - 重寫 `request<T>()` 加入全域 schema 驗證（範圍過大，留待後續 change）。
 - 為其他 list endpoint 加同樣 guard（雖風險類似但無證據觸發，避免過度工程化）。
 - 引入 zod schema 全面驗證 Coolify response（同上，範圍過大）。
-- 修改 `diagnose_app` 的 MCP tool schema 或對外介面。
+- 不修改 `coolify_diagnose_application` 的 MCP input shape 或對外介面。
 
 ## Decisions
 
@@ -103,7 +103,7 @@ function normalizeDeploymentsResponse(raw: unknown): Deployment[] {
   **緩解**：在 `normalizeDeploymentsResponse` 命中 fallback 時用 `console.warn` 記錄 raw shape 摘要（例如 `typeof raw`、top-level keys），方便日後 debug，但不丟錯。對純 MCP 用途的 stderr 寫入無副作用。
 
 - **風險**：實際 Coolify 回傳的 wrapper key 不是 `data` 也不是 `deployments`，仍走 fallback。  
-  **緩解**：先用 integration smoke test（`src/server.test.ts`）打真實 Coolify、`console.log` 一次 raw response shape 並寫入 verification log。若是其他 key，補一條 case，本 change 即可解決；若是更怪的形狀（如雙層 wrapper），再開 follow-up。
+  **緩解**：用 `src/server.test.ts` 的 mocked fetch contract cases 覆蓋已知 wrapper；沒有 live credentials 時不宣稱真實 Coolify acceptance。
 
 - **風險**：未來 Coolify 改 API、加新 wrapper，又靜默走 fallback。  
   **緩解**：上面 `console.warn` 提供早期信號；CHANGELOG 記下這條歸一化規則供下次 maintainer 找。
@@ -116,7 +116,7 @@ function normalizeDeploymentsResponse(raw: unknown): Deployment[] {
 
 1. 修 `listApplicationDeployments` + 加 helper。
 2. 跑 `bun run build && bun run test && bun run check`。
-3. 跑 integration smoke：`bun run test:integration`（需 `.env`）— 必須覆蓋 issue 列出的三種 query 形式（UUID / name / domain）並驗證 raw shape。
+3. 跑 local mocked contract tests；若另行提供 live credentials，再以獨立 evidence 驗證實際 raw shape。
 4. PR `develop → main`，Woodpecker tag release 自動 patch bump。
 5. 合併後從 main `bun publish --access public`。
 
@@ -124,5 +124,5 @@ function normalizeDeploymentsResponse(raw: unknown): Deployment[] {
 
 ## Open Questions
 
-- Coolify 自架版（issue 提交環境）實際回傳的 deployments shape 是什麼？需要 integration smoke test 跑一次並把 raw shape 記到 verification log（`openspec/changes/.../verification-logs/`）才能確認 `data` 還是 `deployments` 哪一條 fallback 命中。本 change 的修法對這兩種都有 cover，但驗證仍是必要 evidence。
+- Coolify 自架版的實際 deployments shape 仍需 live credentials 才能確認；本 change 已以 local fixtures 覆蓋 `data`、`deployments`、`items`、`results` 及 array，並保留 live acceptance 為獨立 evidence。
 - 是否要把同樣的 normalization pattern 套到其他「list」endpoint？目前無證據觸發，本 change 不做，但開個 follow-up issue 追蹤更好。

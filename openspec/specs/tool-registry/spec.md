@@ -1,62 +1,42 @@
 ---
 title: Tool Registry Specification
-version: 1.0.0
-date: 2026-04-07
+version: 2.0.0
+date: 2026-09-16
 ---
 
 ## Purpose
 
-Define the required MCP tool surface for consolidated Coolify infrastructure management. This spec describes tool existence and error-safety requirements only. Behavioral semantics for each tool family are documented in their respective feature specs:
-
-- [hetzner-integration](../hetzner-integration/spec.md) — Hetzner Cloud provisioning
-- [smart-diagnostics](../smart-diagnostics/spec.md) — diagnose_app, diagnose_server, find_issues
-- [database-backups](../database-backups/spec.md) — backup schedule and execution management
-- [storages](../storages/spec.md) — persistent volume mounts for apps, databases, services
-- [scheduled-tasks](../scheduled-tasks/spec.md) — cron-style tasks for apps and services
-- [cloud-tokens](../cloud-tokens/spec.md) — cloud provider API token CRUD and validation
-- [batch-operations](../batch-operations/spec.md) — restart_project_apps, bulk_env_update, stop_all_apps, redeploy_project
-- [github-apps](../github-apps/spec.md) — GitHub App CRUD and repo/branch enumeration
+Define the MCP surface produced by `@jurislm/coolify-plugin`: generated `coolify_*` tools from the pinned OpenAPI contract plus explicit v3.6 composite wrappers.
 
 ## Requirements
 
-### Requirement: MCP server must expose consolidated infrastructure management tools
+### Requirement: Generated operations are registered as focused tools
 
-The server MUST register tools for infrastructure management that cover discovery, diagnostics, CRUD, runtime control, and operational workflows across servers, projects, environments, applications, databases, and services.
+When `src/server.ts` creates an MCP server, it SHALL call `registerTool` once for every operation in `src/generated/operations.ts`. Every generated name SHALL start with `coolify_`, and the catalog SHALL match `api/manifest.json`.
 
-#### Scenario: Register baseline discovery tools
+#### Scenario: Register the generated contract
 
-- **WHEN** the MCP server is initialized
-- **THEN** it exposes read-oriented discovery tools including version and list/get style operations for major resource types
+- **WHEN** a client calls `tools/list`
+- **THEN** every generated operation is present with its generated input/output schema and HTTP annotations
 
-#### Scenario: Register consolidated action tools
+### Requirement: v3.6 composite capabilities remain explicit
 
-- **WHEN** the MCP server is initialized
-- **THEN** it exposes action-parameterized tools for multi-operation domains (for example create/update/delete or start/stop/restart)
+The server SHALL additionally register `coolify_get_mcp_version`, `coolify_get_infrastructure_overview`, `coolify_get_environment`, `coolify_diagnose_application`, `coolify_diagnose_server`, `coolify_find_issues`, `coolify_restart_project_applications`, `coolify_bulk_update_application_env`, `coolify_stop_all_applications`, `coolify_redeploy_project_applications`, and `coolify_docker_network_alias` from `src/capabilities.ts`.
 
-### Requirement: MCP server must include operational support tools beyond CRUD
+#### Scenario: Register wrapper capabilities
 
-The server MUST expose tools for environment variable management, deployments, private keys, GitHub app integration, storage, scheduled tasks, cloud tokens, team operations, diagnostics, and batch operations.
+- **WHEN** a client calls `tools/list`
+- **THEN** all explicit wrapper names are present in addition to generated operations
 
-#### Scenario: Register operational tool families
+### Requirement: Successful and failed calls have safe structured output
 
-- **WHEN** a client inspects the available toolset
-- **THEN** operational families are present for deployment orchestration, diagnostics, and maintenance workflows
+Every successful handler SHALL return a `ToolEnvelope`-shaped `structuredContent` and matching serialized text. Sensitive values SHALL be recursively redacted. Runtime failures SHALL become explicit tool errors without exposing credentials.
 
-#### Scenario: Register health verification tool
+#### Scenario: Safe response boundary
 
-- **WHEN** a client needs a quick backend status check
-- **THEN** a health-oriented tool is available without requiring resource UUID input
+- **WHEN** a generated or wrapper handler receives a successful response containing a secret field
+- **THEN** both structured and text content contain `[REDACTED]` instead of the secret value
 
-### Requirement: Tool handlers must provide consistent error-safe responses
+### Requirement: The runtime is local stdio only
 
-Tool handlers MUST return structured text payloads and convert thrown runtime errors into explicit user-visible error responses.
-
-#### Scenario: Successful tool execution
-
-- **WHEN** a tool handler completes without error
-- **THEN** the response contains serialized structured data
-
-#### Scenario: Failed tool execution
-
-- **WHEN** a tool handler throws an exception
-- **THEN** the response contains an explicit error message instead of crashing the server
+The plugin SHALL launch only the `mcp.json` stdio command. It SHALL not add a remote MCP URL, OAuth transport, vault, or hosted server.

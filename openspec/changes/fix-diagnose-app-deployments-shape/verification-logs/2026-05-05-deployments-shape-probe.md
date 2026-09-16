@@ -34,7 +34,7 @@
 
 2. **`data` wrapper 沒命中**：design 預備的 Laravel-style `{ data: [...] }` fallback 在這個 self-hosted Coolify 版本下未觸發，但仍保留作 future-proof（避免下次 Coolify upgrade 換 wrapper 又踩坑）。
 
-3. **Endpoint 只接受 UUID**：`lawyer-prod-app`（name）回 404 + `{ message }`。issue 提到 name 也失敗，是因為 `diagnoseApplication` 先 `resolveApplicationUuid()` 解成 UUID 才打 deployments，所以最終崩在 `slice` 同一處。client 層 normalize 後三種 query 都能完成診斷。
+3. **Endpoint 只接受 UUID**：`lawyer-prod-app`（name）回 404 + `{ message }`。issue 提到 name 也失敗，是因為 `diagnoseApplication` 先 `the wrapper list-applications lookup()` 解成 UUID 才打 deployments，所以最終崩在 `slice` 同一處。client 層 normalize 後三種 query 都能完成診斷。
 
 4. **404 回傳的 `{ message }` 不是 deployments shape**：但 normalization 不會被觸發 — `request<T>()` 對 4xx/5xx 已經 throw（`client.ts` 既有錯誤處理），會走 `Promise.allSettled` 的 rejected 分支由 `extract()` 收進 `errors` 陣列。實際 200 回傳才會進入 normalize。
 

@@ -1,58 +1,27 @@
 ---
 title: API Compatibility Specification
-version: 1.0.0
-date: 2026-04-07
+version: 2.0.0
+date: 2026-09-16
 ---
 
 ## Purpose
 
-Define client-side compatibility and payload normalization rules for Coolify API integration.
+Define the boundaries between the official generated Coolify contract and the local client/wrapper compatibility layer.
 
 ## Requirements
 
-### Requirement: API client must normalize known Coolify field-compatibility differences
+### Requirement: Generated request schemas are authoritative
 
-The client MUST transform caller-facing inputs into the field names and payload formats expected by Coolify API variants where known compatibility gaps exist.
+The client and explicit wrappers SHALL parse generated operation inputs before fetch. Unsupported compatibility fields SHALL be rejected at the MCP boundary rather than forwarded or silently remapped.
 
-#### Scenario: Domain field compatibility
+### Requirement: Provider collection responses are normalized narrowly
 
-- **WHEN** a caller provides application domain data using fqdn
-- **THEN** the client maps input to Coolify-compatible domains payload fields before sending the request
+The client SHALL preserve generated schemas globally while allowing collection-shaped runtime responses for the known `/databases`, `/resources`, and application-deployments operations. Known array wrappers SHALL normalize to arrays before wrapper logic.
 
-#### Scenario: Docker compose payload compatibility
+### Requirement: Request safety is preserved
 
-- **WHEN** a caller provides docker_compose_raw as plain text content
-- **THEN** the client encodes content to base64 prior to API submission
+Path parameters SHALL be URI encoded, undefined query values SHALL be omitted, explicit false values SHALL remain, mutation requests SHALL not retry, and provider errors SHALL not include tokens.
 
-#### Scenario: Environment variable field name normalization
+### Requirement: Environment identity fields have explicit fallbacks
 
-- **WHEN** a caller provides an environment variable object using the deprecated `is_build_time` field name
-- **THEN** the client maps it to the Coolify API's canonical `is_buildtime` field name (no underscore) before sending the request; the mapping only applies when `is_buildtime` is not already explicitly provided by the caller
-
-### Requirement: Request payloads must drop undefined fields while preserving explicit false
-
-The client MUST remove undefined values from outgoing payloads and MUST preserve explicit false boolean values.
-
-#### Scenario: Optional fields omitted by caller
-
-- **WHEN** a request object contains undefined optional fields
-- **THEN** those fields are excluded from the final API payload
-
-#### Scenario: Explicitly disabling boolean options
-
-- **WHEN** a request object sets a boolean field to false
-- **THEN** the false value remains in the outgoing payload
-
-### Requirement: Resource identifier encoding must follow path type conventions
-
-The client MUST URL-encode UUID-like path parameters and MUST stringify numeric identifiers according to endpoint conventions.
-
-#### Scenario: UUID path parameter usage
-
-- **WHEN** a request is made with UUID-like path parameters
-- **THEN** the path value is encoded to avoid malformed URL or reserved character issues
-
-#### Scenario: Numeric identifier usage
-
-- **WHEN** a request is made with numeric identifiers (such as team IDs)
-- **THEN** identifiers are stringified without additional URL encoding when endpoint semantics require raw numeric segments
+`coolify_get_environment` SHALL match databases using `environment_id`/`id`, `environment_uuid`/`uuid`, and `environment_name`/`name`; database type resolution SHALL use `database_type` then `type`.
