@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [3.7.1](https://github.com/jurislm/coolify-plugin/compare/v3.7.0...v3.7.1) (2026-09-16)
+
+
+### Bug Fixes
+
+* allow slower CI status propagation ([bef7708](https://github.com/jurislm/coolify-plugin/commit/bef7708feaafe5a00acf4b64865527c9110324be))
+* gate release merges on CI status ([f272a6a](https://github.com/jurislm/coolify-plugin/commit/f272a6aaa6a3e76854ad5ac34d5497bc1a3d07d8))
+* wait for CI statuses before release merge ([6e8bbd2](https://github.com/jurislm/coolify-plugin/commit/6e8bbd2d347d24649e00ba0d029e0438bea0baaa))
+
 ## [3.7.0](https://github.com/jurislm/coolify-plugin/compare/v3.6.0...v3.7.0) (2026-09-16)
 
 
