@@ -1,0 +1,17 @@
+{
+  "name": "coolify-plugin",
+  "version": "0.1.0",
+  "description": "Private local stdio MCP tools generated from the Coolify OpenAPI contract.",
+  "author": { "name": "JurisLM" },
+  "license": "MIT",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Coolify",
+    "shortDescription": "Local Coolify API tools",
+    "longDescription": "Generated local stdio tools for a configured Coolify instance.",
+    "developerName": "JurisLM",
+    "category": "Developer Tools",
+    "capabilities": ["MCP", "Local"],
+    "defaultPrompt": ["List my Coolify resources."]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "coolify": {
+      "type": "stdio",
+      "command": "bun",
+      "args": ["/absolute/path/to/coolify-plugin/dist/index.js"],
+      "env": { "COOLIFY_URL": "https://coolify.example", "COOLIFY_TOKEN": "replace-with-api-token" }
+    }
+  }
+}

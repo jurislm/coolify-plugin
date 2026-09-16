@@ -1,13 +1,6 @@
 {
-  // Type-check the test suite. `bun test` only transpiles, so this is
-  // the only thing catching type errors in test code (e.g. mismatched
-  // mock shapes, wrong spyOn signatures). Run as `bun run typecheck:tests`.
   "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "noEmit": true,
-    "rootDir": "./src",
-    "types": ["bun"]
-  },
-  "include": ["src/__tests__"],
+  "compilerOptions": { "noEmit": true },
+  "include": ["src/**/*.test.ts"],
   "exclude": ["node_modules", "dist"]
 }

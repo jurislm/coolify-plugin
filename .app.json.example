@@ -1,0 +1,4 @@
+{
+  "name": "coolify-plugin",
+  "description": "No app surface: this plugin is local stdio MCP only."
+}

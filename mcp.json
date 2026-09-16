@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "coolify": { "type": "stdio", "command": "bun", "args": ["dist/index.js"], "cwd": "." }
+  }
+}

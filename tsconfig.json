@@ -1,27 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "declaration": true,
     "rootDir": "./src",
     "outDir": "./dist",
     "strict": true,
-    "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "allowJs": true,
-    "resolveJsonModule": true
+    "types": ["bun"]
   },
-  "include": ["src"],
-  // src/__tests__ is excluded from this (production) tsconfig because:
-  //   1. tests are not shipped to dist/ — emitting them is wasted work
-  //   2. test-only globals (bun:test) are unavailable here without
-  //      polluting production types
-  // bun test only transpiles `.ts`; it does NOT statically type-check
-  // test code. Tests can be type-checked via `bun run typecheck:tests`
-  // (uses tsconfig.test.json), which is gated in prepublishOnly.
-  "exclude": ["node_modules", "dist", "tests", "src/__tests__"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.test.ts", "node_modules", "dist"]
 }
