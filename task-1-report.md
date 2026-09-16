@@ -44,7 +44,7 @@ This report is inside the target repository because the later instruction prohib
 ## Final verification
 
 - `bun run check`: exit 0.
-- `bun test`: 14 passed, 0 failed, 40 assertions.
+- `bun test`: 23 passed, 0 failed, 56 assertions.
 - `bun run api:check`: generated artifacts reproducible with no diff.
 - `bun run manifest:check` and the Codex plugin validator: passed.
 - `bun run build`: passed.
@@ -59,6 +59,14 @@ This report is inside the target repository because the later instruction prohib
 - Root `plugin.json` is the Agent Plugins 1.0 portable manifest with its canonical `$schema` and `extensions.com.openai.interface`; root `mcp.json` uses the matching Agent Plugins MCP schema and local stdio configuration. `.codex-plugin/plugin.json` remains fallback metadata only.
 - Removed `private: true`; the package and requested examples are included in the dry-run tarball. `.mcp.json.example` is secret-free.
 - Fix-round checks: `bun run api:check`, `bun run manifest:check`, `bun run build`, `bun test`, `bun run check`, `npm pack --dry-run`, and `git diff --check` all exited 0.
+
+## Fix round 2
+
+- The portable and fallback stdio registrations now use `cwd: "./"`; both the manifest validator and shipped-dist protocol test assert it.
+- Every capability-internal generated operation now parses its generated input schema before fetch. The bulk env wrapper is strict, accepts only `app_uuids`, `key`, and `value`, and sends only `{ "key", "value" }` to `PATCH /applications/{uuid}/envs`.
+- Project redeploy now passes the generated `uuid` query key to `POST /deploy` instead of the unsupported `uuid_or_tag` key.
+- Mocked MCP/fetch tests now exercise every restored wrapper: version, diagnostics, issue scan, restart, bulk env update, stop-all confirmation, redeploy, and Docker network alias remediation. They assert the generated method/path/body contracts rather than only checking tool registration.
+- Fix-round checks: `bun run api:check`, `bun run manifest:check`, `bun run build`, `bun test`, `bun run check`, `npm pack --dry-run`, and `git diff --check` all exited 0; `bun test` reported 23 passing tests and 56 assertions.
 
 ## Unresolved concerns
 

@@ -5,6 +5,7 @@ import { expect, test } from "bun:test";
 test("serves the generated tool catalog over local stdio", async () => {
   const configured = JSON.parse(await Bun.file("mcp.json").text()) as { mcpServers: { coolify: { command: string; args: string[]; cwd?: string } } };
   const server = configured.mcpServers.coolify;
+  expect(server.cwd).toBe("./");
   expect(Bun.spawnSync([process.execPath, "run", "build"], { cwd: process.cwd() }).exitCode).toBe(0);
   const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
   const transport = new StdioClientTransport({
