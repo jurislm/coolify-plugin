@@ -11,6 +11,8 @@
     "com.openai": {
       "interface": {
         "displayName": "Coolify",
+        "composerIcon": "./assets/coolify.png",
+        "logo": "./assets/coolify.png",
         "shortDescription": "Local Coolify API tools",
         "longDescription": "Generated local stdio tools for a configured Coolify instance.",
         "developerName": "JurisLM",

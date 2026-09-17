@@ -13,6 +13,7 @@
     "dist",
     "api",
     "openapi",
+    "assets",
     "README.md",
     "LICENSE",
     "plugin.json",
