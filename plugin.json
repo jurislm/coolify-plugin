@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "coolify-plugin",
-  "version": "3.7.1",
+  "version": "3.7.2",
   "description": "Portable Coolify MCP plugin with local stdio tools generated from the official OpenAPI contract.",
   "author": {
     "name": "JurisLM"
