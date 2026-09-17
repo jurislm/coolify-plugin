@@ -5,7 +5,7 @@
 - Branch: `codex/coolify-plugin`
 - Version baseline commit: `fee9f18d1bc958b2b90cbab4476e0e95da0830a0` (pushed to public `main`)
 - Round 3 implementation commit: `b858d57101a1e010e603330a9caa0b851e6f9825`
-- Package bootstrap: `@jurislm/coolify-plugin@3.6.0`; published release: `@jurislm/coolify-plugin@3.7.1` (`v3.7.1`) after the `v3.7.0` verify failure (public, local-stdio runtime)
+- Package bootstrap: `@jurislm/coolify-plugin@3.6.0`; published release: `@jurislm/coolify-plugin@3.7.2` (`v3.7.2`) after the `v3.7.0` verify failure and icon addition (public, local-stdio runtime)
 - Authoritative snapshot: `https://raw.githubusercontent.com/coollabsio/coolify/main/openapi.json`
 - Snapshot SHA-256: `4dbb392aac5e0a46186c4e6e5237f86d9534bb99bf6b8b82351a513598af3900`
 - Contract: OpenAPI document version 3.1.0, info version 0.1, 192 paths, 275 operations
@@ -14,7 +14,7 @@ This report is inside the target repository because the later instruction prohib
 
 ## Changed files
 
-- Package and local distribution: `package.json`, `bun.lock`, `README.md`, `LICENSE`, `plugin.json`, `mcp.json`, `.mcp.json`, `.codex-plugin/plugin.json`, `.mcp.json.example`, `.app.json.example`.
+- Package and local distribution: `package.json`, `bun.lock`, `README.md`, `LICENSE`, `plugin.json`, `mcp.json`, `.mcp.json`, `.codex-plugin/plugin.json`, `.mcp.json.example`, `.app.json.example`, `assets/coolify.png`.
 - Plugin behavior: `src/config.ts`, `src/client.ts`, `src/errors.ts`, `src/capabilities.ts`, `src/server.ts`, `src/stream.ts`, `src/transports/stdio.ts`, `src/index.ts`.
 - Generated API contract: `openapi/coolify-openapi.json`, `api/manifest.json`, `src/generated/coolify-api.ts`, `src/generated/coolify-zod.ts`, `src/generated/operations.ts`.
 - Reproducibility and validation: `scripts/update-openapi.ts`, `scripts/generate-openapi.ts`, `scripts/check-openapi.ts`, `scripts/validate-plugin-manifests.ts`, `scripts/package-contents-check.ts`, `scripts/check-release-tag.ts`.
@@ -94,9 +94,9 @@ This report is inside the target repository because the later instruction prohib
 
 ## Final readback
 
-- Fresh `bun run check`: exit 0, 38 tests/89 assertions; official plugin validator: exit 0; GitHub readback: `jurislm/coolify-plugin` PUBLIC, release merge `edde68d122e67cc00470ba056862013b31aec10a`, package manifest `3.7.1`, tags `v3.7.0` and `v3.7.1`.
+- Fresh `bun run check`: exit 0, 38 tests/89 assertions; official plugin validator: exit 0; GitHub readback: `jurislm/coolify-plugin` PUBLIC, release merge `c662e3f767fc18604e006f8fbf37eddc84255f1f`, package manifest `3.7.2`, tags through `v3.7.2`.
 - Codex local marketplace install/readback: `coolify-plugin@jurislm-local`, bootstrap version `3.6.0`, installed manifest and `mcp.json` present in local cache.
-- `npm pack --dry-run --json`: `@jurislm/coolify-plugin@3.6.0`, 36 files. NPM readback: latest `3.7.1`, tarball URL returned `200`, and tarball `package.json` is `3.7.1`. The earlier `v3.7.0` tag verify failed on the fixed `3.6.0` test expectation and did not publish; no `v0.1.0` tag was created.
+- `npm pack --dry-run --json`: current release contains 37 files including `assets/coolify.png`. NPM readback: latest `3.7.2`, tarball URL returned `200`, tarball `package.json` is `3.7.2`, and the tarball contains `package/assets/coolify.png`. The earlier `v3.7.0` tag verify failed on the fixed `3.6.0` test expectation and did not publish; no `v0.1.0` tag was created.
 
 ## Release automation alignment
 
@@ -108,7 +108,7 @@ This report is inside the target repository because the later instruction prohib
 
 - `jurislm/coolify-plugin` is active and public as Woodpecker repo `23`.
 - Secret metadata is configured without value readback: `npm_token` for `tag`, and `personal_access_tokens_fine_grained_tokens_jurislm` for `push`.
-- Main pipeline `#23`, release-branch/PR checks `#21/#22`, and tag publish pipeline `#24` for `v3.7.1` succeeded.
+- Main pipeline `#31`, release-branch/PR checks `#28/#29`, and tag publish pipeline `#32` for `v3.7.2` succeeded.
 
 ## Legacy closeout
 
