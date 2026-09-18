@@ -1,5 +1,9 @@
 {
   "mcpServers": {
-    "coolify": { "type": "stdio", "command": "bun", "args": ["dist/index.js"], "cwd": "./" }
+    "coolify": {
+      "type": "stdio",
+      "command": "bunx",
+      "args": ["-y", "@jurislm/coolify-plugin@latest"]
+    }
   }
 }

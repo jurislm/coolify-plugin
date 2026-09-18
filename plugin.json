@@ -4,26 +4,28 @@
   "version": "3.7.3",
   "description": "Portable Coolify MCP plugin with local stdio tools generated from the official OpenAPI contract.",
   "author": {
-    "name": "JurisLM"
+    "name": "JurisLM",
+    "url": "https://github.com/jurislm"
   },
+  "homepage": "https://github.com/jurislm/coolify-plugin",
+  "repository": "https://github.com/jurislm/coolify-plugin",
   "license": "MIT",
+  "keywords": ["coolify", "devops", "deployment", "mcp"],
   "extensions": {
     "com.openai": {
       "interface": {
         "displayName": "Coolify",
+        "shortDescription": "Manage Coolify through agent tools.",
+        "longDescription": "Inspect and control Coolify applications, servers, databases, services, deployments, and environment configuration.",
+        "developerName": "JurisLM",
+        "category": "Developer tools",
+        "capabilities": [
+          "Read",
+          "Write"
+        ],
         "composerIcon": "./assets/coolify.png",
         "logo": "./assets/coolify.png",
-        "shortDescription": "Local Coolify API tools",
-        "longDescription": "Generated local stdio tools for a configured Coolify instance.",
-        "developerName": "JurisLM",
-        "category": "Developer Tools",
-        "capabilities": [
-          "MCP",
-          "Local"
-        ],
-        "defaultPrompt": [
-          "List my Coolify resources."
-        ]
+        "websiteURL": "https://github.com/jurislm/coolify-plugin"
       }
     }
   }

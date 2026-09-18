@@ -3,25 +3,26 @@
   "version": "3.7.3",
   "description": "Fallback Codex metadata for local stdio Coolify tools.",
   "author": {
-    "name": "JurisLM"
+    "name": "JurisLM",
+    "url": "https://github.com/jurislm"
   },
+  "repository": "https://github.com/jurislm/coolify-plugin",
   "license": "MIT",
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Coolify",
+    "shortDescription": "Manage Coolify through agent tools.",
+    "longDescription": "Inspect and control Coolify applications, servers, databases, services, deployments, and environment configuration.",
+    "developerName": "JurisLM",
+    "category": "Developer tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
     "composerIcon": "./assets/coolify.png",
     "logo": "./assets/coolify.png",
-    "shortDescription": "Local Coolify API tools",
-    "longDescription": "Generated local stdio tools for a configured Coolify instance.",
-    "developerName": "JurisLM",
-    "category": "Developer Tools",
-    "capabilities": [
-      "MCP",
-      "Local"
-    ],
-    "defaultPrompt": [
-      "List my Coolify resources."
-    ]
+    "websiteURL": "https://github.com/jurislm/coolify-plugin",
+    "defaultPrompt": "List my Coolify resources."
   }
 }
