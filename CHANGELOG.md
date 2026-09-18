@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [3.7.3](https://github.com/jurislm/coolify-plugin/compare/v3.7.2...v3.7.3) (2026-09-18)
+
+
+### Bug Fixes
+
+* add repository marketplace manifest ([066076a](https://github.com/jurislm/coolify-plugin/commit/066076a1c7da9c06464a34849050dbcc06739df8))
+
 ## [3.7.2](https://github.com/jurislm/coolify-plugin/compare/v3.7.1...v3.7.2) (2026-09-17)
 
 
