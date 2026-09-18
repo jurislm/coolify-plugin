@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [3.7.4](https://github.com/jurislm/coolify-plugin/compare/v3.7.3...v3.7.4) (2026-09-18)
+
+
+### Bug Fixes
+
+* align Coolify plugin with Woodpecker architecture ([77536d3](https://github.com/jurislm/coolify-plugin/commit/77536d3312fcfda434d2a69a5494faa369ed73ba))
+
 ## [3.7.3](https://github.com/jurislm/coolify-plugin/compare/v3.7.2...v3.7.3) (2026-09-18)
 
 
