@@ -7,6 +7,7 @@ const portableInterface = (((parsed["plugin.json"].extensions as Json)["com.open
 const fallbackInterface = parsed[".codex-plugin/plugin.json"].interface as Json;
 if (parsed["plugin.json"].$schema !== "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json") throw new Error("plugin.json must use the portable Agent Plugins schema");
 if (portableInterface.displayName !== "Coolify") throw new Error("plugin.json must provide extensions.com.openai.interface");
+if (JSON.stringify(portableInterface.defaultPrompt) !== JSON.stringify(["List my Coolify resources."])) throw new Error("plugin.json must provide the portable Coolify starter prompt");
 for (const manifestInterface of [portableInterface, fallbackInterface]) {
   if (manifestInterface.category !== "Developer tools") throw new Error("Plugin interface category must match Woodpecker");
   if (JSON.stringify(manifestInterface.capabilities) !== JSON.stringify(["Read", "Write"])) throw new Error("Plugin capabilities must match Woodpecker");

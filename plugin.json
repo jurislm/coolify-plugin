@@ -28,6 +28,9 @@
           "Read",
           "Write"
         ],
+        "defaultPrompt": [
+          "List my Coolify resources."
+        ],
         "composerIcon": "./assets/coolify.png",
         "logo": "./assets/coolify.png",
         "websiteURL": "https://github.com/jurislm/coolify-plugin"
