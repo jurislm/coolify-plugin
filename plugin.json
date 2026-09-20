@@ -19,7 +19,7 @@
   "extensions": {
     "com.openai": {
       "interface": {
-        "displayName": "Coolify",
+        "displayName": "Coolify Plugin",
         "shortDescription": "Manage Coolify through agent tools.",
         "longDescription": "Inspect and control Coolify applications, servers, databases, services, deployments, and environment configuration.",
         "developerName": "JurisLM",
