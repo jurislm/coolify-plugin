@@ -95,6 +95,22 @@ describe("generated Coolify MCP server", () => {
     await server.close();
   });
 
+  test("passes the canonical custom Docker options field through database updates", async () => {
+    let requestBody: unknown;
+    const { server, client } = await connected(async (_url, init) => {
+      requestBody = JSON.parse(String(init?.body));
+      return json({ uuid: "db" });
+    });
+    const result = await client.callTool({
+      name: "coolify_update_database_by_uuid",
+      arguments: { uuid: "db", body: { custom_docker_run_options: "--shm-size=4g" } },
+    });
+    expect(result.isError).not.toBe(true);
+    expect(requestBody).toEqual({ custom_docker_run_options: "--shm-size=4g" });
+    await client.close();
+    await server.close();
+  });
+
   test("accepts array responses from list_resources", async () => {
     const { server, client } = await connected(async () => json([{ uuid: "resource", type: "application" }]));
     const result = await client.callTool({ name: "coolify_list_resources", arguments: {} });
