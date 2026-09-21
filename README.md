@@ -23,6 +23,11 @@ bun dist/index.js
 
 For Codex repository marketplace installation, use the repository root and leave the sparse path empty. The supported marketplace manifest is `.agents/plugins/marketplace.json`; do not enter `plugins/codex`.
 
+```sh
+codex plugin marketplace add https://github.com/jurislm/coolify-plugin
+codex plugin add coolify-plugin@coolify-marketplace
+```
+
 ## OpenAPI contract
 
 `openapi/coolify-openapi.json` is fetched from the official Coolify repository. `api/manifest.json` records its source, fetch time, persisted-snapshot SHA-256, document/info versions, path count, and operation count. `bun run api:check` verifies the snapshot offline before checking generated parity.
