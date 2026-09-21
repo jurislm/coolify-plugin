@@ -1,6 +1,6 @@
 {
   "name": "@jurislm/coolify-plugin",
-  "version": "3.7.8",
+  "version": "3.7.9",
   "description": "Portable local stdio MCP plugin for Coolify",
   "publishConfig": {
     "access": "public"
