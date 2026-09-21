@@ -3,10 +3,12 @@ const files = ["plugin.json", ".codex-plugin/plugin.json", "mcp.json", ".mcp.jso
 const parsed = Object.fromEntries(await Promise.all(files.map(async (file) => [file, JSON.parse(await Bun.file(file).text()) as Json])));
 const packageJson = JSON.parse(await Bun.file("package.json").text()) as Json;
 const packageVersion = String(packageJson.version);
+const portableKeys = ["$schema", "name", "version", "description", "author", "homepage", "repository", "license", "keywords", "extensions"];
+const unexpectedPortableKeys = Object.keys(parsed["plugin.json"]).filter((key) => !portableKeys.includes(key));
+if (unexpectedPortableKeys.length > 0) throw new Error(`plugin.json contains non-portable fields: ${unexpectedPortableKeys.join(", ")}`);
 const portableInterface = (((parsed["plugin.json"].extensions as Json)["com.openai"] as Json).interface as Json);
 const fallbackInterface = parsed[".codex-plugin/plugin.json"].interface as Json;
 if (parsed["plugin.json"].$schema !== "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json") throw new Error("plugin.json must use the portable Agent Plugins schema");
-if (parsed["plugin.json"].skills !== "./skills/" || parsed["plugin.json"].mcpServers !== "./mcp.json") throw new Error("plugin.json must expose the portable skills and MCP registrations");
 if (portableInterface.displayName !== "Coolify Plugin") throw new Error("plugin.json must provide extensions.com.openai.interface");
 if (JSON.stringify(portableInterface.defaultPrompt) !== JSON.stringify(["List my Coolify resources."])) throw new Error("plugin.json must provide the portable Coolify starter prompt");
 for (const manifestInterface of [portableInterface, fallbackInterface]) {
