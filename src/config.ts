@@ -1,6 +1,6 @@
 export interface CoolifyConfig {
-  baseUrl: string;
-  token: string;
+  baseUrl?: string;
+  token?: string;
   timeoutMs: number;
 }
 
@@ -14,8 +14,8 @@ export class ConfigError extends Error {
 export function loadConfig(env: Record<string, string | undefined> = process.env): CoolifyConfig {
   const rawUrl = env.COOLIFY_URL?.trim();
   const token = env.COOLIFY_TOKEN?.trim();
-  if (!rawUrl) throw new ConfigError("COOLIFY_URL is required");
-  if (!token) throw new ConfigError("COOLIFY_TOKEN is required");
+
+  if (!rawUrl) return { ...(token ? { token } : {}), timeoutMs: 30_000 };
 
   let url: URL;
   try {
@@ -30,5 +30,5 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   url.pathname = url.pathname.replace(/\/+$/u, "");
   if (!url.pathname.endsWith("/api/v1")) url.pathname = `${url.pathname}/api/v1`.replace(/^\/\//u, "/");
 
-  return { baseUrl: url.toString().replace(/\/$/u, ""), token, timeoutMs: 30_000 };
+  return { baseUrl: url.toString().replace(/\/$/u, ""), ...(token ? { token } : {}), timeoutMs: 30_000 };
 }
