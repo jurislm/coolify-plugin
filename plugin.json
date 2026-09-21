@@ -10,6 +10,8 @@
   "homepage": "https://github.com/jurislm/coolify-plugin",
   "repository": "https://github.com/jurislm/coolify-plugin",
   "license": "MIT",
+  "skills": "./skills/",
+  "mcpServers": "./mcp.json",
   "keywords": [
     "coolify",
     "devops",
