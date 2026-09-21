@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [3.7.10](https://github.com/jurislm/coolify-plugin/compare/v3.7.9...v3.7.10) (2026-09-21)
+
+
+### Bug Fixes
+
+* keep portable MCP discovery canonical ([be882fb](https://github.com/jurislm/coolify-plugin/commit/be882fb7c8d654528748513c7acd2431cf1b8222))
+* keep portable MCP discovery canonical ([#16](https://github.com/jurislm/coolify-plugin/issues/16)) ([90c5628](https://github.com/jurislm/coolify-plugin/commit/90c5628057ce7da85a9703260a5e497e85792801))
+
 ## [3.7.9](https://github.com/jurislm/coolify-plugin/compare/v3.7.8...v3.7.9) (2026-09-21)
 
 
