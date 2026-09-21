@@ -60,14 +60,18 @@ export class CoolifyClient {
   constructor(private readonly config: CoolifyConfig, private readonly fetchImpl: FetchLike = fetch) {}
 
   async request<T>(operation: Operation, input: Record<string, unknown>): Promise<ToolEnvelope<T | null | string | BinaryEnvelope>> {
+    const baseUrl = this.config.baseUrl;
+    if (!baseUrl) throw new CoolifyApiError(0, operation.method, operation.path, "COOLIFY_URL is required");
+    const token = this.config.token;
+    if (!token) throw new CoolifyApiError(0, operation.method, operation.path, "COOLIFY_TOKEN is required");
     let path = operation.path;
     for (const parameter of operation.parameters) if (parameter.location === "path") {
       path = path.replace(`{${parameter.name}}`, pathValue(input[parameter.name], parameter.name));
     }
     if (path.includes("{")) throw new Error(`Unresolved path parameter in ${operation.path}`);
-    const url = new URL(this.config.baseUrl + path);
+    const url = new URL(baseUrl + path);
     for (const parameter of operation.parameters) if (parameter.location === "query") appendQuery(url, parameter.name, input[parameter.name]);
-    const headers = new Headers({ accept: "application/json, text/plain, */*", authorization: `Bearer ${this.config.token}` });
+    const headers = new Headers({ accept: "application/json, text/plain, */*", authorization: `Bearer ${token}` });
     const init: RequestInit = { method: operation.method, headers, signal: AbortSignal.timeout(this.config.timeoutMs) };
     if (input.body !== undefined && !["GET", "HEAD"].includes(operation.method)) {
       headers.set("content-type", "application/json");
@@ -78,7 +82,7 @@ export class CoolifyClient {
     try {
       response = await this.fetchImpl(url, init);
     } catch (error) {
-      throw new CoolifyApiError(0, operation.method, path, `Coolify request failed for ${operation.method} ${path}: ${error instanceof Error ? error.message.replaceAll(this.config.token, "[REDACTED]") : "request error"}`);
+      throw new CoolifyApiError(0, operation.method, path, `Coolify request failed for ${operation.method} ${path}: ${error instanceof Error ? error.message.replaceAll(token, "[REDACTED]") : "request error"}`);
     }
     if (!response.ok) throw new CoolifyApiError(response.status, operation.method, path, `Coolify API returned ${response.status} for ${operation.method} ${path}`);
 
