@@ -36,5 +36,6 @@ assert(autoMerge.steps?.[0]?.environment?.GITHUB_API_TOKEN?.from_secret, "auto-m
 assert(npmRelease.when?.[0]?.event === "tag", "npm release must trigger on tags");
 assert(npmRelease.steps?.[1]?.environment?.NPM_TOKEN?.from_secret === "npm_token", "npm release must use npm_token");
 assert(npmRelease.steps?.[0]?.commands?.some((command: string) => command.includes("check-release-tag")), "npm release must validate the tag");
+assert(npmRelease.steps?.[1]?.commands?.includes("npm publish --access public"), "npm release must publish with npm");
 
 console.log("release workflow contracts passed");
