@@ -4,8 +4,8 @@
       "command": "bunx",
       "args": ["-y", "@jurislm/coolify-plugin@latest"],
       "env": {
-        "COOLIFY_URL": "https://coolify.example",
-        "COOLIFY_TOKEN": "<set-in-host-environment>"
+        "COOLIFY_BASE_URL": "https://coolify.example",
+        "COOLIFY_ACCESS_TOKEN": "<set-in-host-environment>"
       }
     }
   }

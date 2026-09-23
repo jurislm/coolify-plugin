@@ -30,8 +30,8 @@ if (server.type !== "stdio" || server.command !== "bunx" || "cwd" in server || "
 if (JSON.stringify(parsed[".mcp.json"].mcpServers) !== JSON.stringify(parsed["mcp.json"].mcpServers)) throw new Error("Codex and portable MCP registrations must agree");
 const exampleServer = (parsed[".mcp.json.example"].mcpServers as Json).coolify as Json;
 if (exampleServer.command !== "bunx" || !(exampleServer.args as string[]).includes("@jurislm/coolify-plugin@latest")) throw new Error(".mcp.json.example must match the Woodpecker bunx registration");
-const text = JSON.stringify(parsed);
-if (text.includes("COOLIFY_BASE_URL") || text.includes("COOLIFY_ACCESS_TOKEN")) throw new Error("legacy Coolify credentials are forbidden");
+const exampleEnv = exampleServer.env as Json;
+if (!("COOLIFY_BASE_URL" in exampleEnv) || !("COOLIFY_ACCESS_TOKEN" in exampleEnv) || "COOLIFY_URL" in exampleEnv || "COOLIFY_TOKEN" in exampleEnv) throw new Error(".mcp.json.example must use the global Coolify environment variable names");
 const dependencies = packageJson.dependencies as Json;
 for (const [name, version] of Object.entries({ "@modelcontextprotocol/sdk": "1.30.0", zod: "4.6.5" })) {
   if (dependencies[name] !== version) throw new Error(`${name} must be pinned to ${version}`);

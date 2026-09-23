@@ -46,13 +46,7 @@ function toolName(operation: JsonObject, method: string, path: string, used: Set
   for (let index = 2; used.has(name); index++) name = `${base}_${index}`;
   return name;
 }
-function responseInfo(operation: JsonObject, path: string): { schema: string; kind: string } {
-  if (path === "/databases" || path === "/resources" || path === "/deployments/applications/{uuid}") {
-    return { schema: "z.array(z.unknown())", kind: "json" };
-  }
-  if (path === "/deployments") {
-    return { schema: "z.array(z.unknown())", kind: "json" };
-  }
+function responseInfo(operation: JsonObject): { schema: string; kind: string } {
   const response = Object.entries(operation.responses ?? {}).find(([status]) => /^2\d\d$/u.test(status))?.[1] as JsonObject | undefined;
   const content = response?.content ?? {};
   const contentType = Object.keys(content)[0];
@@ -82,7 +76,7 @@ for (const [path, pathItem] of Object.entries(document.paths ?? {})) {
     if (bodyType) properties.push(`body: ${schemaText(bodyContent[bodyType]?.schema, !requestBody.required)}`);
     const name = toolName(operation, method, path, usedNames);
     usedNames.add(name);
-    const response = responseInfo(operation, path);
+    const response = responseInfo(operation);
     const summary = String(operation.summary ?? operation.operationId ?? `${method.toUpperCase()} ${path}`);
     const destructive = method === "delete" || /delete|reset|revoke|remove|destroy/iu.test(summary);
     const idempotent = ["get", "head", "put", "delete", "options"].includes(method);

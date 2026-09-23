@@ -1,7 +1,7 @@
 ---
 title: Tool Registry Specification
-version: 2.0.0
-date: 2026-09-16
+version: 2.1.0
+date: 2026-09-23
 ---
 
 > Current contract: use the generated `coolify_*` operations in `src/generated/operations.ts` and explicit wrappers registered with `registerTool` in `src/server.ts`; older action-oriented examples in this artifact are superseded. Executable checks live in Bun tests.
@@ -9,7 +9,7 @@ date: 2026-09-16
 
 ## Purpose
 
-Define the MCP surface produced by `@jurislm/coolify-plugin`: generated `coolify_*` tools from the pinned OpenAPI contract plus explicit v3.6 composite wrappers.
+Define the MCP surface produced by `@jurislm/coolify-plugin`: generated `coolify_*` tools from the pinned OpenAPI contract plus explicit composite tools.
 
 ## Requirements
 
@@ -22,7 +22,7 @@ When `src/server.ts` creates an MCP server, it SHALL call `registerTool` once fo
 - **WHEN** a client calls `tools/list`
 - **THEN** every generated operation is present with its generated input/output schema and HTTP annotations
 
-### Requirement: v3.6 composite capabilities remain explicit
+### Requirement: Composite capabilities remain explicit
 
 The server SHALL additionally register `coolify_get_mcp_version`, `coolify_get_infrastructure_overview`, `coolify_get_environment`, `coolify_diagnose_application`, `coolify_diagnose_server`, `coolify_find_issues`, `coolify_restart_project_applications`, `coolify_bulk_update_application_env`, `coolify_stop_all_applications`, `coolify_redeploy_project_applications`, and `coolify_docker_network_alias` from `src/capabilities.ts`.
 

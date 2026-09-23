@@ -44,26 +44,14 @@ function base64(bytes: ArrayBuffer): string {
   return btoa(text);
 }
 
-function normalizeKnownCollection(path: string, value: unknown): unknown {
-  const collectionPaths = new Set(["/databases", "/resources", "/deployments", "/deployments/applications/{uuid}"]);
-  if (!collectionPaths.has(path)) return value;
-  if (Array.isArray(value)) return value;
-  if (!value || typeof value !== "object") throw new Error(`Coolify collection response for ${path} must be an array or named array wrapper`);
-  for (const key of ["data", "items", "results", "databases", "resources", "deployments"]) {
-    const nested = (value as Record<string, unknown>)[key];
-    if (Array.isArray(nested)) return nested;
-  }
-  throw new Error(`Coolify collection response for ${path} must be an array or named array wrapper`);
-}
-
 export class CoolifyClient {
   constructor(private readonly config: CoolifyConfig, private readonly fetchImpl: FetchLike = fetch) {}
 
   async request<T>(operation: Operation, input: Record<string, unknown>): Promise<ToolEnvelope<T | null | string | BinaryEnvelope>> {
     const baseUrl = this.config.baseUrl;
-    if (!baseUrl) throw new CoolifyApiError(0, operation.method, operation.path, "COOLIFY_URL is required");
+    if (!baseUrl) throw new CoolifyApiError(0, operation.method, operation.path, "COOLIFY_BASE_URL is required");
     const token = this.config.token;
-    if (!token) throw new CoolifyApiError(0, operation.method, operation.path, "COOLIFY_TOKEN is required");
+    if (!token) throw new CoolifyApiError(0, operation.method, operation.path, "COOLIFY_ACCESS_TOKEN is required");
     let path = operation.path;
     for (const parameter of operation.parameters) if (parameter.location === "path") {
       path = path.replace(`{${parameter.name}}`, pathValue(input[parameter.name], parameter.name));
@@ -89,7 +77,7 @@ export class CoolifyClient {
     let data: T | null | string | BinaryEnvelope = null;
     if (response.status !== 204) {
       const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
-      if (contentType.includes("json")) data = normalizeKnownCollection(operation.path, await response.json()) as T;
+      if (contentType.includes("json")) data = await response.json() as T;
       else if (contentType.startsWith("text/") || contentType.includes("xml")) data = await response.text();
       else data = { encoding: "base64", contentType: contentType || "application/octet-stream", value: base64(await response.arrayBuffer()) };
     }
