@@ -10,7 +10,7 @@ type Manifest = {
 };
 type Document = { openapi?: string; info?: { version?: string }; paths?: Record<string, Record<string, unknown>> };
 const methods = new Set(["get", "put", "post", "delete", "patch", "head", "options", "trace"]);
-const officialSourceUrl = "https://raw.githubusercontent.com/coollabsio/coolify/main/openapi.json";
+const officialSourceUrl = "https://raw.githubusercontent.com/coollabsio/coolify/v4.3.23/openapi.json";
 
 export function verifySnapshot(snapshot: string, manifest: Manifest): void {
   if (manifest.sourceUrl !== officialSourceUrl) throw new Error("OpenAPI sourceUrl is not authoritative");

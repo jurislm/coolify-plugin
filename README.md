@@ -1,14 +1,14 @@
 # @jurislm/coolify-plugin
 
-Portable Coolify MCP plugin. It exposes focused `coolify_*` stdio tools generated from the committed official Coolify OpenAPI snapshot.
+Portable Coolify MCP plugin. It exposes focused `coolify_*` stdio tools generated from one pinned Coolify API contract.
 
 ## Configure
 
-Only these environment variables are accepted:
+The plugin reads the same global environment variables used by the Coolify setup:
 
 ```sh
-export COOLIFY_URL=https://coolify.example
-export COOLIFY_TOKEN=your-api-token
+export COOLIFY_BASE_URL=https://coolify.example
+export COOLIFY_ACCESS_TOKEN=your-api-token
 ```
 
 Build and run locally:
@@ -30,7 +30,7 @@ codex plugin add coolify-plugin@coolify-marketplace
 
 ## OpenAPI contract
 
-`openapi/coolify-openapi.json` is fetched from the official Coolify repository. `api/manifest.json` records its source, fetch time, persisted-snapshot SHA-256, document/info versions, path count, and operation count. `bun run api:check` verifies the snapshot offline before checking generated parity.
+`openapi/coolify-openapi.json` is built from the official Coolify v4.3.23 release. `api/manifest.json` records the upstream SHA-256, the current API contract corrections, and the persisted SHA-256. `bun run api:check` verifies the contract offline before checking generated parity. The runtime uses the generated schemas directly.
 
 ```sh
 bun run api:fetch

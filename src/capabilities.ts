@@ -11,15 +11,11 @@ type RecordValue = Record<string, unknown>;
 
 function rows(value: unknown): RecordValue[] {
   if (Array.isArray(value)) return value.filter((item): item is RecordValue => !!item && typeof item === "object");
-  if (!value || typeof value !== "object") return [];
-  for (const key of ["data", "items", "results", "deployments", "applications", "databases", "resources", "services"]) {
-    const nested = (value as RecordValue)[key];
-    if (Array.isArray(nested)) return rows(nested);
-  }
   return [];
 }
 
 function status(value: RecordValue): string { return typeof value.status === "string" ? value.status : ""; }
+function running(value: RecordValue): boolean { return /(^|:)running($|:)/iu.test(status(value)); }
 function unhealthy(value: RecordValue): boolean { return /exited|unhealthy|error|stopped/iu.test(status(value)); }
 function errorMessage(value: unknown): string { return value instanceof Error ? value.message : String(value); }
 function truncateLogs(logs: string, lineLimit = 200, charLimit = 50_000): string {
@@ -30,14 +26,15 @@ function truncateLogs(logs: string, lineLimit = 200, charLimit = 50_000): string
   return result;
 }
 function environmentSummary(value: unknown): RecordValue[] {
-  return rows(value).map((item) => ({ key: item.key, is_build_time: item.is_build_time ?? item.is_buildtime ?? false }));
+  return rows(value).map((item) => ({ key: item.key, is_build_time: item.is_buildtime === true }));
 }
 
-export function registerV36Capabilities(server: McpServer, client: CoolifyClient): void {
+export function registerCapabilities(server: McpServer, client: CoolifyClient): void {
   const call = async (name: string, input: RecordValue = {}): Promise<unknown> => {
     const operation = operations.find((item) => item.name === name);
     if (!operation) throw new Error(`Missing generated operation: ${name}`);
-    return (await client.request(operation, operation.inputSchema.parse(input) as RecordValue)).data;
+    const data = (await client.request(operation, operation.inputSchema.parse(input) as RecordValue)).data;
+    return operation.responseSchema.parse(data);
   };
   const result = (name: string, data: unknown) => {
     const structuredContent = redactSensitive({ data, status: 200, request: { method: "COMPOSITE", path: `/capabilities/${name}` } });
@@ -82,6 +79,14 @@ export function registerV36Capabilities(server: McpServer, client: CoolifyClient
     const servers = rows(await call("coolify_list_servers"));
     return servers.find((item) => [item.uuid, item.name, item.ip].some((value) => typeof value === "string" && value.toLowerCase().includes(query.toLowerCase())));
   };
+  const projectApplications = async (projectUuid: string) => {
+    const [apps, environments] = await Promise.all([
+      call("coolify_list_applications"),
+      call("coolify_get_environments", { uuid: projectUuid }),
+    ]);
+    const environmentIds = new Set(rows(environments).map((environment) => environment.id));
+    return rows(apps).filter((app) => environmentIds.has(app.environment_id));
+  };
 
   register("coolify_get_mcp_version", "Get the local Coolify plugin version.", z.object({}), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async () => ({ name: "@jurislm/coolify-plugin", version: pluginVersion }));
   register("coolify_get_infrastructure_overview", "Summarize Coolify infrastructure.", z.object({}), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, overview);
@@ -91,14 +96,15 @@ export function registerV36Capabilities(server: McpServer, client: CoolifyClient
     if (!app?.uuid) return { application: null, health: { status: "unknown", issues: [] }, logs: null, environment_variables: { count: 0, variables: [] }, recent_deployments: [], errors: [`No application found matching ${query}`] };
     const names = ["application", "logs", "environment_variables", "deployments"];
     const settled = await Promise.allSettled([
-      call("coolify_get_application_by_uuid", { uuid: app.uuid }), call("coolify_get_application_logs_by_uuid", { uuid: app.uuid, lines: 50 }), call("coolify_list_envs_by_application_uuid", { uuid: app.uuid }), call("coolify_list_deployments_by_app_uuid", { uuid: app.uuid }),
+      call("coolify_get_application_by_uuid", { uuid: app.uuid }), running(app) ? call("coolify_get_application_logs_by_uuid", { uuid: app.uuid, lines: 50 }) : Promise.resolve(null), call("coolify_list_envs_by_application_uuid", { uuid: app.uuid }), call("coolify_list_deployments_by_app_uuid", { uuid: app.uuid }),
     ]);
     const errors: string[] = [];
     const value = (index: number): unknown => { const entry = settled[index]; if (entry.status === "fulfilled") return entry.value; errors.push(`${names[index]}: ${errorMessage(entry.reason)}`); return null; };
     const details = value(0) as RecordValue | null;
     const rawLogs = value(1);
     const envVars = environmentSummary(value(2));
-    const deployments = rows(value(3));
+    const deploymentCollection = value(3) as RecordValue | null;
+    const deployments = rows(deploymentCollection?.deployments);
     const appInfo = details ?? app;
     const appStatus = status(appInfo);
     const issues: string[] = [];
@@ -107,16 +113,16 @@ export function registerV36Capabilities(server: McpServer, client: CoolifyClient
     else if (/running/iu.test(appStatus)) health = "healthy";
     const failed = deployments.slice(0, 5).filter((item) => item.status === "failed").length;
     if (failed) { health = "unhealthy"; issues.push(`${failed} failed deployment(s) in last 5`); }
-    const logs = typeof rawLogs === "string" ? rawLogs : rawLogs && typeof rawLogs === "object" && typeof (rawLogs as RecordValue).logs === "string" ? (rawLogs as RecordValue).logs as string : null;
-    return { application: { uuid: appInfo.uuid, name: appInfo.name, status: appStatus || "unknown", fqdn: appInfo.fqdn ?? null, git_repository: appInfo.git_repository ?? null, git_branch: appInfo.git_branch ?? null }, health: { status: health, issues }, logs: logs === null ? null : truncateLogs(logs), environment_variables: { count: envVars.length, variables: envVars }, recent_deployments: deployments.slice(0, 5).map((item) => ({ uuid: item.uuid, status: item.status, created_at: item.created_at })), ...(errors.length ? { errors } : {}) };
+    const logs = rawLogs && typeof rawLogs === "object" && typeof (rawLogs as RecordValue).logs === "string" ? (rawLogs as RecordValue).logs as string : null;
+    return { application: { uuid: appInfo.uuid, name: appInfo.name, status: appStatus || "unknown", fqdn: appInfo.fqdn ?? null, git_repository: appInfo.git_repository ?? null, git_branch: appInfo.git_branch ?? null }, health: { status: health, issues }, logs: logs === null ? null : truncateLogs(logs), environment_variables: { count: envVars.length, variables: envVars }, recent_deployments: deployments.slice(0, 5).map((item) => ({ uuid: item.deployment_uuid, status: item.status, created_at: item.created_at })), ...(errors.length ? { errors } : {}) };
   });
   register("coolify_diagnose_server", "Diagnose a server by UUID, name, or IP.", z.object({ query: z.string() }), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async ({ query }) => {
     let found: RecordValue | undefined;
-    try { found = await serverByQuery(String(query)); } catch (error) { return { server: null, health: { status: "unknown", issues: [] }, resources: [], domains: [], validation: null, errors: [errorMessage(error)] }; }
-    if (!found?.uuid) return { server: null, health: { status: "unknown", issues: [] }, resources: [], domains: [], validation: null, errors: [`No server found matching ${query}`] };
-    const names = ["server", "resources", "domains", "validation"];
+    try { found = await serverByQuery(String(query)); } catch (error) { return { server: null, health: { status: "unknown", issues: [] }, resources: [], domains: [], errors: [errorMessage(error)] }; }
+    if (!found?.uuid) return { server: null, health: { status: "unknown", issues: [] }, resources: [], domains: [], errors: [`No server found matching ${query}`] };
+    const names = ["server", "resources", "domains"];
     const settled = await Promise.allSettled([
-      call("coolify_get_server_by_uuid", { uuid: found.uuid }), call("coolify_get_resources_by_server_uuid", { uuid: found.uuid }), call("coolify_get_domains_by_server_uuid", { uuid: found.uuid }), call("coolify_validate_server_by_uuid", { uuid: found.uuid }),
+      call("coolify_get_server_by_uuid", { uuid: found.uuid }), call("coolify_get_resources_by_server_uuid", { uuid: found.uuid }), call("coolify_get_domains_by_server_uuid", { uuid: found.uuid }),
     ]);
     const errors: string[] = [];
     const value = (index: number): unknown => { const entry = settled[index]; if (entry.status === "fulfilled") return entry.value; errors.push(`${names[index]}: ${errorMessage(entry.reason)}`); return null; };
@@ -127,7 +133,7 @@ export function registerV36Capabilities(server: McpServer, client: CoolifyClient
     if (details.is_usable === false) issues.push("Server is not usable");
     const unhealthyResources = resources.filter(unhealthy).length;
     if (unhealthyResources) issues.push(`${unhealthyResources} unhealthy resource(s)`);
-    return { server: { uuid: details.uuid, name: details.name, ip: details.ip, status: details.status ?? null, is_reachable: details.is_reachable ?? null }, health: { status: issues.length ? "unhealthy" : details.is_reachable === true ? "healthy" : "unknown", issues }, resources: resources.map((item) => ({ uuid: item.uuid, name: item.name, type: item.type, status: item.status })), domains: rows(value(2)), validation: value(3), ...(errors.length ? { errors } : {}) };
+    return { server: { uuid: details.uuid, name: details.name, ip: details.ip, status: details.status ?? null, is_reachable: details.is_reachable ?? null }, health: { status: issues.length ? "unhealthy" : details.is_reachable === true ? "healthy" : "unknown", issues }, resources: resources.map((item) => ({ uuid: item.uuid, name: item.name, type: item.type, status: item.status })), domains: rows(value(2)), ...(errors.length ? { errors } : {}) };
   });
   register("coolify_find_issues", "Find unhealthy Coolify infrastructure.", z.object({}), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async () => {
     const names = ["servers", "applications", "databases", "services"];
@@ -137,24 +143,24 @@ export function registerV36Capabilities(server: McpServer, client: CoolifyClient
     values.slice(1).forEach((items, index) => items.filter(unhealthy).forEach((item) => issues.push({ type: names[index + 1].slice(0, -1), uuid: item.uuid, name: item.name, issue: `${names[index + 1].slice(0, -1)} status: ${status(item)}`, status: status(item) })));
     return { summary: { total_issues: issues.length, unhealthy_applications: issues.filter((item) => item.type === "application").length, unhealthy_databases: issues.filter((item) => item.type === "database").length, unhealthy_services: issues.filter((item) => item.type === "service").length, unreachable_servers: issues.filter((item) => item.type === "server").length }, issues, ...(errors.length ? { errors } : {}) };
   });
-  register("coolify_restart_project_applications", "Restart every application in a project.", z.object({ project_uuid: z.string() }), { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }, async ({ project_uuid }) => batch(rows(await call("coolify_list_applications")).filter((app) => app.project_uuid === project_uuid), (app) => call("coolify_restart_application_by_uuid", { uuid: app.uuid })));
+  register("coolify_restart_project_applications", "Restart every application in a project.", z.object({ project_uuid: z.string() }), { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }, async ({ project_uuid }) => batch(await projectApplications(String(project_uuid)), (app) => call("coolify_restart_application_by_uuid", { uuid: app.uuid })));
   register("coolify_bulk_update_application_env", "Update an environment variable across applications.", z.object({ app_uuids: z.array(z.string()), key: z.string(), value: z.string() }).strict(), { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }, async ({ app_uuids, key, value }) => {
     if (!(app_uuids as string[]).length) return batch([], async () => undefined);
     const names = rows(await call("coolify_list_applications"));
     const labels = new Map(names.map((item) => [item.uuid, item.name ?? item.uuid]));
     return batch((app_uuids as string[]).map((uuid) => ({ uuid, name: labels.get(uuid) ?? uuid })), (app) => call("coolify_update_env_by_application_uuid", { uuid: app.uuid, body: { key, value } }));
   });
-  register("coolify_stop_all_applications", "Emergency stop every running application.", z.object({ confirm_stop_all_applications: z.literal(true) }), { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false }, async () => batch(rows(await call("coolify_list_applications")).filter((app) => /running|healthy/iu.test(status(app))), (app) => call("coolify_stop_application_by_uuid", { uuid: app.uuid })));
-  register("coolify_redeploy_project_applications", "Redeploy every application in a project.", z.object({ project_uuid: z.string(), force: z.boolean().optional() }), { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }, async ({ project_uuid, force }) => batch(rows(await call("coolify_list_applications")).filter((app) => app.project_uuid === project_uuid), (app) => call("coolify_deploy_by_tag_or_uuid", { uuid: app.uuid, force: force ?? true })));
+  register("coolify_stop_all_applications", "Emergency stop every running application.", z.object({ confirm_stop_all_applications: z.literal(true) }), { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false }, async () => batch(rows(await call("coolify_list_applications")).filter(running), (app) => call("coolify_stop_application_by_uuid", { uuid: app.uuid })));
+  register("coolify_redeploy_project_applications", "Redeploy every application in a project.", z.object({ project_uuid: z.string(), force: z.boolean().optional() }), { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }, async ({ project_uuid, force }) => batch(await projectApplications(String(project_uuid)), (app) => call("coolify_deploy_by_tag_or_uuid", { uuid: app.uuid, force: force ?? true })));
   register("coolify_get_environment", "Get an environment and its relevant database types.", z.object({ project_uuid: z.string(), environment_name_or_uuid: z.string() }), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async ({ project_uuid, environment_name_or_uuid }) => {
     const settled = await Promise.allSettled([call("coolify_get_environment_by_name_or_uuid", { uuid: project_uuid, environment_name_or_uuid }), call("coolify_list_databases")]);
     const errors: string[] = [];
     const environment = settled[0].status === "fulfilled" ? settled[0].value as RecordValue : (errors.push(`environment: ${errorMessage(settled[0].reason)}`), null);
     const databases = settled[1].status === "fulfilled" ? rows(settled[1].value) : (errors.push(`databases: ${errorMessage(settled[1].reason)}`), []);
     if (!environment) return { environment: null, missing_database_types: [...databaseTypes], ...(errors.length ? { errors } : {}) };
-    const matching = databases.filter((database) => (environment.id !== undefined && database.environment_id === environment.id) || (environment.uuid !== undefined && database.environment_uuid === environment.uuid) || (environment.name !== undefined && database.environment_name === environment.name));
+    const matching = databases.filter((database) => environment.id !== undefined && database.environment_id === environment.id);
     const byType = new Map<string, RecordValue[]>();
-    matching.forEach((database) => { const type = String(database.database_type ?? database.type ?? "").toLowerCase(); for (const expected of databaseTypes) if (type.includes(expected)) byType.set(expected, [...(byType.get(expected) ?? []), database]); });
+    matching.forEach((database) => { const type = String(database.database_type ?? "").toLowerCase(); for (const expected of databaseTypes) if (type.includes(expected)) byType.set(expected, [...(byType.get(expected) ?? []), database]); });
     const missing = databaseTypes.filter((type) => !byType.has(type));
     return { ...environment, ...Object.fromEntries(databaseTypes.filter((type) => byType.has(type)).map((type) => [`${type}s`, byType.get(type)])), missing_database_types: missing, ...(errors.length ? { errors } : {}) };
   });

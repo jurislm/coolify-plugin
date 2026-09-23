@@ -3,7 +3,7 @@ import { verifySnapshot } from "./check-openapi.js";
 
 const snapshot = JSON.stringify({ openapi: "3.1.0", info: { version: "0.1" }, paths: { "/health": { get: {} } } });
 const sha256 = "4a38960fdf4201c8e15d50ba33cdc9fd24dec64c729d649167232607614485c1";
-const sourceUrl = "https://raw.githubusercontent.com/coollabsio/coolify/main/openapi.json";
+const sourceUrl = "https://raw.githubusercontent.com/coollabsio/coolify/v4.3.23/openapi.json";
 
 describe("verifySnapshot", () => {
   test("rejects a persisted snapshot whose hash does not match", () => {

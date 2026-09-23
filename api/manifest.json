@@ -1,9 +1,20 @@
 {
-  "sourceUrl": "https://raw.githubusercontent.com/coollabsio/coolify/main/openapi.json",
-  "fetchedAt": "2026-09-16T10:31:42.036Z",
-  "sha256": "4dbb392aac5e0a46186c4e6e5237f86d9534bb99bf6b8b82351a513598af3900",
+  "sourceUrl": "https://raw.githubusercontent.com/coollabsio/coolify/v4.3.23/openapi.json",
+  "fetchedAt": "2026-09-23T12:23:33.000Z",
+  "sha256": "e80f5efe8df44d0887285a8b923bca84bfc3af6a62b1e63405164e71939d6595",
+  "upstreamSha256": "964360ffb3d4c026252aa4657d6561190f59ac4256395bf0645bf6a4f171ec88",
   "openapiVersion": "3.1.0",
   "infoVersion": "0.1",
   "pathCount": 192,
-  "operationCount": 275
+  "operationCount": 275,
+  "contractCorrections": [
+    "List database and resource responses are arrays",
+    "Application deployment history is a count plus deployments collection",
+    "Resource field nullability and identifiers match the active API",
+    "Database updates expose custom Docker run options",
+    "Unsupported server validation operation removed",
+    "Database PATCH omits unspecified health-check defaults",
+    "Server reachability and service status are response fields",
+    "Server metadata, deployment git type, and environment descriptions can be null"
+  ]
 }

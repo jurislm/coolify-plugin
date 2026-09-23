@@ -172,6 +172,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/applications/{uuid}/previews/{pull_request_id}/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get preview application logs.
+         * @description Get runtime container logs for a preview deployment by application UUID and pull request ID.
+         */
+        get: operations["get-preview-application-logs-by-pull-request-id"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/applications/{uuid}/envs": {
         parameters: {
             query?: never;
@@ -2965,26 +2985,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/servers/{uuid}/validate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Validate
-         * @description Validate server by UUID.
-         */
-        post: operations["validate-server-by-uuid"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/services/{uuid}/applications": {
         parameters: {
             query?: never;
@@ -4258,11 +4258,11 @@ export interface components {
             /** @description Static image used when static site is deployed. */
             static_image?: string;
             /** @description Install command. */
-            install_command?: string;
+            install_command?: string | null;
             /** @description Build command. */
-            build_command?: string;
+            build_command?: string | null;
             /** @description Start command. */
-            start_command?: string;
+            start_command?: string | null;
             /** @description Ports exposes. */
             ports_exposes?: string;
             /** @description Ports mappings. */
@@ -4272,7 +4272,7 @@ export interface components {
             /** @description Base directory for all commands. */
             base_directory?: string;
             /** @description Publish directory. */
-            publish_directory?: string;
+            publish_directory?: string | null;
             /** @description Health check enabled. */
             health_check_enabled?: boolean;
             /** @description Health check path. */
@@ -4331,13 +4331,13 @@ export interface components {
             /** @description Source identifier. */
             source_id?: number | null;
             /** @description Private key identifier. */
-            private_key_id?: number | null;
+            private_key_id?: string | null;
             /** @description Environment identifier. */
             environment_id?: number;
             /** @description Dockerfile content. Used for dockerfile build pack. */
             dockerfile?: string | null;
             /** @description Dockerfile location. */
-            dockerfile_location?: string;
+            dockerfile_location?: string | null;
             /** @description Custom labels. */
             custom_labels?: string | null;
             /** @description Dockerfile target build. */
@@ -4432,7 +4432,7 @@ export interface components {
             logs?: string;
             current_process_id?: string;
             restart_only?: boolean;
-            git_type?: string;
+            git_type?: string | null;
             server_id?: number;
             application_name?: string;
             server_name?: string;
@@ -4441,6 +4441,10 @@ export interface components {
             only_this_server?: boolean;
             rollback?: boolean;
             commit_message?: string;
+            build_server_id?: number | null;
+            horizon_job_id?: string | null;
+            horizon_job_worker?: string | null;
+            finished_at?: string | null;
         };
         /** @description Application settings. */
         ApplicationSetting: {
@@ -4487,7 +4491,7 @@ export interface components {
             project_id?: number;
             created_at?: string;
             updated_at?: string;
-            description?: string;
+            description?: string | null;
         };
         /** @description Environment Variable model */
         EnvironmentVariable: {
@@ -4629,12 +4633,14 @@ export interface components {
             /** @description The unreachable count for your server. */
             unreachable_count?: number;
             /** @description The validation logs. */
-            validation_logs?: string;
+            validation_logs?: string | null;
             /** @description The flag to indicate if the log drain notification has been sent. */
             log_drain_notification_sent?: boolean;
             /** @description The swarm cluster configuration. */
-            swarm_cluster?: string;
+            swarm_cluster?: string | null;
             settings?: components["schemas"]["ServerSetting"];
+            is_reachable?: boolean;
+            is_usable?: boolean;
         };
         /** @description Server Settings model */
         ServerSetting: {
@@ -4658,20 +4664,20 @@ export interface components {
             is_swarm_worker?: boolean;
             is_terminal_enabled?: boolean;
             is_usable?: boolean;
-            logdrain_axiom_api_key?: string;
-            logdrain_axiom_dataset_name?: string;
-            logdrain_custom_config?: string;
-            logdrain_custom_config_parser?: string;
-            logdrain_highlight_project_id?: string;
-            logdrain_newrelic_base_uri?: string;
-            logdrain_newrelic_license_key?: string;
+            logdrain_axiom_api_key?: string | null;
+            logdrain_axiom_dataset_name?: string | null;
+            logdrain_custom_config?: string | null;
+            logdrain_custom_config_parser?: string | null;
+            logdrain_highlight_project_id?: string | null;
+            logdrain_newrelic_base_uri?: string | null;
+            logdrain_newrelic_license_key?: string | null;
             sentinel_metrics_history_days?: number;
             sentinel_metrics_refresh_rate_seconds?: number;
             sentinel_token?: string;
             docker_cleanup_frequency?: string;
             docker_cleanup_threshold?: number;
             server_id?: number;
-            wildcard_domain?: string;
+            wildcard_domain?: string | null;
             created_at?: string;
             updated_at?: string;
             /** @description The flag to indicate if the unused volumes should be deleted. */
@@ -4712,13 +4718,14 @@ export interface components {
             /** @description The hash of the service configuration. */
             config_hash?: string;
             /** @description The type of the service. */
-            service_type?: string;
+            service_type?: string | null;
             /** @description The date and time when the service was created. */
             created_at?: string;
             /** @description The date and time when the service was last updated. */
             updated_at?: string;
             /** @description The date and time when the service was deleted. */
-            deleted_at?: string;
+            deleted_at?: string | null;
+            status?: string;
         };
         /** @description A Docker network destination attached to a server. */
         Destination: {
@@ -4781,6 +4788,27 @@ export interface components {
             force_password_reset?: boolean;
             /** @description The flag to receive marketing emails. */
             marketing_emails?: boolean;
+        };
+        DatabaseRecord: {
+            uuid: string;
+            name?: string;
+            database_type?: string;
+            environment_id?: number;
+            status?: string;
+        } & {
+            [key: string]: unknown;
+        };
+        ResourceRecord: {
+            uuid: string;
+            name?: string;
+            type?: string;
+            status?: string;
+        } & {
+            [key: string]: unknown;
+        };
+        ApplicationDeploymentCollection: {
+            count: number;
+            deployments: components["schemas"]["ApplicationDeploymentQueue"][];
         };
     };
     responses: {
@@ -6601,6 +6629,42 @@ export interface operations {
             404: components["responses"]["404"];
         };
     };
+    "get-preview-application-logs-by-pull-request-id": {
+        parameters: {
+            query?: {
+                /** @description Number of lines to show from the end of the logs. Use `all` to return all logs. `-1` remains available as a compatibility alias. */
+                lines?: number | "all";
+                /** @description Show timestamps in the logs. */
+                show_timestamps?: boolean;
+            };
+            header?: never;
+            path: {
+                /** @description UUID of the application. */
+                uuid: string;
+                /** @description Pull request ID of the preview deployment. */
+                pull_request_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Preview runtime logs. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        logs?: string;
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            404: components["responses"]["404"];
+            422: components["responses"]["422"];
+        };
+    };
     "list-envs-by-application-uuid": {
         parameters: {
             query?: never;
@@ -7032,8 +7096,6 @@ export interface operations {
                     name?: string;
                     /** @description The container mount path. */
                     mount_path: string;
-                    /** @description The host path (persistent only, optional). */
-                    host_path?: string | null;
                     /** @description File content (file only, optional). */
                     content?: string | null;
                     /** @description Whether this is a directory mount (file only, default false). */
@@ -7088,8 +7150,6 @@ export interface operations {
                     name?: string;
                     /** @description The container mount path (not allowed for read-only storages). */
                     mount_path?: string;
-                    /** @description The host path (persistent only, not allowed for read-only storages). */
-                    host_path?: string | null;
                     /** @description The file content (file only, not allowed for read-only storages). */
                     content?: string | null;
                 };
@@ -7837,7 +7897,7 @@ export interface operations {
                 };
                 content: {
                     /** @example Content is very complex. Will be implemented later. */
-                    "application/json": string;
+                    "application/json": components["schemas"]["DatabaseRecord"][];
                 };
             };
             400: components["responses"]["400"];
@@ -8111,31 +8171,18 @@ export interface operations {
                     mysql_database?: string;
                     /** @description MySQL conf */
                     mysql_conf?: string;
-                    /**
-                     * @description Enable the database healthcheck probe.
-                     * @default true
-                     */
+                    /** @description Enable the database healthcheck probe. */
                     health_check_enabled?: boolean;
-                    /**
-                     * @description Healthcheck interval in seconds.
-                     * @default 15
-                     */
+                    /** @description Healthcheck interval in seconds. */
                     health_check_interval?: number;
-                    /**
-                     * @description Healthcheck timeout in seconds.
-                     * @default 5
-                     */
+                    /** @description Healthcheck timeout in seconds. */
                     health_check_timeout?: number;
-                    /**
-                     * @description Healthcheck retries count.
-                     * @default 5
-                     */
+                    /** @description Healthcheck retries count. */
                     health_check_retries?: number;
-                    /**
-                     * @description Healthcheck start period in seconds.
-                     * @default 5
-                     */
+                    /** @description Healthcheck start period in seconds. */
                     health_check_start_period?: number;
+                    /** @description Docker run options for the database container. */
+                    custom_docker_run_options?: string;
                 };
             };
         };
@@ -9375,8 +9422,6 @@ export interface operations {
                     name?: string;
                     /** @description The container mount path. */
                     mount_path: string;
-                    /** @description The host path (persistent only, optional). */
-                    host_path?: string | null;
                     /** @description File content (file only, optional). */
                     content?: string | null;
                     /** @description Whether this is a directory mount (file only, default false). */
@@ -9431,8 +9476,6 @@ export interface operations {
                     name?: string;
                     /** @description The container mount path (not allowed for read-only storages). */
                     mount_path?: string;
-                    /** @description The host path (persistent only, not allowed for read-only storages). */
-                    host_path?: string | null;
                     /** @description The file content (file only, not allowed for read-only storages). */
                     content?: string | null;
                 };
@@ -9775,7 +9818,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Application"][];
+                    "application/json": components["schemas"]["ApplicationDeploymentCollection"];
                 };
             };
             400: components["responses"]["400"];
@@ -11849,7 +11892,7 @@ export interface operations {
                 };
                 content: {
                     /** @example Content is very complex. Will be implemented later. */
-                    "application/json": string;
+                    "application/json": components["schemas"]["ResourceRecord"][];
                 };
             };
             400: components["responses"]["400"];
@@ -13785,46 +13828,6 @@ export interface operations {
             401: components["responses"]["401"];
         };
     };
-    "validate-server-by-uuid": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Server UUID */
-                uuid: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": {
-                    /**
-                     * @description Install missing prerequisites and Docker. This can restart the Docker daemon.
-                     * @default false
-                     */
-                    install?: boolean;
-                };
-            };
-        };
-        responses: {
-            /** @description Server validation started. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @example Validation started. */
-                        message?: string;
-                    };
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            404: components["responses"]["404"];
-            422: components["responses"]["422"];
-        };
-    };
     "list-service-applications-by-service-uuid": {
         parameters: {
             query?: never;
@@ -15100,8 +15103,6 @@ export interface operations {
                     name?: string;
                     /** @description The container mount path. */
                     mount_path: string;
-                    /** @description The host path (persistent only, optional). */
-                    host_path?: string | null;
                     /** @description File content (file only, optional). */
                     content?: string | null;
                     /** @description Whether this is a directory mount (file only, default false). */
@@ -15156,8 +15157,6 @@ export interface operations {
                     name?: string;
                     /** @description The container mount path (not allowed for read-only storages). */
                     mount_path?: string;
-                    /** @description The host path (persistent only, not allowed for read-only storages). */
-                    host_path?: string | null;
                     /** @description The file content (file only, not allowed for read-only storages). */
                     content?: string | null;
                 };
