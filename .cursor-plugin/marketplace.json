@@ -1,0 +1,16 @@
+{
+  "name": "jurislm-coolify-plugin",
+  "owner": {
+    "name": "JurisLM"
+  },
+  "metadata": {
+    "description": "JurisLM's Coolify plugin for Cursor."
+  },
+  "plugins": [
+    {
+      "name": "coolify-plugin",
+      "source": ".",
+      "description": "Inspect and manage Coolify applications, servers, databases, services, deployments, and environment configuration."
+    }
+  ]
+}
