@@ -44,7 +44,7 @@ if (cursorPlugin.name !== "coolify-plugin" || cursorPlugin.skills !== "./skills/
 if (cursorVariables.type !== "object" || JSON.stringify(cursorVariables.required) !== JSON.stringify(["COOLIFY_BASE_URL", "COOLIFY_ACCESS_TOKEN"]) || !("COOLIFY_BASE_URL" in cursorVariableProperties) || !("COOLIFY_ACCESS_TOKEN" in cursorVariableProperties)) throw new Error("Cursor plugin must declare Coolify connection variables");
 if (cursorMcpEnv.COOLIFY_BASE_URL !== "${COOLIFY_BASE_URL}" || cursorMcpEnv.COOLIFY_ACCESS_TOKEN !== "${COOLIFY_ACCESS_TOKEN}") throw new Error("Cursor MCP configuration must pass configured Coolify variables");
 if (cursorMcpServer.command !== portableMcpServer.command || JSON.stringify(cursorMcpServer.args) !== JSON.stringify(portableMcpServer.args)) throw new Error("Cursor MCP configuration must launch the portable Coolify package");
-if (cursorMarketplace.name !== "jurislm-coolify-plugin" || (cursorMarketplace.owner as Json).name !== "JurisLM" || !Array.isArray(cursorMarketplacePlugins) || cursorMarketplacePlugins.length !== 1) throw new Error("Cursor marketplace must list the Coolify plugin");
+if (cursorMarketplace.name !== "coolify-plugin" || (cursorMarketplace.owner as Json).name !== "JurisLM" || !Array.isArray(cursorMarketplacePlugins) || cursorMarketplacePlugins.length !== 1) throw new Error("Cursor marketplace must list the Coolify plugin");
 const cursorMarketplacePlugin = cursorMarketplacePlugins[0] as Json;
 if (cursorMarketplacePlugin.name !== cursorPlugin.name || cursorMarketplacePlugin.source !== ".") throw new Error("Cursor marketplace source must resolve to the root Coolify plugin");
 const dependencies = packageJson.dependencies as Json;
