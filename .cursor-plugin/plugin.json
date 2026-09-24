@@ -1,0 +1,20 @@
+{
+  "name": "coolify-plugin",
+  "displayName": "Coolify Plugin",
+  "description": "Inspect and manage Coolify applications, servers, databases, services, deployments, and environment configuration.",
+  "author": {
+    "name": "JurisLM"
+  },
+  "homepage": "https://github.com/jurislm/coolify-plugin",
+  "repository": "https://github.com/jurislm/coolify-plugin",
+  "license": "MIT",
+  "keywords": [
+    "coolify",
+    "devops",
+    "deployment",
+    "mcp"
+  ],
+  "logo": "./assets/coolify.png",
+  "skills": "./skills/",
+  "mcpServers": "./mcp.json"
+}

@@ -28,6 +28,10 @@ codex plugin marketplace add https://github.com/jurislm/coolify-plugin
 codex plugin add coolify-plugin@coolify-marketplace
 ```
 
+## Install in Cursor
+
+In Cursor, open **Customize → Plugins → Add Marketplace → Import from GitHub**, enter `https://github.com/jurislm/coolify-plugin`, then install **Coolify Plugin**.
+
 ## OpenAPI contract
 
 `openapi/coolify-openapi.json` is built from the official Coolify v4.3.23 release. `api/manifest.json` records the upstream SHA-256, the current API contract corrections, and the persisted SHA-256. `bun run api:check` verifies the contract offline before checking generated parity. The runtime uses the generated schemas directly.
