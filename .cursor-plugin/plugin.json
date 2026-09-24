@@ -14,7 +14,7 @@
     "deployment",
     "mcp"
   ],
-  "logo": "./assets/coolify.png",
+  "logo": "assets/coolify.png",
   "skills": "./skills/",
   "mcpServers": "./.cursor-plugin/mcp.json",
   "variables": {

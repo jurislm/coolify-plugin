@@ -40,7 +40,7 @@ const cursorVariableProperties = cursorVariables.properties as Json;
 const cursorMcpServer = ((parsed[".cursor-plugin/mcp.json"].mcpServers as Json).coolify as Json);
 const cursorMcpEnv = cursorMcpServer.env as Json;
 const portableMcpServer = ((parsed["mcp.json"].mcpServers as Json).coolify as Json);
-if (cursorPlugin.name !== "coolify-plugin" || cursorPlugin.skills !== "./skills/" || cursorPlugin.mcpServers !== "./.cursor-plugin/mcp.json" || cursorPlugin.logo !== "./assets/coolify.png") throw new Error("Cursor plugin manifest must reference the shipped Coolify components");
+if (cursorPlugin.name !== "coolify-plugin" || cursorPlugin.skills !== "./skills/" || cursorPlugin.mcpServers !== "./.cursor-plugin/mcp.json" || cursorPlugin.logo !== "assets/coolify.png") throw new Error("Cursor plugin manifest must reference the shipped Coolify components");
 if (cursorVariables.type !== "object" || JSON.stringify(cursorVariables.required) !== JSON.stringify(["COOLIFY_BASE_URL", "COOLIFY_ACCESS_TOKEN"]) || !("COOLIFY_BASE_URL" in cursorVariableProperties) || !("COOLIFY_ACCESS_TOKEN" in cursorVariableProperties)) throw new Error("Cursor plugin must declare Coolify connection variables");
 if (cursorMcpEnv.COOLIFY_BASE_URL !== "${COOLIFY_BASE_URL}" || cursorMcpEnv.COOLIFY_ACCESS_TOKEN !== "${COOLIFY_ACCESS_TOKEN}") throw new Error("Cursor MCP configuration must pass configured Coolify variables");
 if (cursorMcpServer.command !== portableMcpServer.command || JSON.stringify(cursorMcpServer.args) !== JSON.stringify(portableMcpServer.args)) throw new Error("Cursor MCP configuration must launch the portable Coolify package");
