@@ -30,7 +30,7 @@ codex plugin add coolify-plugin@coolify-marketplace
 
 ## Install in Cursor
 
-In Cursor, open **Customize → Plugins → Add Marketplace → Import from GitHub**, enter `https://github.com/jurislm/coolify-plugin`, then install **Coolify Plugin**.
+In Cursor, open **Customize → Plugins → Add Marketplace → Import from GitHub**, enter `https://github.com/jurislm/coolify-plugin`, then install **Coolify Plugin**. Set `COOLIFY_BASE_URL` and `COOLIFY_ACCESS_TOKEN` in the plugin's **Configure** panel. Desktop-launched Cursor may not inherit values exported in a terminal; after saving, run a read-only Coolify tool to verify provider access.
 
 ## OpenAPI contract
 
