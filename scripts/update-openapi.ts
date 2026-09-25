@@ -18,6 +18,91 @@ for (const path of ["/applications/public", "/applications/private-github-app", 
   body["x-require-any"] = ["environment_name", "environment_uuid"];
 }
 const genericObject = { type: "object", additionalProperties: true };
+const providerListPaths = [
+  "/digitalocean/regions", "/digitalocean/sizes", "/digitalocean/images", "/digitalocean/ssh-keys",
+  "/hetzner/locations", "/hetzner/server-types", "/hetzner/images", "/hetzner/ssh-keys", "/hetzner/firewalls", "/hetzner/networks",
+  "/vultr/regions", "/vultr/plans", "/vultr/os", "/vultr/ssh-keys",
+];
+const validationResponse = { $ref: "#/components/responses/422" };
+const providerFailureResponse = { description: "The cloud provider request failed.", content: { "application/json": { schema: { type: "object", required: ["message"], properties: { message: { type: "string" } }, additionalProperties: true } } } };
+for (const path of providerListPaths) {
+  const operation = paths[path].get;
+  operation["x-require-any-query"] = ["cloud_provider_token_uuid", "cloud_provider_token_id"];
+  operation.responses["200"].content = { "application/json": { schema: { type: "array", items: genericObject } } };
+  operation.responses["422"] = validationResponse;
+  operation.responses["500"] = providerFailureResponse;
+  if (path.startsWith("/digitalocean/")) operation.responses["404"] = { $ref: "#/components/responses/404" };
+}
+const vultrTokenParameters = [
+  { name: "cloud_provider_token_uuid", in: "query", required: false, description: "Cloud provider token UUID. Required if cloud_provider_token_id is not provided.", schema: { type: "string" } },
+  { name: "cloud_provider_token_id", in: "query", required: false, deprecated: true, description: "Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID.", schema: { type: "string" } },
+];
+for (const path of ["/vultr/regions", "/vultr/plans", "/vultr/os", "/vultr/ssh-keys"]) {
+  paths[path].get.parameters = vultrTokenParameters;
+}
+const providerTokenProperties = {
+  cloud_provider_token_uuid: { type: "string", description: "Cloud provider token UUID. Required if cloud_provider_token_id is not provided." },
+  cloud_provider_token_id: { type: "string", deprecated: true, description: "Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID." },
+};
+const digitalOceanServer = paths["/servers/digitalocean"].post;
+digitalOceanServer.requestBody = { required: true, content: { "application/json": { schema: {
+  type: "object",
+  required: ["region", "size", "image", "private_key_uuid"],
+  properties: {
+    ...providerTokenProperties,
+    region: { type: "string" },
+    size: { type: "string" },
+    image: { type: ["string", "integer"], description: "DigitalOcean image slug or ID." },
+    name: { type: "string", nullable: true, maxLength: 253 },
+    private_key_uuid: { type: "string" },
+    enable_ipv6: { type: "boolean", nullable: true },
+    monitoring: { type: "boolean", nullable: true },
+    digitalocean_ssh_key_ids: { type: "array", items: { type: "integer" }, nullable: true },
+    cloud_init_script: { type: "string", nullable: true },
+    instant_validate: { type: "boolean", nullable: true },
+  },
+  "x-require-any": ["cloud_provider_token_uuid", "cloud_provider_token_id"],
+} } } };
+const vultrServer = paths["/servers/vultr"].post;
+vultrServer.requestBody = { required: true, content: { "application/json": { schema: {
+  type: "object",
+  required: ["region", "plan", "os_id", "private_key_uuid"],
+  properties: {
+    ...providerTokenProperties,
+    region: { type: "string" },
+    plan: { type: "string" },
+    os_id: { type: "integer" },
+    name: { type: "string", nullable: true, maxLength: 253 },
+    private_key_uuid: { type: "string" },
+    enable_ipv6: { type: "boolean", nullable: true },
+    disable_public_ipv4: { type: "boolean", nullable: true },
+    vultr_ssh_key_ids: { type: "array", items: { type: "string" }, nullable: true },
+    cloud_init_script: { type: "string", nullable: true },
+    instant_validate: { type: "boolean", nullable: true },
+  },
+  "x-require-any": ["cloud_provider_token_uuid", "cloud_provider_token_id"],
+} } } };
+for (const path of ["/servers/digitalocean", "/servers/hetzner", "/servers/vultr"]) {
+  const operation = paths[path].post;
+  const bodySchema = operation.requestBody.content["application/json"].schema;
+  bodySchema.properties.cloud_provider_token_uuid ??= providerTokenProperties.cloud_provider_token_uuid;
+  bodySchema.properties.cloud_provider_token_id ??= providerTokenProperties.cloud_provider_token_id;
+  bodySchema["x-require-any"] = ["cloud_provider_token_uuid", "cloud_provider_token_id"];
+  operation.responses["400"] ??= { $ref: "#/components/responses/400" };
+  operation.responses["404"] ??= { $ref: "#/components/responses/404" };
+  operation.responses["422"] = validationResponse;
+  operation.responses["500"] = providerFailureResponse;
+}
+digitalOceanServer.responses["201"].content = { "application/json": { schema: {
+  type: "object", required: ["uuid", "digitalocean_droplet_id", "ip"], additionalProperties: true,
+  properties: { uuid: { type: "string" }, digitalocean_droplet_id: { type: "integer" }, ip: { type: "string", nullable: true } },
+} } };
+vultrServer.responses["201"].content = { "application/json": { schema: {
+  type: "object", required: ["uuid", "vultr_instance_id", "ip"], additionalProperties: true,
+  properties: { uuid: { type: "string" }, vultr_instance_id: { type: "string" }, ip: { type: "string", nullable: true } },
+} } };
+Object.assign(paths["/servers/hetzner"].post.responses["201"].content["application/json"].schema, { required: ["uuid", "hetzner_server_id", "ip"] });
+paths["/servers/hetzner"].post.responses["201"].content["application/json"].schema.properties.ip.nullable = true;
 schemas.Application.properties.build_pack.enum.push("dockerimage");
 paths["/cloud-init-scripts"].post.responses["201"].content = { "application/json": { schema: { type: "object", required: ["uuid"], properties: { uuid: { type: "string" }, name: { type: "string" }, script: { type: "string" } }, additionalProperties: true } } };
 paths["/cloud-init-scripts/{uuid}"].get.responses["200"].content = paths["/cloud-init-scripts"].post.responses["201"].content;
@@ -84,7 +169,6 @@ for (const type of ["postgresql", "mysql", "mariadb", "mongodb", "redis", "click
 paths["/databases/{uuid}"].get.responses["200"].content["application/json"].schema = databaseResponse;
 paths["/databases/{uuid}"].patch.responses["200"].content = { "application/json": { schema: databaseWriteResponse } };
 paths["/databases/{uuid}/backups"].get.responses["200"].content["application/json"].schema = { type: "array", items: databaseResponse };
-delete paths["/servers/{uuid}/validate"];
 Object.assign(schemas.Server.properties, { is_reachable: { type: "boolean" }, is_usable: { type: "boolean" } });
 schemas.Service.properties.status = { type: "string" };
 const persisted = `${JSON.stringify(spec, null, 4)}\n`;
@@ -114,7 +198,8 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Application deployment history is a count plus deployments collection",
     "Resource field nullability and identifiers match the active API",
     "Database updates expose custom Docker run options",
-    "Unsupported server validation operation removed",
+    "Cloud provider list and create requests require a token and provider response shapes match the v4.3.23 controllers",
+    "DigitalOcean and Vultr server creation contracts are restored from the v4.3.23 controllers where OpenAPI omits them",
     "Database PATCH omits unspecified health-check defaults",
     "Server reachability and service status are response fields",
     "Server metadata, deployment git type, and environment descriptions can be null",

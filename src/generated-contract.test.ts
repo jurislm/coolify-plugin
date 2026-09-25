@@ -4,12 +4,77 @@ import { operations } from "./generated/operations.js";
 test("generated operations match the pinned Coolify manifest", async () => {
   const manifest = JSON.parse(await Bun.file("api/manifest.json").text()) as { operationCount: number; openapiVersion: string; infoVersion: string };
   expect(operations).toHaveLength(manifest.operationCount);
+  expect(operations).toHaveLength(276);
   expect(operations.every((operation) => operation.name.startsWith("coolify_") && operation.path.startsWith("/"))).toBe(true);
   expect(manifest.openapiVersion).toBe("3.1.0");
   expect(manifest.infoVersion).toBe("0.1");
   const fallback = JSON.parse(await Bun.file(".codex-plugin/plugin.json").text()) as { mcpServers?: string; apps?: string };
   expect(fallback.mcpServers).toBe("./.mcp.json");
   expect(fallback.apps).toBeUndefined();
+});
+
+test("exposes the official server validation operation", () => {
+  const operation = operations.find((item) => item.path === "/servers/{uuid}/validate" && item.method === "POST");
+  expect(operation).toBeDefined();
+  expect(operation?.inputSchema.safeParse({ uuid: "server" }).success).toBe(true);
+  expect(operation?.inputSchema.safeParse({ uuid: "server", body: { install: true } }).success).toBe(true);
+  expect(operation?.responseSchema.safeParse({ message: "Validation started." }).success).toBe(true);
+});
+
+test("requires a cloud provider token on every provider list operation", () => {
+  const paths = [
+    "/digitalocean/regions", "/digitalocean/sizes", "/digitalocean/images", "/digitalocean/ssh-keys",
+    "/hetzner/locations", "/hetzner/server-types", "/hetzner/images", "/hetzner/ssh-keys", "/hetzner/firewalls", "/hetzner/networks",
+    "/vultr/regions", "/vultr/plans", "/vultr/os", "/vultr/ssh-keys",
+  ];
+  for (const path of paths) {
+    const operation = operations.find((item) => item.path === path && item.method === "GET");
+    expect(operation).toBeDefined();
+    expect(operation?.inputSchema.safeParse({}).success).toBe(false);
+    expect(operation?.responseSchema.safeParse([]).success).toBe(true);
+    for (const key of ["cloud_provider_token_uuid", "cloud_provider_token_id"]) {
+      const result = operation?.inputSchema.safeParse({ [key]: "provider-token" });
+      expect(result?.success).toBe(true);
+      if (result?.success) expect(JSON.stringify(result.data)).toContain(key);
+    }
+  }
+});
+
+test("supports provider server creation inputs and response objects", () => {
+  const cases = [
+    { path: "/servers/digitalocean", body: { region: "nyc1", size: "s-1vcpu-1gb", image: "ubuntu-24-04-x64", private_key_uuid: "key" }, response: { uuid: "server", digitalocean_droplet_id: 1, ip: "203.0.113.1" } },
+    { path: "/servers/hetzner", body: { location: "nbg1", server_type: "cx11", image: 1, private_key_uuid: "key" }, response: { uuid: "server", hetzner_server_id: 1, ip: "203.0.113.1" } },
+    { path: "/servers/vultr", body: { region: "ewr", plan: "vc2-1c-1gb", os_id: 477, private_key_uuid: "key" }, response: { uuid: "server", vultr_instance_id: "instance", ip: "203.0.113.1" } },
+  ];
+  for (const item of cases) {
+    const operation = operations.find((candidate) => candidate.path === item.path && candidate.method === "POST");
+    expect(operation).toBeDefined();
+    expect(operation?.inputSchema.safeParse({ body: item.body }).success).toBe(false);
+    expect(operation?.inputSchema.safeParse({ body: { ...item.body, cloud_provider_token_uuid: "token" } }).success).toBe(true);
+    expect(operation?.inputSchema.safeParse({ body: { ...item.body, cloud_provider_token_id: "legacy-token" } }).success).toBe(true);
+    expect(operation?.responseSchema.safeParse(item.response).success).toBe(true);
+  }
+});
+
+test("documents provider validation and upstream failure responses", async () => {
+  const spec = JSON.parse(await Bun.file("openapi/coolify-openapi.json").text()) as { paths: Record<string, Record<string, { responses: Record<string, unknown> }>> };
+  const listPaths = [
+    "/digitalocean/regions", "/digitalocean/sizes", "/digitalocean/images", "/digitalocean/ssh-keys",
+    "/hetzner/locations", "/hetzner/server-types", "/hetzner/images", "/hetzner/ssh-keys", "/hetzner/firewalls", "/hetzner/networks",
+    "/vultr/regions", "/vultr/plans", "/vultr/os", "/vultr/ssh-keys",
+  ];
+  for (const path of listPaths) {
+    const responses = spec.paths[path].get.responses;
+    expect((responses["422"] as { $ref?: string }).$ref).toBe("#/components/responses/422");
+    const failure = responses["500"] as { content?: Record<string, { schema?: { properties?: Record<string, { type?: string }> } }> };
+    expect(failure.content?.["application/json"]?.schema?.properties?.message?.type).toBe("string");
+  }
+  for (const path of ["/servers/digitalocean", "/servers/hetzner", "/servers/vultr"]) {
+    const responses = spec.paths[path].post.responses;
+    expect((responses["422"] as { $ref?: string }).$ref).toBe("#/components/responses/422");
+    const failure = responses["500"] as { content?: Record<string, { schema?: { properties?: Record<string, { type?: string }> } }> };
+    expect(failure.content?.["application/json"]?.schema?.properties?.message?.type).toBe("string");
+  }
 });
 
 test("accepts Coolify resource IDs for log tools", () => {

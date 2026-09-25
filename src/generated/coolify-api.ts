@@ -2985,6 +2985,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/servers/{uuid}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validate
+         * @description Validate server by UUID.
+         */
+        post: operations["validate-server-by-uuid"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/services/{uuid}/applications": {
         parameters: {
             query?: never;
@@ -10110,15 +10130,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
-            /** @description Validation failed. */
-            422: {
+            404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            /** @description The cloud provider request failed. */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
         };
     };
@@ -10140,15 +10172,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
-            /** @description Validation failed. */
-            422: {
+            404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            /** @description The cloud provider request failed. */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
         };
     };
@@ -10170,15 +10214,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
-            /** @description Validation failed. */
-            422: {
+            404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            /** @description The cloud provider request failed. */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
         };
     };
@@ -10200,15 +10256,27 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
-            /** @description Validation failed. */
-            422: {
+            404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            /** @description The cloud provider request failed. */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
         };
     };
@@ -10219,29 +10287,69 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Cloud provider token UUID. Required if cloud_provider_token_id is not provided. */
+                    cloud_provider_token_uuid?: string;
+                    /**
+                     * @deprecated
+                     * @description Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID.
+                     */
+                    cloud_provider_token_id?: string;
+                    region: string;
+                    size: string;
+                    /** @description DigitalOcean image slug or ID. */
+                    image: string | number;
+                    name?: string | null;
+                    private_key_uuid: string;
+                    enable_ipv6?: boolean | null;
+                    monitoring?: boolean | null;
+                    digitalocean_ssh_key_ids?: number[] | null;
+                    cloud_init_script?: string | null;
+                    instant_validate?: boolean | null;
+                };
+            };
+        };
         responses: {
             /** @description DigitalOcean droplet created and linked to a Coolify server. */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
-            };
-            401: components["responses"]["401"];
-            /** @description Validation failed. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
+                content: {
+                    "application/json": {
+                        uuid: string;
+                        digitalocean_droplet_id: number;
+                        ip: string | null;
+                    } & {
+                        [key: string]: unknown;
+                    };
                 };
-                content?: never;
             };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            404: components["responses"]["404"];
+            422: components["responses"]["422"];
             /** @description DigitalOcean rate limit exceeded. */
             429: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description The cloud provider request failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
         };
     };
@@ -10786,18 +10894,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        id?: number;
-                        name?: string;
-                        description?: string;
-                        country?: string;
-                        city?: string;
-                        latitude?: number;
-                        longitude?: number;
+                        [key: string]: unknown;
                     }[];
                 };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            /** @description The cloud provider request failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
+            };
         };
     };
     "get-hetzner-server-types": {
@@ -10824,29 +10940,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        id?: number;
-                        name?: string;
-                        description?: string;
-                        cores?: number;
-                        memory?: number;
-                        disk?: number;
-                        prices?: {
-                            /** @description Datacenter location name */
-                            location?: string;
-                            price_hourly?: {
-                                net?: string;
-                                gross?: string;
-                            };
-                            price_monthly?: {
-                                net?: string;
-                                gross?: string;
-                            };
-                        }[];
+                        [key: string]: unknown;
                     }[];
                 };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            /** @description The cloud provider request failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
+            };
         };
     };
     "get-hetzner-images": {
@@ -10873,18 +10986,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        id?: number;
-                        name?: string;
-                        description?: string;
-                        type?: string;
-                        os_flavor?: string;
-                        os_version?: string;
-                        architecture?: string;
+                        [key: string]: unknown;
                     }[];
                 };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            /** @description The cloud provider request failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
+            };
         };
     };
     "get-hetzner-ssh-keys": {
@@ -10911,15 +11032,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        id?: number;
-                        name?: string;
-                        fingerprint?: string;
-                        public_key?: string;
+                        [key: string]: unknown;
                     }[];
                 };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            /** @description The cloud provider request failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
+            };
         };
     };
     "get-hetzner-firewalls": {
@@ -10946,13 +11078,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        id?: number;
-                        name?: string;
+                        [key: string]: unknown;
                     }[];
                 };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            /** @description The cloud provider request failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
+            };
         };
     };
     "get-hetzner-networks": {
@@ -10979,14 +11124,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        id?: number;
-                        name?: string;
-                        ip_range?: string;
+                        [key: string]: unknown;
                     }[];
                 };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            /** @description The cloud provider request failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
+            };
         };
     };
     "create-hetzner-server": {
@@ -11079,11 +11236,11 @@ export interface operations {
                          * @description The UUID of the server.
                          * @example og888os
                          */
-                        uuid?: string;
+                        uuid: string;
                         /** @description The Hetzner server ID. */
-                        hetzner_server_id?: number;
+                        hetzner_server_id: number;
                         /** @description The server IP address. */
-                        ip?: string;
+                        ip: string | null;
                     };
                 };
             };
@@ -11092,6 +11249,19 @@ export interface operations {
             404: components["responses"]["404"];
             422: components["responses"]["422"];
             429: components["responses"]["429"];
+            /** @description The cloud provider request failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
+            };
         };
     };
     "get-current-team-email-notifications": {
@@ -13939,6 +14109,46 @@ export interface operations {
             401: components["responses"]["401"];
         };
     };
+    "validate-server-by-uuid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Server UUID */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description Install missing prerequisites and Docker. This can restart the Docker daemon.
+                     * @default false
+                     */
+                    install?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Server validation started. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @example Validation started. */
+                        message?: string;
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            404: components["responses"]["404"];
+            422: components["responses"]["422"];
+        };
+    };
     "list-service-applications-by-service-uuid": {
         parameters: {
             query?: never;
@@ -16594,7 +16804,15 @@ export interface operations {
     };
     "get-vultr-regions": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Cloud provider token UUID. Required if cloud_provider_token_id is not provided. */
+                cloud_provider_token_uuid?: string;
+                /**
+                 * @deprecated
+                 * @description Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID.
+                 */
+                cloud_provider_token_id?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -16606,15 +16824,41 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            /** @description The cloud provider request failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
+            };
         };
     };
     "get-vultr-plans": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Cloud provider token UUID. Required if cloud_provider_token_id is not provided. */
+                cloud_provider_token_uuid?: string;
+                /**
+                 * @deprecated
+                 * @description Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID.
+                 */
+                cloud_provider_token_id?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -16626,15 +16870,41 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            /** @description The cloud provider request failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
+            };
         };
     };
     "get-vultr-operating-systems": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Cloud provider token UUID. Required if cloud_provider_token_id is not provided. */
+                cloud_provider_token_uuid?: string;
+                /**
+                 * @deprecated
+                 * @description Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID.
+                 */
+                cloud_provider_token_id?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -16646,15 +16916,41 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            /** @description The cloud provider request failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
+            };
         };
     };
     "get-vultr-ssh-keys": {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Cloud provider token UUID. Required if cloud_provider_token_id is not provided. */
+                cloud_provider_token_uuid?: string;
+                /**
+                 * @deprecated
+                 * @description Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID.
+                 */
+                cloud_provider_token_id?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -16666,10 +16962,28 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
+            422: components["responses"]["422"];
+            /** @description The cloud provider request failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
+            };
         };
     };
     "create-vultr-server": {
@@ -16679,29 +16993,68 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description Cloud provider token UUID. Required if cloud_provider_token_id is not provided. */
+                    cloud_provider_token_uuid?: string;
+                    /**
+                     * @deprecated
+                     * @description Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID.
+                     */
+                    cloud_provider_token_id?: string;
+                    region: string;
+                    plan: string;
+                    os_id: number;
+                    name?: string | null;
+                    private_key_uuid: string;
+                    enable_ipv6?: boolean | null;
+                    disable_public_ipv4?: boolean | null;
+                    vultr_ssh_key_ids?: string[] | null;
+                    cloud_init_script?: string | null;
+                    instant_validate?: boolean | null;
+                };
+            };
+        };
         responses: {
             /** @description Vultr server created. */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
-            };
-            401: components["responses"]["401"];
-            /** @description Validation failed. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
+                content: {
+                    "application/json": {
+                        uuid: string;
+                        vultr_instance_id: string;
+                        ip: string | null;
+                    } & {
+                        [key: string]: unknown;
+                    };
                 };
-                content?: never;
             };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            404: components["responses"]["404"];
+            422: components["responses"]["422"];
             /** @description Vultr API rate limit exceeded. */
             429: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description The cloud provider request failed. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
         };
     };
