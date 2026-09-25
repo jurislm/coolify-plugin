@@ -20,10 +20,10 @@
     "com.openai": {
       "interface": {
         "displayName": "Coolify Plugin",
-        "shortDescription": "Manage Coolify through agent tools.",
+        "shortDescription": "Manage Coolify locally.",
         "longDescription": "Inspect and control Coolify applications, servers, databases, services, deployments, and environment configuration.",
         "developerName": "JurisLM",
-        "category": "Developer tools",
+        "category": "Developer Tools",
         "capabilities": [
           "Read",
           "Write"
