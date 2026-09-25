@@ -48,6 +48,7 @@ for (const [path, method] of [
   const operation = paths[path][method];
   operation.summary += " (APP_ENV=local only in v4.3.23)";
   operation.description += " This controller returns 404 unless APP_ENV is local.";
+  operation.responses["401"] ??= { $ref: "#/components/responses/401" };
   operation.responses["404"] ??= { $ref: "#/components/responses/404" };
   operation.responses["422"] ??= { $ref: "#/components/responses/422" };
 }
@@ -259,7 +260,7 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Provider create inputs include non-empty identifiers, hostname constraints, nullable Hetzner defaults, and IP cross-field rules",
     "Provider server creation documents JSON rate-limit messages and optional Retry-After headers",
     "Successful JSON response bodies omitted by upstream OpenAPI match v4.3.23 controller behavior",
-    "Server transfer endpoints expose their APP_ENV=local gate and transfer bundle JSON response",
+    "Server transfer endpoints document the APP_ENV=local gate, JSON bundle, and controller auth and validation errors",
     "Database PATCH omits unspecified health-check defaults",
     "Server reachability and service status are response fields",
     "Server metadata, deployment git type, and environment descriptions can be null",

@@ -1,7 +1,7 @@
 {
   "sourceUrl": "https://raw.githubusercontent.com/coollabsio/coolify/v4.3.23/openapi.json",
-  "fetchedAt": "2026-09-25T05:44:13.397Z",
-  "sha256": "9b8d64c49419feceb2d757698703dd2334d45a9e6a1fd4227c431ac4789f4853",
+  "fetchedAt": "2026-09-25T05:46:58.765Z",
+  "sha256": "9e0806ba5b6b7629f7571247c6ea2ae64c79437e83faa2f98bc74f99463862e5",
   "upstreamSha256": "964360ffb3d4c026252aa4657d6561190f59ac4256395bf0645bf6a4f171ec88",
   "openapiVersion": "3.1.0",
   "infoVersion": "0.1",
@@ -17,7 +17,7 @@
     "Provider create inputs include non-empty identifiers, hostname constraints, nullable Hetzner defaults, and IP cross-field rules",
     "Provider server creation documents JSON rate-limit messages and optional Retry-After headers",
     "Successful JSON response bodies omitted by upstream OpenAPI match v4.3.23 controller behavior",
-    "Server transfer endpoints expose their APP_ENV=local gate and transfer bundle JSON response",
+    "Server transfer endpoints document the APP_ENV=local gate, JSON bundle, and controller auth and validation errors",
     "Database PATCH omits unspecified health-check defaults",
     "Server reachability and service status are response fields",
     "Server metadata, deployment git type, and environment descriptions can be null",

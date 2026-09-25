@@ -13713,6 +13713,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["401"];
             /** @description Missing sensitive permission */
             403: {
                 headers: {
@@ -13874,6 +13875,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["401"];
             404: components["responses"]["404"];
             422: components["responses"]["422"];
         };
@@ -13907,6 +13909,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["401"];
             404: components["responses"]["404"];
             422: components["responses"]["422"];
         };
@@ -13939,6 +13942,7 @@ export interface operations {
                     };
                 };
             };
+            401: components["responses"]["401"];
             /** @description Missing sensitive permission */
             403: {
                 headers: {

@@ -140,6 +140,7 @@ test("documents transfer-controller 404 and 422 responses", async () => {
   ];
   for (const [method, path] of endpoints) {
     const responses = spec.paths[path][method].responses;
+    expect(responses["401"]).toBeDefined();
     expect(responses["404"]).toBeDefined();
     expect(responses["422"]).toBeDefined();
   }
