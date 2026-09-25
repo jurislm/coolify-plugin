@@ -53,6 +53,16 @@ describe("CoolifyClient", () => {
     });
   });
 
+  test("encodes plain Dockerfile content for Coolify", async () => {
+    let body: Record<string, unknown> = {};
+    const client = new CoolifyClient(config, async (_url, init) => {
+      body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      return new Response(JSON.stringify({ uuid: "app" }), { status: 201, headers: { "content-type": "application/json" } });
+    });
+    await client.request({ method: "POST", path: "/applications/dockerfile", parameters: [] }, { body: { dockerfile: "FROM nginx:alpine", name: "qa" } });
+    expect(body).toEqual({ dockerfile: "RlJPTSBuZ2lueDphbHBpbmU=", name: "qa" });
+  });
+
   test("uses a timeout AbortSignal and never retries a mutation", async () => {
     let calls = 0;
     let signal: AbortSignal | undefined;

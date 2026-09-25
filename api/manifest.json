@@ -1,7 +1,7 @@
 {
   "sourceUrl": "https://raw.githubusercontent.com/coollabsio/coolify/v4.3.23/openapi.json",
-  "fetchedAt": "2026-09-25T01:15:58.738Z",
-  "sha256": "522670cd5b7157c73317d2a9b47a024b651df2cb3c1f1ae54c9eac0a5f91389a",
+  "fetchedAt": "2026-09-25T02:09:25.329Z",
+  "sha256": "659244fa312c3539f5869f8a4166eac4db805f06d96ec113f00d0f91da90d136",
   "upstreamSha256": "964360ffb3d4c026252aa4657d6561190f59ac4256395bf0645bf6a4f171ec88",
   "openapiVersion": "3.1.0",
   "infoVersion": "0.1",
@@ -16,6 +16,9 @@
     "Database PATCH omits unspecified health-check defaults",
     "Server reachability and service status are response fields",
     "Server metadata, deployment git type, and environment descriptions can be null",
-    "Database responses and nullable service hash match live Coolify payloads"
+    "Database responses and nullable service hash match live Coolify payloads",
+    "Application settings, destination lists, shared environment variables, and log drain nulls match live responses",
+    "Shared environment variable writes accept bodies and return live response shapes",
+    "Plain Dockerfile input is encoded for the API"
   ]
 }

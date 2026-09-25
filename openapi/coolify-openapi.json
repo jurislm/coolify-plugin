@@ -1851,7 +1851,7 @@
                                     },
                                     "dockerfile": {
                                         "type": "string",
-                                        "description": "The Dockerfile content."
+                                        "description": "Plain Dockerfile content; the plugin encodes it for Coolify."
                                     },
                                     "build_pack": {
                                         "type": "string",
@@ -5150,7 +5150,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Application destinations."
+                        "description": "Application destinations.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -15233,7 +15244,10 @@
                                         },
                                         "logdrain_newrelic_license_key": {
                                             "description": "Only present with read:sensitive.",
-                                            "type": "string"
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
                                         },
                                         "logdrain_newrelic_base_uri": {
                                             "type": [
@@ -15252,18 +15266,27 @@
                                         },
                                         "logdrain_axiom_api_key": {
                                             "description": "Only present with read:sensitive.",
-                                            "type": "string"
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
                                         },
                                         "is_logdrain_custom_enabled": {
                                             "type": "boolean"
                                         },
                                         "logdrain_custom_config": {
                                             "description": "Only present with read:sensitive.",
-                                            "type": "string"
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
                                         },
                                         "logdrain_custom_config_parser": {
                                             "description": "Only present with read:sensitive.",
-                                            "type": "string"
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
                                         }
                                     },
                                     "type": "object"
@@ -19830,7 +19853,22 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Environment variable created."
+                        "description": "Environment variable created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "id"
+                                    ],
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -19870,7 +19908,22 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable deleted."
+                        "description": "Environment variable deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -19905,7 +19958,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable updated."
+                        "description": "Environment variable updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -19921,7 +19982,44 @@
                     {
                         "bearerAuth": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_literal": {
+                                        "type": "boolean"
+                                    },
+                                    "is_multiline": {
+                                        "type": "boolean"
+                                    },
+                                    "is_shown_once": {
+                                        "type": "boolean"
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/projects/{uuid}/envs": {
@@ -19945,7 +20043,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Project shared environment variables."
+                        "description": "Project shared environment variables.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -19980,7 +20089,22 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "Environment variable created."
+                        "description": "Environment variable created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "id"
+                                    ],
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -19999,7 +20123,46 @@
                     {
                         "bearerAuth": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "key"
+                                ],
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_literal": {
+                                        "type": "boolean"
+                                    },
+                                    "is_multiline": {
+                                        "type": "boolean"
+                                    },
+                                    "is_shown_once": {
+                                        "type": "boolean"
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/projects/{uuid}/envs/{env_id}": {
@@ -20032,7 +20195,22 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable deleted."
+                        "description": "Environment variable deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20076,7 +20254,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable updated."
+                        "description": "Environment variable updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20092,7 +20278,44 @@
                     {
                         "bearerAuth": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_literal": {
+                                        "type": "boolean"
+                                    },
+                                    "is_multiline": {
+                                        "type": "boolean"
+                                    },
+                                    "is_shown_once": {
+                                        "type": "boolean"
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/projects/{uuid}/environments/{environment_name_or_uuid}/envs": {
@@ -20125,7 +20348,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment shared environment variables."
+                        "description": "Environment shared environment variables.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20169,7 +20403,22 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "Environment variable created."
+                        "description": "Environment variable created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "id"
+                                    ],
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20188,7 +20437,46 @@
                     {
                         "bearerAuth": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "key"
+                                ],
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_literal": {
+                                        "type": "boolean"
+                                    },
+                                    "is_multiline": {
+                                        "type": "boolean"
+                                    },
+                                    "is_shown_once": {
+                                        "type": "boolean"
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/projects/{uuid}/environments/{environment_name_or_uuid}/envs/{env_id}": {
@@ -20230,7 +20518,22 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable deleted."
+                        "description": "Environment variable deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20283,7 +20586,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable updated."
+                        "description": "Environment variable updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20299,7 +20610,44 @@
                     {
                         "bearerAuth": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_literal": {
+                                        "type": "boolean"
+                                    },
+                                    "is_multiline": {
+                                        "type": "boolean"
+                                    },
+                                    "is_shown_once": {
+                                        "type": "boolean"
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/servers/{uuid}/envs": {
@@ -20323,7 +20671,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Server shared environment variables."
+                        "description": "Server shared environment variables.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20358,7 +20717,22 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "Environment variable created."
+                        "description": "Environment variable created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "id"
+                                    ],
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20377,7 +20751,46 @@
                     {
                         "bearerAuth": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "key"
+                                ],
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_literal": {
+                                        "type": "boolean"
+                                    },
+                                    "is_multiline": {
+                                        "type": "boolean"
+                                    },
+                                    "is_shown_once": {
+                                        "type": "boolean"
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/servers/{uuid}/envs/{env_id}": {
@@ -20410,7 +20823,22 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable deleted."
+                        "description": "Environment variable deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20454,7 +20882,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable updated."
+                        "description": "Environment variable updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20470,7 +20906,44 @@
                     {
                         "bearerAuth": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_literal": {
+                                        "type": "boolean"
+                                    },
+                                    "is_multiline": {
+                                        "type": "boolean"
+                                    },
+                                    "is_shown_once": {
+                                        "type": "boolean"
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/tags": {
@@ -22334,7 +22807,10 @@
                         "type": "boolean"
                     },
                     "use_build_secrets": {
-                        "type": "boolean"
+                        "type": [
+                            "boolean",
+                            "string"
+                        ]
                     },
                     "inject_build_args_to_dockerfile": {
                         "type": "boolean"

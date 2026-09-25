@@ -63,7 +63,10 @@ export class CoolifyClient {
     const init: RequestInit = { method: operation.method, headers, signal: AbortSignal.timeout(this.config.timeoutMs) };
     if (input.body !== undefined && !["GET", "HEAD"].includes(operation.method)) {
       headers.set("content-type", "application/json");
-      init.body = JSON.stringify(input.body);
+      const body = input.body as Record<string, unknown>;
+      init.body = JSON.stringify(operation.path === "/applications/dockerfile" && typeof body.dockerfile === "string"
+        ? { ...body, dockerfile: Buffer.from(body.dockerfile, "utf8").toString("base64") }
+        : body);
     }
 
     let response: Response;

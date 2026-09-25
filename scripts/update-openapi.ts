@@ -24,6 +24,25 @@ for (const key of ["logdrain_axiom_api_key", "logdrain_axiom_dataset_name", "log
 for (const key of ["validation_logs", "swarm_cluster"]) schemas.Server.properties[key].nullable = true;
 for (const key of ["service_type", "deleted_at"]) schemas.Service.properties[key].nullable = true;
 schemas.Service.properties.config_hash.nullable = true;
+schemas.ApplicationSetting.properties.use_build_secrets.type = ["boolean", "string"];
+paths["/applications/dockerfile"].post.requestBody.content["application/json"].schema.properties.dockerfile.description = "Plain Dockerfile content; the plugin encodes it for Coolify.";
+for (const key of ["logdrain_newrelic_license_key", "logdrain_axiom_api_key", "logdrain_custom_config", "logdrain_custom_config_parser"]) {
+  paths["/servers/{uuid}/log-drains"].get.responses["200"].content["application/json"].schema.properties[key].type = ["string", "null"];
+}
+for (const path of ["/applications/{uuid}/destinations", "/projects/{uuid}/envs", "/projects/{uuid}/environments/{environment_name_or_uuid}/envs", "/servers/{uuid}/envs"]) {
+  paths[path].get.responses["200"].content = { "application/json": { schema: { type: "array", items: { type: "object", additionalProperties: true } } } };
+}
+const sharedEnvCreate = paths["/team/envs"].post.requestBody;
+const sharedEnvUpdate = { required: true, content: { "application/json": { schema: { type: "object", additionalProperties: false, properties: sharedEnvCreate.content["application/json"].schema.properties } } } };
+for (const path of ["/team/envs", "/projects/{uuid}/envs", "/projects/{uuid}/environments/{environment_name_or_uuid}/envs", "/servers/{uuid}/envs"]) {
+  paths[path].post.requestBody = sharedEnvCreate;
+  paths[path].post.responses["201"].content = { "application/json": { schema: { type: "object", required: ["id"], properties: { id: { type: "integer" } } } } };
+}
+for (const path of ["/team/envs/{env_id}", "/projects/{uuid}/envs/{env_id}", "/projects/{uuid}/environments/{environment_name_or_uuid}/envs/{env_id}", "/servers/{uuid}/envs/{env_id}"]) {
+  paths[path].patch.requestBody = sharedEnvUpdate;
+  paths[path].patch.responses["200"].content = { "application/json": { schema: { type: "object", additionalProperties: true } } };
+  paths[path].delete.responses["200"].content = { "application/json": { schema: { type: "object", required: ["message"], properties: { message: { type: "string" } } } } };
+}
 schemas.ApplicationDeploymentQueue.properties.application_id.type = "string";
 schemas.ApplicationDeploymentQueue.properties.git_type.nullable = true;
 schemas.Environment.properties.description.nullable = true;
@@ -74,6 +93,9 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Server reachability and service status are response fields",
     "Server metadata, deployment git type, and environment descriptions can be null",
     "Database responses and nullable service hash match live Coolify payloads",
+    "Application settings, destination lists, shared environment variables, and log drain nulls match live responses",
+    "Shared environment variable writes accept bodies and return live response shapes",
+    "Plain Dockerfile input is encoded for the API",
   ],
 }, null, 2)}\n`);
 

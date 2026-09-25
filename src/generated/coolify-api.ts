@@ -4478,7 +4478,7 @@ export interface components {
             is_spa?: boolean;
             is_git_shallow_clone_enabled?: boolean;
             is_pr_deployments_public_enabled?: boolean;
-            use_build_secrets?: boolean;
+            use_build_secrets?: boolean | string;
             inject_build_args_to_dockerfile?: boolean;
             include_source_commit_in_build?: boolean;
             docker_images_to_keep?: number;
@@ -5814,7 +5814,7 @@ export interface operations {
                     environment_name: string;
                     /** @description The environment UUID. You need to provide at least one of environment_name or environment_uuid. */
                     environment_uuid: string;
-                    /** @description The Dockerfile content. */
+                    /** @description Plain Dockerfile content; the plugin encodes it for Coolify. */
                     dockerfile: string;
                     /**
                      * @description The build pack type.
@@ -7452,7 +7452,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -13045,17 +13049,17 @@ export interface operations {
                     "application/json": {
                         is_logdrain_newrelic_enabled?: boolean;
                         /** @description Only present with read:sensitive. */
-                        logdrain_newrelic_license_key?: string;
+                        logdrain_newrelic_license_key?: string | null;
                         logdrain_newrelic_base_uri?: string | null;
                         is_logdrain_axiom_enabled?: boolean;
                         logdrain_axiom_dataset_name?: string | null;
                         /** @description Only present with read:sensitive. */
-                        logdrain_axiom_api_key?: string;
+                        logdrain_axiom_api_key?: string | null;
                         is_logdrain_custom_enabled?: boolean;
                         /** @description Only present with read:sensitive. */
-                        logdrain_custom_config?: string;
+                        logdrain_custom_config?: string | null;
                         /** @description Only present with read:sensitive. */
-                        logdrain_custom_config_parser?: string;
+                        logdrain_custom_config_parser?: string | null;
                     };
                 };
             };
@@ -15415,7 +15419,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: number;
+                    };
+                };
             };
             401: components["responses"]["401"];
             /** @description Environment variable already exists. */
@@ -15445,7 +15453,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15461,14 +15473,29 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    key?: string;
+                    value?: string | null;
+                    is_literal?: boolean;
+                    is_multiline?: boolean;
+                    is_shown_once?: boolean;
+                    comment?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description Environment variable updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15492,7 +15519,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15508,14 +15539,29 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    key: string;
+                    value?: string | null;
+                    is_literal?: boolean;
+                    is_multiline?: boolean;
+                    is_shown_once?: boolean;
+                    comment?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description Environment variable created. */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: number;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15548,7 +15594,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15566,14 +15616,29 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    key?: string;
+                    value?: string | null;
+                    is_literal?: boolean;
+                    is_multiline?: boolean;
+                    is_shown_once?: boolean;
+                    comment?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description Environment variable updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15599,7 +15664,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15617,14 +15686,29 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    key: string;
+                    value?: string | null;
+                    is_literal?: boolean;
+                    is_multiline?: boolean;
+                    is_shown_once?: boolean;
+                    comment?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description Environment variable created. */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: number;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15659,7 +15743,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15679,14 +15767,29 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    key?: string;
+                    value?: string | null;
+                    is_literal?: boolean;
+                    is_multiline?: boolean;
+                    is_shown_once?: boolean;
+                    comment?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description Environment variable updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15710,7 +15813,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15726,14 +15833,29 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    key: string;
+                    value?: string | null;
+                    is_literal?: boolean;
+                    is_multiline?: boolean;
+                    is_shown_once?: boolean;
+                    comment?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description Environment variable created. */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: number;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15766,7 +15888,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15784,14 +15910,29 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    key?: string;
+                    value?: string | null;
+                    is_literal?: boolean;
+                    is_multiline?: boolean;
+                    is_shown_once?: boolean;
+                    comment?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description Environment variable updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
