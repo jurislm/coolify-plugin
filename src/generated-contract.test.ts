@@ -55,4 +55,8 @@ test("accepts observed Coolify 4.3.23 read responses", () => {
   expect(response("coolify_list_github_apps", [{ app_id: null, installation_id: null, client_id: null, private_key_id: "key-id" }])).toBe(true);
   expect(response("coolify_list_private_keys", [{ description: null }])).toBe(true);
   expect(response("coolify_get_token_team_members", [{ email_verified_at: null, two_factor_confirmed_at: null, force_password_reset: "0" }])).toBe(true);
+  expect(response("coolify_list_applications", [{ build_pack: "dockerimage" }])).toBe(true);
+  expect(response("coolify_create_cloud_init_script", { uuid: "script", name: "qa", script: "true" })).toBe(true);
+  expect(response("coolify_delete_cloud_init_script_by_uuid", { message: "deleted" })).toBe(true);
+  expect(response("coolify_clone_database_by_uuid", { uuid: "database", message: "cloned" })).toBe(true);
 });
