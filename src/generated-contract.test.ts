@@ -28,6 +28,11 @@ test("allows either environment identifier when creating a resource", () => {
     expect(body.environment_name.isOptional()).toBe(true);
     expect(body.environment_uuid.isOptional()).toBe(true);
   }
+  const database = operations.find((item) => item.name === "coolify_create_database_postgresql")!;
+  const input = { body: { project_uuid: "project", server_uuid: "server" } };
+  expect(database.inputSchema.safeParse(input).success).toBe(false);
+  expect(database.inputSchema.safeParse({ body: { ...input.body, environment_name: "qa" } }).success).toBe(true);
+  expect(database.inputSchema.safeParse({ body: { ...input.body, environment_uuid: "environment" } }).success).toBe(true);
 });
 
 test("accepts observed Coolify 4.3.23 read responses", () => {

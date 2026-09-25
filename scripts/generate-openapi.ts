@@ -74,7 +74,13 @@ for (const [path, pathItem] of Object.entries(document.paths ?? {})) {
     const requestBody = operation.requestBody as JsonObject | undefined;
     const bodyContent = requestBody?.content ?? {};
     const bodyType = Object.keys(bodyContent)[0];
-    if (bodyType) properties.push(`body: ${schemaText(bodyContent[bodyType]?.schema, !requestBody.required)}`);
+    if (bodyType) {
+      const bodySchema = bodyContent[bodyType]?.schema;
+      let bodyText = schemaText(bodySchema, !requestBody.required);
+      const requireAny = bodySchema?.["x-require-any"] as string[] | undefined;
+      if (requireAny?.length) bodyText += `.refine((body) => ${requireAny.map((key) => `Boolean(body[${quote(key)}])`).join(" || ")}, { message: ${quote(`At least one of ${requireAny.join(", ")} is required`)} })`;
+      properties.push(`body: ${bodyText}`);
+    }
     const name = toolName(operation, method, path, usedNames);
     usedNames.add(name);
     const response = responseInfo(operation);

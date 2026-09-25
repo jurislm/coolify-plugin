@@ -15,6 +15,7 @@ const schemas = spec.components.schemas;
 for (const path of ["/applications/public", "/applications/private-github-app", "/applications/private-deploy-key", "/applications/dockerfile", "/applications/dockerimage", "/databases/postgresql", "/databases/clickhouse", "/databases/dragonfly", "/databases/redis", "/databases/keydb", "/databases/mariadb", "/databases/mysql", "/databases/mongodb", "/services"]) {
   const body = paths[path].post.requestBody.content["application/json"].schema;
   body.required = body.required.filter((key: string) => key !== "environment_name" && key !== "environment_uuid");
+  body["x-require-any"] = ["environment_name", "environment_uuid"];
 }
 const genericObject = { type: "object", additionalProperties: true };
 for (const path of ["/cloud-init-scripts", "/team/envs"]) paths[path].get.responses["200"].content = { "application/json": { schema: { type: "array", items: genericObject } } };
