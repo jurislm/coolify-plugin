@@ -12,6 +12,21 @@ const upstream = text.endsWith("\n") ? text : `${text}\n`;
 const spec = Bun.YAML.parse(upstream) as { openapi?: string; info?: { version?: string }; paths: Record<string, any>; components: { schemas: Record<string, any> } };
 const paths = spec.paths;
 const schemas = spec.components.schemas;
+for (const path of ["/applications/public", "/applications/private-github-app", "/applications/private-deploy-key", "/applications/dockerfile", "/applications/dockerimage", "/databases/postgresql", "/databases/clickhouse", "/databases/dragonfly", "/databases/redis", "/databases/keydb", "/databases/mariadb", "/databases/mysql", "/databases/mongodb", "/services"]) {
+  const body = paths[path].post.requestBody.content["application/json"].schema;
+  body.required = body.required.filter((key: string) => key !== "environment_name" && key !== "environment_uuid");
+  body["x-require-any"] = ["environment_name", "environment_uuid"];
+}
+const genericObject = { type: "object", additionalProperties: true };
+for (const path of ["/cloud-init-scripts", "/team/envs"]) paths[path].get.responses["200"].content = { "application/json": { schema: { type: "array", items: genericObject } } };
+for (const path of ["/notifications/email", "/notifications/discord", "/notifications/slack", "/notifications/telegram", "/notifications/pushover", "/notifications/webhook"]) paths[path].get.responses["200"].content = { "application/json": { schema: genericObject } };
+const githubAppFields = paths["/github-apps"].get.responses["200"].content["application/json"].schema.items.properties;
+for (const key of ["app_id", "installation_id", "client_id"]) githubAppFields[key].nullable = true;
+githubAppFields.private_key_id.type = "string";
+schemas.PrivateKey.properties.description.nullable = true;
+schemas.Team.properties.description.nullable = true;
+for (const key of ["email_verified_at", "two_factor_confirmed_at"]) schemas.User.properties[key].nullable = true;
+schemas.User.properties.force_password_reset.type = ["boolean", "string"];
 paths["/databases"].get.responses["200"].content["application/json"].schema = { type: "array", items: { $ref: "#/components/schemas/DatabaseRecord" } };
 paths["/resources"].get.responses["200"].content["application/json"].schema = { type: "array", items: { $ref: "#/components/schemas/ResourceRecord" } };
 paths["/deployments/applications/{uuid}"].get.responses["200"].content["application/json"].schema = { $ref: "#/components/schemas/ApplicationDeploymentCollection" };
@@ -23,6 +38,26 @@ schemas.Application.properties.private_key_id.type = "string";
 for (const key of ["logdrain_axiom_api_key", "logdrain_axiom_dataset_name", "logdrain_custom_config", "logdrain_custom_config_parser", "logdrain_highlight_project_id", "logdrain_newrelic_base_uri", "logdrain_newrelic_license_key", "wildcard_domain"]) schemas.ServerSetting.properties[key].nullable = true;
 for (const key of ["validation_logs", "swarm_cluster"]) schemas.Server.properties[key].nullable = true;
 for (const key of ["service_type", "deleted_at"]) schemas.Service.properties[key].nullable = true;
+schemas.Service.properties.config_hash.nullable = true;
+schemas.ApplicationSetting.properties.use_build_secrets.type = ["boolean", "string"];
+paths["/applications/dockerfile"].post.requestBody.content["application/json"].schema.properties.dockerfile.description = "Plain Dockerfile content; the plugin encodes it for Coolify.";
+for (const key of ["logdrain_newrelic_license_key", "logdrain_axiom_api_key", "logdrain_custom_config", "logdrain_custom_config_parser"]) {
+  paths["/servers/{uuid}/log-drains"].get.responses["200"].content["application/json"].schema.properties[key].type = ["string", "null"];
+}
+for (const path of ["/applications/{uuid}/destinations", "/projects/{uuid}/envs", "/projects/{uuid}/environments/{environment_name_or_uuid}/envs", "/servers/{uuid}/envs"]) {
+  paths[path].get.responses["200"].content = { "application/json": { schema: { type: "array", items: { type: "object", additionalProperties: true } } } };
+}
+const sharedEnvCreate = paths["/team/envs"].post.requestBody;
+const sharedEnvUpdate = { required: true, content: { "application/json": { schema: { type: "object", additionalProperties: false, properties: sharedEnvCreate.content["application/json"].schema.properties } } } };
+for (const path of ["/team/envs", "/projects/{uuid}/envs", "/projects/{uuid}/environments/{environment_name_or_uuid}/envs", "/servers/{uuid}/envs"]) {
+  paths[path].post.requestBody = sharedEnvCreate;
+  paths[path].post.responses["201"].content = { "application/json": { schema: { type: "object", required: ["id"], properties: { id: { type: "integer" } } } } };
+}
+for (const path of ["/team/envs/{env_id}", "/projects/{uuid}/envs/{env_id}", "/projects/{uuid}/environments/{environment_name_or_uuid}/envs/{env_id}", "/servers/{uuid}/envs/{env_id}"]) {
+  paths[path].patch.requestBody = sharedEnvUpdate;
+  paths[path].patch.responses["200"].content = { "application/json": { schema: { type: "object", additionalProperties: true } } };
+  paths[path].delete.responses["200"].content = { "application/json": { schema: { type: "object", required: ["message"], properties: { message: { type: "string" } } } } };
+}
 schemas.ApplicationDeploymentQueue.properties.application_id.type = "string";
 schemas.ApplicationDeploymentQueue.properties.git_type.nullable = true;
 schemas.Environment.properties.description.nullable = true;
@@ -30,6 +65,14 @@ Object.assign(schemas.ApplicationDeploymentQueue.properties, { build_server_id: 
 const databaseUpdate = paths["/databases/{uuid}"].patch.requestBody.content["application/json"].schema.properties;
 databaseUpdate.custom_docker_run_options = { type: "string", description: "Docker run options for the database container." };
 for (const value of Object.values(databaseUpdate) as Array<Record<string, unknown>>) delete value.default;
+const databaseResponse = { type: "object", additionalProperties: true };
+const databaseWriteResponse = { anyOf: [databaseResponse, { type: "null" }] };
+for (const type of ["postgresql", "mysql", "mariadb", "mongodb", "redis", "clickhouse", "dragonfly", "keydb"]) {
+  paths[`/databases/${type}`].post.responses["200"].content = { "application/json": { schema: databaseWriteResponse } };
+}
+paths["/databases/{uuid}"].get.responses["200"].content["application/json"].schema = databaseResponse;
+paths["/databases/{uuid}"].patch.responses["200"].content = { "application/json": { schema: databaseWriteResponse } };
+paths["/databases/{uuid}/backups"].get.responses["200"].content["application/json"].schema = { type: "array", items: databaseResponse };
 delete paths["/servers/{uuid}/validate"];
 Object.assign(schemas.Server.properties, { is_reachable: { type: "boolean" }, is_usable: { type: "boolean" } });
 schemas.Service.properties.status = { type: "string" };
@@ -64,6 +107,12 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Database PATCH omits unspecified health-check defaults",
     "Server reachability and service status are response fields",
     "Server metadata, deployment git type, and environment descriptions can be null",
+    "Database responses and nullable service hash match live Coolify payloads",
+    "Application settings, destination lists, shared environment variables, and log drain nulls match live responses",
+    "Shared environment variable writes accept bodies and return live response shapes",
+    "Plain Dockerfile input is encoded for the API",
+    "Cloud-init, notifications, GitHub apps, private keys, and team metadata match live response shapes",
+    "Resource creation accepts either environment name or UUID as documented",
   ],
 }, null, 2)}\n`);
 

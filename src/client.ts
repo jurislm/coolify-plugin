@@ -16,7 +16,7 @@ export interface BinaryEnvelope {
 
 export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 type Operation = Pick<GeneratedOperation, "method" | "path" | "parameters">;
-const sensitiveKey = /(^value$|real_?value|private_?key|token|secret|password|authorization|cookie)/iu;
+const sensitiveKey = /(^value$|real_?value|private_?key|api_?key|user_?key|webhook_?url|token|secret|password|authorization|cookie)/iu;
 
 export function redactSensitive<T>(value: T): T {
   if (Array.isArray(value)) return value.map(redactSensitive) as T;
@@ -63,7 +63,10 @@ export class CoolifyClient {
     const init: RequestInit = { method: operation.method, headers, signal: AbortSignal.timeout(this.config.timeoutMs) };
     if (input.body !== undefined && !["GET", "HEAD"].includes(operation.method)) {
       headers.set("content-type", "application/json");
-      init.body = JSON.stringify(input.body);
+      const body = input.body as Record<string, unknown>;
+      init.body = JSON.stringify(operation.path === "/applications/dockerfile" && typeof body.dockerfile === "string"
+        ? { ...body, dockerfile: Buffer.from(body.dockerfile, "utf8").toString("base64") }
+        : body);
     }
 
     let response: Response;
@@ -72,7 +75,19 @@ export class CoolifyClient {
     } catch (error) {
       throw new CoolifyApiError(0, operation.method, path, `Coolify request failed for ${operation.method} ${path}: ${error instanceof Error ? error.message.replaceAll(token, "[REDACTED]") : "request error"}`);
     }
-    if (!response.ok) throw new CoolifyApiError(response.status, operation.method, path, `Coolify API returned ${response.status} for ${operation.method} ${path}`);
+    if (!response.ok) {
+      let fields = "";
+      if (response.status === 422) {
+        try {
+          const body = await response.json() as Record<string, unknown>;
+          const errors = body?.errors;
+          if (errors && typeof errors === "object" && !Array.isArray(errors)) {
+            fields = Object.keys(errors).filter((key) => /^[a-z][a-z0-9_.-]{0,63}$/iu.test(key)).slice(0, 8).map((key) => key.replaceAll(token, "[REDACTED]")).join(", ");
+          }
+        } catch {}
+      }
+      throw new CoolifyApiError(response.status, operation.method, path, `Coolify API returned ${response.status} for ${operation.method} ${path}${fields ? `; fields: ${fields}` : ""}`);
+    }
 
     let data: T | null | string | BinaryEnvelope = null;
     if (response.status !== 204) {

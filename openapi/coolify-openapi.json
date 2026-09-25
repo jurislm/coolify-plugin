@@ -75,8 +75,6 @@
                                 "required": [
                                     "project_uuid",
                                     "server_uuid",
-                                    "environment_name",
-                                    "environment_uuid",
                                     "git_repository",
                                     "git_branch",
                                     "build_pack"
@@ -550,7 +548,11 @@
                                         "description": "Preserve repository during deployment."
                                     }
                                 },
-                                "type": "object"
+                                "type": "object",
+                                "x-require-any": [
+                                    "environment_name",
+                                    "environment_uuid"
+                                ]
                             }
                         }
                     }
@@ -656,8 +658,6 @@
                                 "required": [
                                     "project_uuid",
                                     "server_uuid",
-                                    "environment_name",
-                                    "environment_uuid",
                                     "github_app_uuid",
                                     "git_repository",
                                     "git_branch",
@@ -1136,7 +1136,11 @@
                                         "description": "Preserve repository during deployment."
                                     }
                                 },
-                                "type": "object"
+                                "type": "object",
+                                "x-require-any": [
+                                    "environment_name",
+                                    "environment_uuid"
+                                ]
                             }
                         }
                     }
@@ -1242,8 +1246,6 @@
                                 "required": [
                                     "project_uuid",
                                     "server_uuid",
-                                    "environment_name",
-                                    "environment_uuid",
                                     "private_key_uuid",
                                     "git_repository",
                                     "git_branch",
@@ -1722,7 +1724,11 @@
                                         "description": "Preserve repository during deployment."
                                     }
                                 },
-                                "type": "object"
+                                "type": "object",
+                                "x-require-any": [
+                                    "environment_name",
+                                    "environment_uuid"
+                                ]
                             }
                         }
                     }
@@ -1828,8 +1834,6 @@
                                 "required": [
                                     "project_uuid",
                                     "server_uuid",
-                                    "environment_name",
-                                    "environment_uuid",
                                     "dockerfile"
                                 ],
                                 "properties": {
@@ -1851,7 +1855,7 @@
                                     },
                                     "dockerfile": {
                                         "type": "string",
-                                        "description": "The Dockerfile content."
+                                        "description": "Plain Dockerfile content; the plugin encodes it for Coolify."
                                     },
                                     "build_pack": {
                                         "type": "string",
@@ -2198,7 +2202,11 @@
                                         "description": "Tags to assign to the application."
                                     }
                                 },
-                                "type": "object"
+                                "type": "object",
+                                "x-require-any": [
+                                    "environment_name",
+                                    "environment_uuid"
+                                ]
                             }
                         }
                     }
@@ -2304,8 +2312,6 @@
                                 "required": [
                                     "project_uuid",
                                     "server_uuid",
-                                    "environment_name",
-                                    "environment_uuid",
                                     "docker_registry_image_name"
                                 ],
                                 "properties": {
@@ -2659,7 +2665,11 @@
                                         "description": "Tags to assign to the application."
                                     }
                                 },
-                                "type": "object"
+                                "type": "object",
+                                "x-require-any": [
+                                    "environment_name",
+                                    "environment_uuid"
+                                ]
                             }
                         }
                     }
@@ -5150,7 +5160,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Application destinations."
+                        "description": "Application destinations.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -5284,7 +5305,18 @@
                 "operationId": "list-cloud-init-scripts",
                 "responses": {
                     "200": {
-                        "description": "Cloud-init scripts for the team."
+                        "description": "Cloud-init scripts for the team.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -5928,7 +5960,11 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "string"
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                    }
                                 },
                                 "example": "Content is very complex. Will be implemented later."
                             }
@@ -6111,7 +6147,8 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "additionalProperties": true
                                 },
                                 "example": "Content is very complex. Will be implemented later."
                             }
@@ -6445,7 +6482,22 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Database updated"
+                        "description": "Database updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -6682,9 +6734,7 @@
                             "schema": {
                                 "required": [
                                     "server_uuid",
-                                    "project_uuid",
-                                    "environment_name",
-                                    "environment_uuid"
+                                    "project_uuid"
                                 ],
                                 "properties": {
                                     "server_uuid": {
@@ -6795,14 +6845,33 @@
                                         "description": "Tags to assign to the database."
                                     }
                                 },
-                                "type": "object"
+                                "type": "object",
+                                "x-require-any": [
+                                    "environment_name",
+                                    "environment_uuid"
+                                ]
                             }
                         }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "Database updated"
+                        "description": "Database updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -6837,9 +6906,7 @@
                             "schema": {
                                 "required": [
                                     "server_uuid",
-                                    "project_uuid",
-                                    "environment_name",
-                                    "environment_uuid"
+                                    "project_uuid"
                                 ],
                                 "properties": {
                                     "server_uuid": {
@@ -6934,14 +7001,33 @@
                                         "description": "Tags to assign to the database."
                                     }
                                 },
-                                "type": "object"
+                                "type": "object",
+                                "x-require-any": [
+                                    "environment_name",
+                                    "environment_uuid"
+                                ]
                             }
                         }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "Database updated"
+                        "description": "Database updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -6976,9 +7062,7 @@
                             "schema": {
                                 "required": [
                                     "server_uuid",
-                                    "project_uuid",
-                                    "environment_name",
-                                    "environment_uuid"
+                                    "project_uuid"
                                 ],
                                 "properties": {
                                     "server_uuid": {
@@ -7069,14 +7153,33 @@
                                         "description": "Tags to assign to the database."
                                     }
                                 },
-                                "type": "object"
+                                "type": "object",
+                                "x-require-any": [
+                                    "environment_name",
+                                    "environment_uuid"
+                                ]
                             }
                         }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "Database updated"
+                        "description": "Database updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -7111,9 +7214,7 @@
                             "schema": {
                                 "required": [
                                     "server_uuid",
-                                    "project_uuid",
-                                    "environment_name",
-                                    "environment_uuid"
+                                    "project_uuid"
                                 ],
                                 "properties": {
                                     "server_uuid": {
@@ -7208,14 +7309,33 @@
                                         "description": "Tags to assign to the database."
                                     }
                                 },
-                                "type": "object"
+                                "type": "object",
+                                "x-require-any": [
+                                    "environment_name",
+                                    "environment_uuid"
+                                ]
                             }
                         }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "Database updated"
+                        "description": "Database updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -7250,9 +7370,7 @@
                             "schema": {
                                 "required": [
                                     "server_uuid",
-                                    "project_uuid",
-                                    "environment_name",
-                                    "environment_uuid"
+                                    "project_uuid"
                                 ],
                                 "properties": {
                                     "server_uuid": {
@@ -7347,14 +7465,33 @@
                                         "description": "Tags to assign to the database."
                                     }
                                 },
-                                "type": "object"
+                                "type": "object",
+                                "x-require-any": [
+                                    "environment_name",
+                                    "environment_uuid"
+                                ]
                             }
                         }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "Database updated"
+                        "description": "Database updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -7389,9 +7526,7 @@
                             "schema": {
                                 "required": [
                                     "server_uuid",
-                                    "project_uuid",
-                                    "environment_name",
-                                    "environment_uuid"
+                                    "project_uuid"
                                 ],
                                 "properties": {
                                     "server_uuid": {
@@ -7498,14 +7633,33 @@
                                         "description": "Tags to assign to the database."
                                     }
                                 },
-                                "type": "object"
+                                "type": "object",
+                                "x-require-any": [
+                                    "environment_name",
+                                    "environment_uuid"
+                                ]
                             }
                         }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "Database updated"
+                        "description": "Database updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -7540,9 +7694,7 @@
                             "schema": {
                                 "required": [
                                     "server_uuid",
-                                    "project_uuid",
-                                    "environment_name",
-                                    "environment_uuid"
+                                    "project_uuid"
                                 ],
                                 "properties": {
                                     "server_uuid": {
@@ -7649,14 +7801,33 @@
                                         "description": "Tags to assign to the database."
                                     }
                                 },
-                                "type": "object"
+                                "type": "object",
+                                "x-require-any": [
+                                    "environment_name",
+                                    "environment_uuid"
+                                ]
                             }
                         }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "Database updated"
+                        "description": "Database updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -7691,9 +7862,7 @@
                             "schema": {
                                 "required": [
                                     "server_uuid",
-                                    "project_uuid",
-                                    "environment_name",
-                                    "environment_uuid"
+                                    "project_uuid"
                                 ],
                                 "properties": {
                                     "server_uuid": {
@@ -7788,14 +7957,33 @@
                                         "description": "Tags to assign to the database."
                                     }
                                 },
-                                "type": "object"
+                                "type": "object",
+                                "x-require-any": [
+                                    "environment_name",
+                                    "environment_uuid"
+                                ]
                             }
                         }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "Database updated"
+                        "description": "Database updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "additionalProperties": true
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -10219,16 +10407,19 @@
                                                 "type": "integer"
                                             },
                                             "app_id": {
-                                                "type": "integer"
+                                                "type": "integer",
+                                                "nullable": true
                                             },
                                             "installation_id": {
-                                                "type": "integer"
+                                                "type": "integer",
+                                                "nullable": true
                                             },
                                             "client_id": {
-                                                "type": "string"
+                                                "type": "string",
+                                                "nullable": true
                                             },
                                             "private_key_id": {
-                                                "type": "integer"
+                                                "type": "string"
                                             },
                                             "is_system_wide": {
                                                 "type": "boolean"
@@ -11776,7 +11967,15 @@
                 "operationId": "get-current-team-email-notifications",
                 "responses": {
                     "200": {
-                        "description": "Email notification settings."
+                        "description": "Email notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -11832,7 +12031,15 @@
                 "operationId": "get-current-team-discord-notifications",
                 "responses": {
                     "200": {
-                        "description": "Discord notification settings."
+                        "description": "Discord notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -11888,7 +12095,15 @@
                 "operationId": "get-current-team-slack-notifications",
                 "responses": {
                     "200": {
-                        "description": "Slack notification settings."
+                        "description": "Slack notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -11944,7 +12159,15 @@
                 "operationId": "get-current-team-telegram-notifications",
                 "responses": {
                     "200": {
-                        "description": "Telegram notification settings."
+                        "description": "Telegram notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -12000,7 +12223,15 @@
                 "operationId": "get-current-team-pushover-notifications",
                 "responses": {
                     "200": {
-                        "description": "Pushover notification settings."
+                        "description": "Pushover notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -12056,7 +12287,15 @@
                 "operationId": "get-current-team-webhook-notifications",
                 "responses": {
                     "200": {
-                        "description": "Webhook notification settings."
+                        "description": "Webhook notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -15093,7 +15332,10 @@
                                         },
                                         "logdrain_newrelic_license_key": {
                                             "description": "Only present with read:sensitive.",
-                                            "type": "string"
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
                                         },
                                         "logdrain_newrelic_base_uri": {
                                             "type": [
@@ -15112,18 +15354,27 @@
                                         },
                                         "logdrain_axiom_api_key": {
                                             "description": "Only present with read:sensitive.",
-                                            "type": "string"
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
                                         },
                                         "is_logdrain_custom_enabled": {
                                             "type": "boolean"
                                         },
                                         "logdrain_custom_config": {
                                             "description": "Only present with read:sensitive.",
-                                            "type": "string"
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
                                         },
                                         "logdrain_custom_config_parser": {
                                             "description": "Only present with read:sensitive.",
-                                            "type": "string"
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
                                         }
                                     },
                                     "type": "object"
@@ -17751,9 +18002,7 @@
                             "schema": {
                                 "required": [
                                     "server_uuid",
-                                    "project_uuid",
-                                    "environment_name",
-                                    "environment_uuid"
+                                    "project_uuid"
                                 ],
                                 "properties": {
                                     "type": {
@@ -17834,7 +18083,11 @@
                                         "description": "Tags to assign to the service."
                                     }
                                 },
-                                "type": "object"
+                                "type": "object",
+                                "x-require-any": [
+                                    "environment_name",
+                                    "environment_uuid"
+                                ]
                             }
                         }
                     }
@@ -19630,7 +19883,18 @@
                 "operationId": "list-team-shared-envs",
                 "responses": {
                     "200": {
-                        "description": "Team shared environment variables."
+                        "description": "Team shared environment variables.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -19690,7 +19954,22 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Environment variable created."
+                        "description": "Environment variable created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "id"
+                                    ],
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -19730,7 +20009,22 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable deleted."
+                        "description": "Environment variable deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -19765,7 +20059,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable updated."
+                        "description": "Environment variable updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -19781,7 +20083,44 @@
                     {
                         "bearerAuth": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_literal": {
+                                        "type": "boolean"
+                                    },
+                                    "is_multiline": {
+                                        "type": "boolean"
+                                    },
+                                    "is_shown_once": {
+                                        "type": "boolean"
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/projects/{uuid}/envs": {
@@ -19805,7 +20144,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Project shared environment variables."
+                        "description": "Project shared environment variables.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -19840,7 +20190,22 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "Environment variable created."
+                        "description": "Environment variable created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "id"
+                                    ],
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -19859,7 +20224,46 @@
                     {
                         "bearerAuth": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "key"
+                                ],
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_literal": {
+                                        "type": "boolean"
+                                    },
+                                    "is_multiline": {
+                                        "type": "boolean"
+                                    },
+                                    "is_shown_once": {
+                                        "type": "boolean"
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/projects/{uuid}/envs/{env_id}": {
@@ -19892,7 +20296,22 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable deleted."
+                        "description": "Environment variable deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -19936,7 +20355,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable updated."
+                        "description": "Environment variable updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -19952,7 +20379,44 @@
                     {
                         "bearerAuth": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_literal": {
+                                        "type": "boolean"
+                                    },
+                                    "is_multiline": {
+                                        "type": "boolean"
+                                    },
+                                    "is_shown_once": {
+                                        "type": "boolean"
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/projects/{uuid}/environments/{environment_name_or_uuid}/envs": {
@@ -19985,7 +20449,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment shared environment variables."
+                        "description": "Environment shared environment variables.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20029,7 +20504,22 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "Environment variable created."
+                        "description": "Environment variable created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "id"
+                                    ],
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20048,7 +20538,46 @@
                     {
                         "bearerAuth": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "key"
+                                ],
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_literal": {
+                                        "type": "boolean"
+                                    },
+                                    "is_multiline": {
+                                        "type": "boolean"
+                                    },
+                                    "is_shown_once": {
+                                        "type": "boolean"
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/projects/{uuid}/environments/{environment_name_or_uuid}/envs/{env_id}": {
@@ -20090,7 +20619,22 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable deleted."
+                        "description": "Environment variable deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20143,7 +20687,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable updated."
+                        "description": "Environment variable updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20159,7 +20711,44 @@
                     {
                         "bearerAuth": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_literal": {
+                                        "type": "boolean"
+                                    },
+                                    "is_multiline": {
+                                        "type": "boolean"
+                                    },
+                                    "is_shown_once": {
+                                        "type": "boolean"
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/servers/{uuid}/envs": {
@@ -20183,7 +20772,18 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Server shared environment variables."
+                        "description": "Server shared environment variables.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20218,7 +20818,22 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "Environment variable created."
+                        "description": "Environment variable created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "id"
+                                    ],
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20237,7 +20852,46 @@
                     {
                         "bearerAuth": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "key"
+                                ],
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_literal": {
+                                        "type": "boolean"
+                                    },
+                                    "is_multiline": {
+                                        "type": "boolean"
+                                    },
+                                    "is_shown_once": {
+                                        "type": "boolean"
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/servers/{uuid}/envs/{env_id}": {
@@ -20270,7 +20924,22 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable deleted."
+                        "description": "Environment variable deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20314,7 +20983,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Environment variable updated."
+                        "description": "Environment variable updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -20330,7 +21007,44 @@
                     {
                         "bearerAuth": []
                     }
-                ]
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                    "key": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "is_literal": {
+                                        "type": "boolean"
+                                    },
+                                    "is_multiline": {
+                                        "type": "boolean"
+                                    },
+                                    "is_shown_once": {
+                                        "type": "boolean"
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/tags": {
@@ -22194,7 +22908,10 @@
                         "type": "boolean"
                     },
                     "use_build_secrets": {
-                        "type": "boolean"
+                        "type": [
+                            "boolean",
+                            "string"
+                        ]
                     },
                     "inject_build_args_to_dockerfile": {
                         "type": "boolean"
@@ -22311,7 +23028,8 @@
                         "type": "string"
                     },
                     "description": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "private_key": {
                         "type": "string",
@@ -22735,7 +23453,8 @@
                     },
                     "config_hash": {
                         "type": "string",
-                        "description": "The hash of the service configuration."
+                        "description": "The hash of the service configuration.",
+                        "nullable": true
                     },
                     "service_type": {
                         "type": "string",
@@ -22825,7 +23544,8 @@
                     },
                     "description": {
                         "type": "string",
-                        "description": "The description of the team."
+                        "description": "The description of the team.",
+                        "nullable": true
                     },
                     "personal_team": {
                         "type": "boolean",
@@ -22874,7 +23594,8 @@
                     },
                     "email_verified_at": {
                         "type": "string",
-                        "description": "The date when the user email was verified."
+                        "description": "The date when the user email was verified.",
+                        "nullable": true
                     },
                     "created_at": {
                         "type": "string",
@@ -22886,10 +23607,14 @@
                     },
                     "two_factor_confirmed_at": {
                         "type": "string",
-                        "description": "The date when the user two factor was confirmed."
+                        "description": "The date when the user two factor was confirmed.",
+                        "nullable": true
                     },
                     "force_password_reset": {
-                        "type": "boolean",
+                        "type": [
+                            "boolean",
+                            "string"
+                        ],
                         "description": "The flag to force the user to reset the password."
                     },
                     "marketing_emails": {

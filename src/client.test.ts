@@ -33,13 +33,34 @@ describe("CoolifyClient", () => {
     expect(error.message).not.toContain("secret-token");
   });
 
+  test("reports validation field names without leaking response values", async () => {
+    const client = new CoolifyClient(config, async () => new Response(JSON.stringify({
+      message: "secret-token is invalid",
+      errors: { environment_uuid: ["secret-token is invalid"] },
+    }), { status: 422, headers: { "content-type": "application/json" } }));
+    const error = await client.request(operation, { uuid: "app" }).catch((value) => value);
+    expect(error).toBeInstanceOf(CoolifyApiError);
+    expect(error.message).toContain("environment_uuid");
+    expect(error.message).not.toContain("secret-token");
+  });
+
   test("redacts successful nested environment and private-key values", async () => {
     const client = new CoolifyClient(config, async () => new Response(JSON.stringify({
-      value: "env-secret", nested: { real_value: "actual", private_key: "pem", token: "token" }, keys: [{ client_secret: "secret" }],
+      value: "env-secret", nested: { real_value: "actual", private_key: "pem", token: "token", discord_webhook_url: "url", resend_api_key: "key" }, keys: [{ client_secret: "secret" }],
     }), { headers: { "content-type": "application/json" } }));
     await expect(client.request(operation, { uuid: "app" })).resolves.toMatchObject({
-      data: { value: "[REDACTED]", nested: { real_value: "[REDACTED]", private_key: "[REDACTED]", token: "[REDACTED]" }, keys: [{ client_secret: "[REDACTED]" }] },
+      data: { value: "[REDACTED]", nested: { real_value: "[REDACTED]", private_key: "[REDACTED]", token: "[REDACTED]", discord_webhook_url: "[REDACTED]", resend_api_key: "[REDACTED]" }, keys: [{ client_secret: "[REDACTED]" }] },
     });
+  });
+
+  test("encodes plain Dockerfile content for Coolify", async () => {
+    let body: Record<string, unknown> = {};
+    const client = new CoolifyClient(config, async (_url, init) => {
+      body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      return new Response(JSON.stringify({ uuid: "app" }), { status: 201, headers: { "content-type": "application/json" } });
+    });
+    await client.request({ method: "POST", path: "/applications/dockerfile", parameters: [] }, { body: { dockerfile: "FROM nginx:alpine", name: "qa" } });
+    expect(body).toEqual({ dockerfile: "RlJPTSBuZ2lueDphbHBpbmU=", name: "qa" });
   });
 
   test("uses a timeout AbortSignal and never retries a mutation", async () => {

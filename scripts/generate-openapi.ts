@@ -25,6 +25,7 @@ function dereference(value: any, seen = new Set<string>()): any {
   }
   const result: JsonObject = {};
   for (const [key, child] of Object.entries(value)) if (key !== "$ref") result[key] = dereference(child, seen);
+  if (result.format === "uuid") delete result.format;
   if (result.nullable === true) return { anyOf: [Object.fromEntries(Object.entries(result).filter(([key]) => key !== "nullable")), { type: "null" }] };
   return result;
 }
@@ -73,7 +74,13 @@ for (const [path, pathItem] of Object.entries(document.paths ?? {})) {
     const requestBody = operation.requestBody as JsonObject | undefined;
     const bodyContent = requestBody?.content ?? {};
     const bodyType = Object.keys(bodyContent)[0];
-    if (bodyType) properties.push(`body: ${schemaText(bodyContent[bodyType]?.schema, !requestBody.required)}`);
+    if (bodyType) {
+      const bodySchema = bodyContent[bodyType]?.schema;
+      let bodyText = schemaText(bodySchema, !requestBody.required);
+      const requireAny = bodySchema?.["x-require-any"] as string[] | undefined;
+      if (requireAny?.length) bodyText += `.refine((body) => ${requireAny.map((key) => `Boolean(body[${quote(key)}])`).join(" || ")}, { message: ${quote(`At least one of ${requireAny.join(", ")} is required`)} })`;
+      properties.push(`body: ${bodyText}`);
+    }
     const name = toolName(operation, method, path, usedNames);
     usedNames.add(name);
     const response = responseInfo(operation);

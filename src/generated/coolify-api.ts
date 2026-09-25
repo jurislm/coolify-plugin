@@ -4478,7 +4478,7 @@ export interface components {
             is_spa?: boolean;
             is_git_shallow_clone_enabled?: boolean;
             is_pr_deployments_public_enabled?: boolean;
-            use_build_secrets?: boolean;
+            use_build_secrets?: boolean | string;
             inject_build_args_to_dockerfile?: boolean;
             include_source_commit_in_build?: boolean;
             docker_images_to_keep?: number;
@@ -4519,7 +4519,7 @@ export interface components {
             id?: number;
             uuid?: string;
             name?: string;
-            description?: string;
+            description?: string | null;
             /** Format: private-key */
             private_key?: string;
             /** @description The public key of the private key. */
@@ -4716,7 +4716,7 @@ export interface components {
             /** @description The flag to enable the container label readonly. */
             is_container_label_readonly_enabled?: boolean;
             /** @description The hash of the service configuration. */
-            config_hash?: string;
+            config_hash?: string | null;
             /** @description The type of the service. */
             service_type?: string | null;
             /** @description The date and time when the service was created. */
@@ -4754,7 +4754,7 @@ export interface components {
             /** @description The name of the team. */
             name?: string;
             /** @description The description of the team. */
-            description?: string;
+            description?: string | null;
             /** @description Whether the team is personal or not. */
             personal_team?: boolean;
             /** @description The date and time the team was created. */
@@ -4777,15 +4777,15 @@ export interface components {
             /** @description The user email. */
             email?: string;
             /** @description The date when the user email was verified. */
-            email_verified_at?: string;
+            email_verified_at?: string | null;
             /** @description The date when the user was created. */
             created_at?: string;
             /** @description The date when the user was updated. */
             updated_at?: string;
             /** @description The date when the user two factor was confirmed. */
-            two_factor_confirmed_at?: string;
+            two_factor_confirmed_at?: string | null;
             /** @description The flag to force the user to reset the password. */
-            force_password_reset?: boolean;
+            force_password_reset?: boolean | string;
             /** @description The flag to receive marketing emails. */
             marketing_emails?: boolean;
         };
@@ -4937,9 +4937,9 @@ export interface operations {
                     /** @description The server UUID. */
                     server_uuid: string;
                     /** @description The environment name. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description The environment UUID. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description The git repository URL. */
                     git_repository: string;
                     /** @description The git branch. */
@@ -5227,9 +5227,9 @@ export interface operations {
                     /** @description The server UUID. */
                     server_uuid: string;
                     /** @description The environment name. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description The environment UUID. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description The Github App UUID. */
                     github_app_uuid: string;
                     /** @description The git repository URL. */
@@ -5519,9 +5519,9 @@ export interface operations {
                     /** @description The server UUID. */
                     server_uuid: string;
                     /** @description The environment name. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description The environment UUID. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description The private key UUID. */
                     private_key_uuid: string;
                     /** @description The git repository URL. */
@@ -5811,10 +5811,10 @@ export interface operations {
                     /** @description The server UUID. */
                     server_uuid: string;
                     /** @description The environment name. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description The environment UUID. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
-                    /** @description The Dockerfile content. */
+                    environment_uuid?: string;
+                    /** @description Plain Dockerfile content; the plugin encodes it for Coolify. */
                     dockerfile: string;
                     /**
                      * @description The build pack type.
@@ -6049,9 +6049,9 @@ export interface operations {
                     /** @description The server UUID. */
                     server_uuid: string;
                     /** @description The environment name. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description The environment UUID. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description The docker registry image name. */
                     docker_registry_image_name: string;
                     /** @description The docker registry image tag. */
@@ -7452,7 +7452,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -7529,7 +7533,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
             /** @description Forbidden. */
@@ -7923,7 +7931,9 @@ export interface operations {
                 };
                 content: {
                     /** @example Content is very complex. Will be implemented later. */
-                    "application/json": string;
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
                 };
             };
             400: components["responses"]["400"];
@@ -8031,7 +8041,9 @@ export interface operations {
                 };
                 content: {
                     /** @example Content is very complex. Will be implemented later. */
-                    "application/json": string;
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             400: components["responses"]["400"];
@@ -8192,7 +8204,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8323,9 +8339,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description PostgreSQL user */
                     postgres_user?: string;
                     /** @description PostgreSQL password */
@@ -8379,7 +8395,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8402,9 +8422,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description UUID of the destination if the server has multiple destinations */
                     destination_uuid?: string;
                     /** @description Clickhouse admin user */
@@ -8450,7 +8470,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8473,9 +8497,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description UUID of the destination if the server has multiple destinations */
                     destination_uuid?: string;
                     /** @description DragonFly password */
@@ -8519,7 +8543,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8542,9 +8570,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description UUID of the destination if the server has multiple destinations */
                     destination_uuid?: string;
                     /** @description Redis password */
@@ -8590,7 +8618,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8613,9 +8645,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description UUID of the destination if the server has multiple destinations */
                     destination_uuid?: string;
                     /** @description KeyDB password */
@@ -8661,7 +8693,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8684,9 +8720,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description UUID of the destination if the server has multiple destinations */
                     destination_uuid?: string;
                     /** @description MariaDB conf */
@@ -8738,7 +8774,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8761,9 +8801,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description UUID of the destination if the server has multiple destinations */
                     destination_uuid?: string;
                     /** @description MySQL root password */
@@ -8815,7 +8855,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8838,9 +8882,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description UUID of the destination if the server has multiple destinations */
                     destination_uuid?: string;
                     /** @description MongoDB conf */
@@ -8886,7 +8930,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -10182,10 +10230,10 @@ export interface operations {
                         html_url?: string;
                         custom_user?: string;
                         custom_port?: number;
-                        app_id?: number;
-                        installation_id?: number;
-                        client_id?: string;
-                        private_key_id?: number;
+                        app_id?: number | null;
+                        installation_id?: number | null;
+                        client_id?: string | null;
+                        private_key_id?: string;
                         is_system_wide?: boolean;
                         is_public?: boolean;
                         team_id?: number;
@@ -11021,7 +11069,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -11069,7 +11121,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -11117,7 +11173,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -11165,7 +11225,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -11213,7 +11277,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -11261,7 +11329,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -13005,17 +13077,17 @@ export interface operations {
                     "application/json": {
                         is_logdrain_newrelic_enabled?: boolean;
                         /** @description Only present with read:sensitive. */
-                        logdrain_newrelic_license_key?: string;
+                        logdrain_newrelic_license_key?: string | null;
                         logdrain_newrelic_base_uri?: string | null;
                         is_logdrain_axiom_enabled?: boolean;
                         logdrain_axiom_dataset_name?: string | null;
                         /** @description Only present with read:sensitive. */
-                        logdrain_axiom_api_key?: string;
+                        logdrain_axiom_api_key?: string | null;
                         is_logdrain_custom_enabled?: boolean;
                         /** @description Only present with read:sensitive. */
-                        logdrain_custom_config?: string;
+                        logdrain_custom_config?: string | null;
                         /** @description Only present with read:sensitive. */
-                        logdrain_custom_config_parser?: string;
+                        logdrain_custom_config_parser?: string | null;
                     };
                 };
             };
@@ -14401,9 +14473,9 @@ export interface operations {
                     /** @description Project UUID. */
                     project_uuid: string;
                     /** @description Environment name. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description Environment UUID. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description Server UUID. */
                     server_uuid: string;
                     /** @description Destination UUID. Required if server has multiple destinations. */
@@ -15345,7 +15417,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
         };
@@ -15375,7 +15451,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: number;
+                    };
+                };
             };
             401: components["responses"]["401"];
             /** @description Environment variable already exists. */
@@ -15405,7 +15485,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15421,14 +15505,29 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    key?: string;
+                    value?: string | null;
+                    is_literal?: boolean;
+                    is_multiline?: boolean;
+                    is_shown_once?: boolean;
+                    comment?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description Environment variable updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15452,7 +15551,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15468,14 +15571,29 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    key: string;
+                    value?: string | null;
+                    is_literal?: boolean;
+                    is_multiline?: boolean;
+                    is_shown_once?: boolean;
+                    comment?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description Environment variable created. */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: number;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15508,7 +15626,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15526,14 +15648,29 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    key?: string;
+                    value?: string | null;
+                    is_literal?: boolean;
+                    is_multiline?: boolean;
+                    is_shown_once?: boolean;
+                    comment?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description Environment variable updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15559,7 +15696,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15577,14 +15718,29 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    key: string;
+                    value?: string | null;
+                    is_literal?: boolean;
+                    is_multiline?: boolean;
+                    is_shown_once?: boolean;
+                    comment?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description Environment variable created. */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: number;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15619,7 +15775,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15639,14 +15799,29 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    key?: string;
+                    value?: string | null;
+                    is_literal?: boolean;
+                    is_multiline?: boolean;
+                    is_shown_once?: boolean;
+                    comment?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description Environment variable updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15670,7 +15845,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15686,14 +15865,29 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    key: string;
+                    value?: string | null;
+                    is_literal?: boolean;
+                    is_multiline?: boolean;
+                    is_shown_once?: boolean;
+                    comment?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description Environment variable created. */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: number;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15726,7 +15920,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -15744,14 +15942,29 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    key?: string;
+                    value?: string | null;
+                    is_literal?: boolean;
+                    is_multiline?: boolean;
+                    is_shown_once?: boolean;
+                    comment?: string | null;
+                };
+            };
+        };
         responses: {
             /** @description Environment variable updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];

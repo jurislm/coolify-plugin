@@ -75,12 +75,13 @@ describe("generated Coolify MCP server", () => {
   });
 
   test("accepts nullable service fields in list and detail responses", async () => {
-    const service = { uuid: "service", service_type: null, deleted_at: null };
+    const service = { uuid: "service", service_type: null, deleted_at: null, config_hash: null };
     const { server, client } = await connected(async (url) => json(new URL(String(url)).pathname === "/api/v1/services" ? [service] : service));
     const list = await client.callTool({ name: "coolify_list_services", arguments: {} });
     const detail = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "service" } });
     expect(list.isError).not.toBe(true);
     expect(detail.isError).not.toBe(true);
+    expect(detail.structuredContent).toMatchObject({ data: { config_hash: null } });
     await client.close();
     await server.close();
   });
@@ -127,6 +128,36 @@ describe("generated Coolify MCP server", () => {
     const result = await client.callTool({ name: "coolify_list_databases", arguments: {} });
     expect(result.isError).not.toBe(true);
     expect(result.structuredContent).toMatchObject({ data: [{ uuid: "db" }] });
+    await client.close();
+    await server.close();
+  });
+
+  test("returns database create and update objects despite empty upstream responses", async () => {
+    const { server, client } = await connected(async () => json({ uuid: "database" }));
+    for (const name of [
+      "coolify_create_database_postgresql", "coolify_create_database_mysql", "coolify_create_database_mariadb",
+      "coolify_create_database_mongodb", "coolify_create_database_redis", "coolify_create_database_clickhouse",
+      "coolify_create_database_dragonfly", "coolify_create_database_keydb",
+    ]) {
+      const result = await client.callTool({ name, arguments: { body: { server_uuid: "server", project_uuid: "project", environment_name: "test", environment_uuid: "environment" } } });
+      expect(result.isError).not.toBe(true);
+      expect(result.structuredContent).toMatchObject({ data: { uuid: "database" } });
+    }
+    const updated = await client.callTool({ name: "coolify_update_database_by_uuid", arguments: { uuid: "database", body: { description: "test" } } });
+    expect(updated.isError).not.toBe(true);
+    expect(updated.structuredContent).toMatchObject({ data: { uuid: "database" } });
+    await client.close();
+    await server.close();
+  });
+
+  test("returns database details and backup collections in their actual shapes", async () => {
+    const { server, client } = await connected(async (url) => json(new URL(String(url)).pathname.endsWith("/backups") ? [{ uuid: "backup" }] : { uuid: "database" }));
+    const detail = await client.callTool({ name: "coolify_get_database_by_uuid", arguments: { uuid: "database" } });
+    const backups = await client.callTool({ name: "coolify_get_database_backups_by_uuid", arguments: { uuid: "database" } });
+    expect(detail.isError).not.toBe(true);
+    expect(detail.structuredContent).toMatchObject({ data: { uuid: "database" } });
+    expect(backups.isError).not.toBe(true);
+    expect(backups.structuredContent).toMatchObject({ data: [{ uuid: "backup" }] });
     await client.close();
     await server.close();
   });
