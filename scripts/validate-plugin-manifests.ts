@@ -27,7 +27,9 @@ for (const file of ["plugin.json", ".codex-plugin/plugin.json"]) {
 if (parsed[".codex-plugin/plugin.json"].mcpServers !== "./.mcp.json" || "apps" in parsed[".codex-plugin/plugin.json"]) throw new Error("fallback manifest must reference ./.mcp.json and omit apps");
 const server = (parsed[".mcp.json"].mcpServers as Json).coolify as Json;
 if (server.type !== "stdio" || server.command !== "bunx" || "cwd" in server || "url" in server || "serverUrl" in server || !(server.args as string[]).includes("@jurislm/coolify-plugin@latest")) throw new Error(".mcp.json must match the Woodpecker bunx stdio registration");
-if (JSON.stringify(parsed[".mcp.json"].mcpServers) !== JSON.stringify(parsed["mcp.json"].mcpServers)) throw new Error("Codex and portable MCP registrations must agree");
+if (JSON.stringify(server.env_vars) !== JSON.stringify(["COOLIFY_BASE_URL", "COOLIFY_ACCESS_TOKEN"])) throw new Error("Codex MCP must forward the Coolify connection variables");
+const { env_vars: _envVars, ...codexServer } = server;
+if (JSON.stringify(codexServer) !== JSON.stringify((parsed["mcp.json"].mcpServers as Json).coolify)) throw new Error("Codex and portable MCP registrations must agree");
 const exampleServer = (parsed[".mcp.json.example"].mcpServers as Json).coolify as Json;
 if (exampleServer.command !== "bunx" || !(exampleServer.args as string[]).includes("@jurislm/coolify-plugin@latest")) throw new Error(".mcp.json.example must match the Woodpecker bunx registration");
 const exampleEnv = exampleServer.env as Json;
