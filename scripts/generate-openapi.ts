@@ -25,6 +25,7 @@ function dereference(value: any, seen = new Set<string>()): any {
   }
   const result: JsonObject = {};
   for (const [key, child] of Object.entries(value)) if (key !== "$ref") result[key] = dereference(child, seen);
+  if (result.format === "uuid") delete result.format;
   if (result.nullable === true) return { anyOf: [Object.fromEntries(Object.entries(result).filter(([key]) => key !== "nullable")), { type: "null" }] };
   return result;
 }

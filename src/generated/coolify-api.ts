@@ -4716,7 +4716,7 @@ export interface components {
             /** @description The flag to enable the container label readonly. */
             is_container_label_readonly_enabled?: boolean;
             /** @description The hash of the service configuration. */
-            config_hash?: string;
+            config_hash?: string | null;
             /** @description The type of the service. */
             service_type?: string | null;
             /** @description The date and time when the service was created. */
@@ -7923,7 +7923,9 @@ export interface operations {
                 };
                 content: {
                     /** @example Content is very complex. Will be implemented later. */
-                    "application/json": string;
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
                 };
             };
             400: components["responses"]["400"];
@@ -8031,7 +8033,9 @@ export interface operations {
                 };
                 content: {
                     /** @example Content is very complex. Will be implemented later. */
-                    "application/json": string;
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             400: components["responses"]["400"];
@@ -8192,7 +8196,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8379,7 +8387,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8450,7 +8462,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8519,7 +8535,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8590,7 +8610,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8661,7 +8685,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8738,7 +8766,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8815,7 +8847,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8886,7 +8922,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    } | null;
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];

@@ -11,3 +11,12 @@ test("generated operations match the pinned Coolify manifest", async () => {
   expect(fallback.mcpServers).toBe("./.mcp.json");
   expect(fallback.apps).toBeUndefined();
 });
+
+test("accepts Coolify resource IDs for log tools", () => {
+  for (const name of ["coolify_get_database_logs_by_uuid", "coolify_get_service_logs_by_uuid"]) {
+    const operation = operations.find((item) => item.name === name);
+    expect(operation?.inputSchema.safeParse({
+      uuid: "oaqwnu9cvxorr2ah5fcl5222", lines: 10, show_timestamps: false, sub_service_name: "web",
+    }).success).toBe(true);
+  }
+});

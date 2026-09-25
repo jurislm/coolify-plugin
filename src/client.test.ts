@@ -33,6 +33,17 @@ describe("CoolifyClient", () => {
     expect(error.message).not.toContain("secret-token");
   });
 
+  test("reports validation field names without leaking response values", async () => {
+    const client = new CoolifyClient(config, async () => new Response(JSON.stringify({
+      message: "secret-token is invalid",
+      errors: { environment_uuid: ["secret-token is invalid"] },
+    }), { status: 422, headers: { "content-type": "application/json" } }));
+    const error = await client.request(operation, { uuid: "app" }).catch((value) => value);
+    expect(error).toBeInstanceOf(CoolifyApiError);
+    expect(error.message).toContain("environment_uuid");
+    expect(error.message).not.toContain("secret-token");
+  });
+
   test("redacts successful nested environment and private-key values", async () => {
     const client = new CoolifyClient(config, async () => new Response(JSON.stringify({
       value: "env-secret", nested: { real_value: "actual", private_key: "pem", token: "token" }, keys: [{ client_secret: "secret" }],

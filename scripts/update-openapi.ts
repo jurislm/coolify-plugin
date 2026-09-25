@@ -23,6 +23,7 @@ schemas.Application.properties.private_key_id.type = "string";
 for (const key of ["logdrain_axiom_api_key", "logdrain_axiom_dataset_name", "logdrain_custom_config", "logdrain_custom_config_parser", "logdrain_highlight_project_id", "logdrain_newrelic_base_uri", "logdrain_newrelic_license_key", "wildcard_domain"]) schemas.ServerSetting.properties[key].nullable = true;
 for (const key of ["validation_logs", "swarm_cluster"]) schemas.Server.properties[key].nullable = true;
 for (const key of ["service_type", "deleted_at"]) schemas.Service.properties[key].nullable = true;
+schemas.Service.properties.config_hash.nullable = true;
 schemas.ApplicationDeploymentQueue.properties.application_id.type = "string";
 schemas.ApplicationDeploymentQueue.properties.git_type.nullable = true;
 schemas.Environment.properties.description.nullable = true;
@@ -30,6 +31,14 @@ Object.assign(schemas.ApplicationDeploymentQueue.properties, { build_server_id: 
 const databaseUpdate = paths["/databases/{uuid}"].patch.requestBody.content["application/json"].schema.properties;
 databaseUpdate.custom_docker_run_options = { type: "string", description: "Docker run options for the database container." };
 for (const value of Object.values(databaseUpdate) as Array<Record<string, unknown>>) delete value.default;
+const databaseResponse = { type: "object", additionalProperties: true };
+const databaseWriteResponse = { anyOf: [databaseResponse, { type: "null" }] };
+for (const type of ["postgresql", "mysql", "mariadb", "mongodb", "redis", "clickhouse", "dragonfly", "keydb"]) {
+  paths[`/databases/${type}`].post.responses["200"].content = { "application/json": { schema: databaseWriteResponse } };
+}
+paths["/databases/{uuid}"].get.responses["200"].content["application/json"].schema = databaseResponse;
+paths["/databases/{uuid}"].patch.responses["200"].content = { "application/json": { schema: databaseWriteResponse } };
+paths["/databases/{uuid}/backups"].get.responses["200"].content["application/json"].schema = { type: "array", items: databaseResponse };
 delete paths["/servers/{uuid}/validate"];
 Object.assign(schemas.Server.properties, { is_reachable: { type: "boolean" }, is_usable: { type: "boolean" } });
 schemas.Service.properties.status = { type: "string" };
@@ -64,6 +73,7 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Database PATCH omits unspecified health-check defaults",
     "Server reachability and service status are response fields",
     "Server metadata, deployment git type, and environment descriptions can be null",
+    "Database responses and nullable service hash match live Coolify payloads",
   ],
 }, null, 2)}\n`);
 

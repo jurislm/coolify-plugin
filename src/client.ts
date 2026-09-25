@@ -72,7 +72,19 @@ export class CoolifyClient {
     } catch (error) {
       throw new CoolifyApiError(0, operation.method, path, `Coolify request failed for ${operation.method} ${path}: ${error instanceof Error ? error.message.replaceAll(token, "[REDACTED]") : "request error"}`);
     }
-    if (!response.ok) throw new CoolifyApiError(response.status, operation.method, path, `Coolify API returned ${response.status} for ${operation.method} ${path}`);
+    if (!response.ok) {
+      let fields = "";
+      if (response.status === 422) {
+        try {
+          const body = await response.json() as Record<string, unknown>;
+          const errors = body?.errors;
+          if (errors && typeof errors === "object" && !Array.isArray(errors)) {
+            fields = Object.keys(errors).filter((key) => /^[a-z][a-z0-9_.-]{0,63}$/iu.test(key)).slice(0, 8).map((key) => key.replaceAll(token, "[REDACTED]")).join(", ");
+          }
+        } catch {}
+      }
+      throw new CoolifyApiError(response.status, operation.method, path, `Coolify API returned ${response.status} for ${operation.method} ${path}${fields ? `; fields: ${fields}` : ""}`);
+    }
 
     let data: T | null | string | BinaryEnvelope = null;
     if (response.status !== 204) {
