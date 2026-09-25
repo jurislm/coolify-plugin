@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [4.0.12](https://github.com/jurislm/coolify-plugin/compare/v4.0.11...v4.0.12) (2026-09-25)
+
+
+### Bug Fixes
+
+* route private key updates by UUID (JUR-327) ([#45](https://github.com/jurislm/coolify-plugin/issues/45)) ([3261636](https://github.com/jurislm/coolify-plugin/commit/3261636c4d2eb1962a28df825681ce271f71fbfe))
+
 ## [4.0.11](https://github.com/jurislm/coolify-plugin/compare/v4.0.10...v4.0.11) (2026-09-25)
 
 
