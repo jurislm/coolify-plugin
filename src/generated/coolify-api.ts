@@ -4460,7 +4460,7 @@ export interface components {
             destination_id?: string;
             only_this_server?: boolean;
             rollback?: boolean;
-            commit_message?: string;
+            commit_message?: string | null;
             build_server_id?: number | null;
             horizon_job_id?: string | null;
             horizon_job_worker?: string | null;

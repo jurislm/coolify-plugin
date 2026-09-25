@@ -190,11 +190,11 @@ describe("generated Coolify MCP server", () => {
     await server.close();
   });
 
-  test("returns the current application deployment collection", async () => {
-    const { server, client } = await connected(async () => json({ count: 1, deployments: [{ deployment_uuid: "deployment", status: "finished", git_type: null }] }));
+  test("returns application deployment collections with null commit messages", async () => {
+    const { server, client } = await connected(async () => json({ count: 1, deployments: [{ deployment_uuid: "deployment", status: "finished", git_type: null, commit_message: null }] }));
     const result = await client.callTool({ name: "coolify_list_deployments_by_app_uuid", arguments: { uuid: "app" } });
     expect(result.isError).not.toBe(true);
-    expect(result.structuredContent).toMatchObject({ data: { count: 1, deployments: [{ deployment_uuid: "deployment", status: "finished" }] } });
+    expect(result.structuredContent).toMatchObject({ data: { count: 1, deployments: [{ deployment_uuid: "deployment", status: "finished", commit_message: null }] } });
     await client.close();
     await server.close();
   });

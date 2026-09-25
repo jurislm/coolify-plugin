@@ -212,7 +212,7 @@ for (const path of ["/team/envs/{env_id}", "/projects/{uuid}/envs/{env_id}", "/p
   paths[path].delete.responses["200"].content = { "application/json": { schema: { type: "object", required: ["message"], properties: { message: { type: "string" } } } } };
 }
 schemas.ApplicationDeploymentQueue.properties.application_id.type = "string";
-schemas.ApplicationDeploymentQueue.properties.git_type.nullable = true;
+for (const key of ["git_type", "commit_message"]) schemas.ApplicationDeploymentQueue.properties[key].nullable = true;
 schemas.Environment.properties.description.nullable = true;
 Object.assign(schemas.ApplicationDeploymentQueue.properties, { build_server_id: { type: "integer", nullable: true }, horizon_job_id: { type: "string", nullable: true }, horizon_job_worker: { type: "string", nullable: true }, finished_at: { type: "string", nullable: true } });
 const databaseUpdate = paths["/databases/{uuid}"].patch.requestBody.content["application/json"].schema.properties;
@@ -263,7 +263,7 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Server transfer endpoints document the APP_ENV=local gate, JSON bundle, and controller auth and validation errors",
     "Database PATCH omits unspecified health-check defaults",
     "Server reachability and service status are response fields",
-    "Server metadata, deployment git type, and environment descriptions can be null",
+    "Server metadata, deployment git type and commit message, and environment descriptions can be null",
     "Database responses and nullable service hash match live Coolify payloads",
     "Application settings, destination lists, shared environment variables, and log drain nulls match live responses",
     "Shared environment variable writes accept bodies and return live response shapes",
