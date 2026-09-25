@@ -7314,7 +7314,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -8335,7 +8339,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -9677,7 +9685,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -15389,7 +15401,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];

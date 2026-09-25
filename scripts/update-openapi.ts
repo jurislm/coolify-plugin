@@ -24,6 +24,11 @@ paths["/cloud-init-scripts/{uuid}"].get.responses["200"].content = paths["/cloud
 paths["/cloud-init-scripts/{uuid}"].delete.responses["200"].content = { "application/json": { schema: { type: "object", required: ["message"], properties: { message: { type: "string" } } } } };
 paths["/databases/{uuid}/clone"].post.responses["201"].content = { "application/json": { schema: { type: "object", required: ["uuid", "message"], properties: { uuid: { type: "string" }, message: { type: "string" } }, additionalProperties: true } } };
 paths["/services/{uuid}/clone"].post.responses["201"].content = paths["/databases/{uuid}/clone"].post.responses["201"].content;
+const messageResponse = { "application/json": { schema: { type: "object", required: ["message"], properties: { message: { type: "string" } } } } };
+paths["/applications/{uuid}/tags/{tag_uuid}"].delete.responses["200"].content = messageResponse;
+paths["/databases/{uuid}/tags/{tag_uuid}"].delete.responses["200"].content = messageResponse;
+paths["/services/{uuid}/tags/{tag_uuid}"].delete.responses["200"].content = messageResponse;
+paths["/databases/{uuid}/backups/{scheduled_backup_uuid}"].patch.responses["200"].content = messageResponse;
 for (const path of ["/cloud-init-scripts", "/team/envs"]) paths[path].get.responses["200"].content = { "application/json": { schema: { type: "array", items: genericObject } } };
 for (const path of ["/notifications/email", "/notifications/discord", "/notifications/slack", "/notifications/telegram", "/notifications/pushover", "/notifications/webhook"]) paths[path].get.responses["200"].content = { "application/json": { schema: genericObject } };
 const githubAppFields = paths["/github-apps"].get.responses["200"].content["application/json"].schema.items.properties;
@@ -120,6 +125,7 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Cloud-init, notifications, GitHub apps, private keys, and team metadata match live response shapes",
     "Resource creation accepts either environment name or UUID as documented",
     "Docker image build packs and cloud-init/resource clone responses match live Coolify payloads",
+    "Application tag removal and database backup updates match live message responses",
   ],
 }, null, 2)}\n`);
 
