@@ -12,6 +12,10 @@ const upstream = text.endsWith("\n") ? text : `${text}\n`;
 const spec = Bun.YAML.parse(upstream) as { openapi?: string; info?: { version?: string }; paths: Record<string, any>; components: { schemas: Record<string, any> } };
 const paths = spec.paths;
 const schemas = spec.components.schemas;
+for (const path of ["/applications/public", "/applications/private-github-app", "/applications/private-deploy-key", "/applications/dockerfile", "/applications/dockerimage", "/databases/postgresql", "/databases/clickhouse", "/databases/dragonfly", "/databases/redis", "/databases/keydb", "/databases/mariadb", "/databases/mysql", "/databases/mongodb", "/services"]) {
+  const body = paths[path].post.requestBody.content["application/json"].schema;
+  body.required = body.required.filter((key: string) => key !== "environment_name" && key !== "environment_uuid");
+}
 const genericObject = { type: "object", additionalProperties: true };
 for (const path of ["/cloud-init-scripts", "/team/envs"]) paths[path].get.responses["200"].content = { "application/json": { schema: { type: "array", items: genericObject } } };
 for (const path of ["/notifications/email", "/notifications/discord", "/notifications/slack", "/notifications/telegram", "/notifications/pushover", "/notifications/webhook"]) paths[path].get.responses["200"].content = { "application/json": { schema: genericObject } };
@@ -107,6 +111,7 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Shared environment variable writes accept bodies and return live response shapes",
     "Plain Dockerfile input is encoded for the API",
     "Cloud-init, notifications, GitHub apps, private keys, and team metadata match live response shapes",
+    "Resource creation accepts either environment name or UUID as documented",
   ],
 }, null, 2)}\n`);
 

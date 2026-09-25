@@ -4937,9 +4937,9 @@ export interface operations {
                     /** @description The server UUID. */
                     server_uuid: string;
                     /** @description The environment name. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description The environment UUID. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description The git repository URL. */
                     git_repository: string;
                     /** @description The git branch. */
@@ -5227,9 +5227,9 @@ export interface operations {
                     /** @description The server UUID. */
                     server_uuid: string;
                     /** @description The environment name. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description The environment UUID. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description The Github App UUID. */
                     github_app_uuid: string;
                     /** @description The git repository URL. */
@@ -5519,9 +5519,9 @@ export interface operations {
                     /** @description The server UUID. */
                     server_uuid: string;
                     /** @description The environment name. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description The environment UUID. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description The private key UUID. */
                     private_key_uuid: string;
                     /** @description The git repository URL. */
@@ -5811,9 +5811,9 @@ export interface operations {
                     /** @description The server UUID. */
                     server_uuid: string;
                     /** @description The environment name. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description The environment UUID. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description Plain Dockerfile content; the plugin encodes it for Coolify. */
                     dockerfile: string;
                     /**
@@ -6049,9 +6049,9 @@ export interface operations {
                     /** @description The server UUID. */
                     server_uuid: string;
                     /** @description The environment name. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description The environment UUID. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description The docker registry image name. */
                     docker_registry_image_name: string;
                     /** @description The docker registry image tag. */
@@ -8339,9 +8339,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description PostgreSQL user */
                     postgres_user?: string;
                     /** @description PostgreSQL password */
@@ -8422,9 +8422,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description UUID of the destination if the server has multiple destinations */
                     destination_uuid?: string;
                     /** @description Clickhouse admin user */
@@ -8497,9 +8497,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description UUID of the destination if the server has multiple destinations */
                     destination_uuid?: string;
                     /** @description DragonFly password */
@@ -8570,9 +8570,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description UUID of the destination if the server has multiple destinations */
                     destination_uuid?: string;
                     /** @description Redis password */
@@ -8645,9 +8645,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description UUID of the destination if the server has multiple destinations */
                     destination_uuid?: string;
                     /** @description KeyDB password */
@@ -8720,9 +8720,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description UUID of the destination if the server has multiple destinations */
                     destination_uuid?: string;
                     /** @description MariaDB conf */
@@ -8801,9 +8801,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description UUID of the destination if the server has multiple destinations */
                     destination_uuid?: string;
                     /** @description MySQL root password */
@@ -8882,9 +8882,9 @@ export interface operations {
                     /** @description UUID of the project */
                     project_uuid: string;
                     /** @description Name of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description UUID of the environment. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description UUID of the destination if the server has multiple destinations */
                     destination_uuid?: string;
                     /** @description MongoDB conf */
@@ -14473,9 +14473,9 @@ export interface operations {
                     /** @description Project UUID. */
                     project_uuid: string;
                     /** @description Environment name. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_name: string;
+                    environment_name?: string;
                     /** @description Environment UUID. You need to provide at least one of environment_name or environment_uuid. */
-                    environment_uuid: string;
+                    environment_uuid?: string;
                     /** @description Server UUID. */
                     server_uuid: string;
                     /** @description Destination UUID. Required if server has multiple destinations. */

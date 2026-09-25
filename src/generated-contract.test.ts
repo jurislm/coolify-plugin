@@ -21,6 +21,15 @@ test("accepts Coolify resource IDs for log tools", () => {
   }
 });
 
+test("allows either environment identifier when creating a resource", () => {
+  for (const operation of operations.filter((item) => item.method === "POST" && ["/applications/", "/databases/", "/services"].some((prefix) => item.path.startsWith(prefix)))) {
+    const body = (operation.inputSchema as { shape?: { body?: { shape?: Record<string, { isOptional: () => boolean }> } } }).shape?.body?.shape;
+    if (!body?.environment_name || !body.environment_uuid) continue;
+    expect(body.environment_name.isOptional()).toBe(true);
+    expect(body.environment_uuid.isOptional()).toBe(true);
+  }
+});
+
 test("accepts observed Coolify 4.3.23 read responses", () => {
   const response = (name: string, data: unknown) => operations.find((item) => item.name === name)?.responseSchema.safeParse(data).success;
   expect(response("coolify_get_application_by_uuid", { settings: { use_build_secrets: "false" } })).toBe(true);
