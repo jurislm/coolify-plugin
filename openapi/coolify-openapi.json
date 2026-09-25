@@ -5424,7 +5424,29 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Cloud-init script."
+                        "description": "Cloud-init script.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "uuid"
+                                    ],
+                                    "properties": {
+                                        "uuid": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "script": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"

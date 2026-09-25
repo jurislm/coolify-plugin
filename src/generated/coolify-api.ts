@@ -7608,7 +7608,15 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        uuid: string;
+                        name?: string;
+                        script?: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             /** @description Forbidden. */
