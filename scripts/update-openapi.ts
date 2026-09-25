@@ -18,6 +18,148 @@ for (const path of ["/applications/public", "/applications/private-github-app", 
   body["x-require-any"] = ["environment_name", "environment_uuid"];
 }
 const genericObject = { type: "object", additionalProperties: true };
+const jsonResponseOperations: Array<[string, string, string]> = [
+  ["/applications/{uuid}/migrate", "post", "200"], ["/applications/{uuid}/destinations", "post", "201"],
+  ["/applications/{uuid}/destinations/{destination_uuid}", "delete", "200"], ["/cloud-init-scripts/{uuid}", "patch", "200"],
+  ["/databases/{uuid}/migrate", "post", "200"], ["/notifications/email", "patch", "200"],
+  ["/notifications/discord", "patch", "200"], ["/notifications/slack", "patch", "200"],
+  ["/notifications/telegram", "patch", "200"], ["/notifications/pushover", "patch", "200"],
+  ["/notifications/webhook", "patch", "200"], ["/applications/{uuid}/scheduled-tasks/{task_uuid}/execute", "post", "200"],
+  ["/services/{uuid}/scheduled-tasks/{task_uuid}/execute", "post", "200"], ["/servers/{uuid}/cloudflare-tunnel", "patch", "200"],
+  ["/servers/{uuid}/cloudflare-tunnel/enable", "post", "200"], ["/servers/{uuid}/cloudflare-tunnel/disable", "post", "200"],
+  ["/servers/{uuid}/log-drains", "patch", "200"], ["/servers/{uuid}/sentinel", "patch", "200"],
+  ["/servers/{uuid}/migrate", "post", "200"], ["/servers/{uuid}/export", "get", "200"],
+  ["/servers/import", "post", "200"], ["/servers/import", "post", "201"], ["/servers/{uuid}/claim", "post", "200"],
+  ["/servers/{uuid}/transfer/complete", "post", "200"], ["/servers/{uuid}/export/mailbox", "post", "200"],
+  ["/services/{uuid}/migrate", "post", "200"], ["/applications/{uuid}/storages/{storage_uuid}/backups", "delete", "200"],
+  ["/databases/{uuid}/storages/{storage_uuid}/backups", "delete", "200"], ["/services/{uuid}/storages/{storage_uuid}/backups", "delete", "200"],
+  ["/applications/{uuid}/storages/{storage_uuid}/backups/run", "post", "200"],
+  ["/databases/{uuid}/storages/{storage_uuid}/backups/run", "post", "200"],
+  ["/services/{uuid}/storages/{storage_uuid}/backups/run", "post", "200"],
+];
+for (const [path, method, status] of jsonResponseOperations) {
+  paths[path][method].responses[status].content = { "application/json": { schema: genericObject } };
+}
+paths["/servers/{uuid}/export"].get.responses["422"] = { $ref: "#/components/responses/422" };
+for (const [path, method] of [
+  ["/servers/{uuid}/migrate", "post"], ["/servers/{uuid}/export", "get"], ["/servers/import", "post"],
+  ["/servers/{uuid}/claim", "post"], ["/servers/{uuid}/transfer/complete", "post"], ["/servers/{uuid}/export/mailbox", "post"],
+]) {
+  const operation = paths[path][method];
+  operation.summary += " (APP_ENV=local only in v4.3.23)";
+  operation.description += " This controller returns 404 unless APP_ENV is local.";
+  operation.responses["401"] ??= { $ref: "#/components/responses/401" };
+  operation.responses["404"] ??= { $ref: "#/components/responses/404" };
+  operation.responses["422"] ??= { $ref: "#/components/responses/422" };
+}
+paths["/servers/{uuid}/validate"].post["x-destructive-hint"] = true;
+const providerListPaths = [
+  "/digitalocean/regions", "/digitalocean/sizes", "/digitalocean/images", "/digitalocean/ssh-keys",
+  "/hetzner/locations", "/hetzner/server-types", "/hetzner/images", "/hetzner/ssh-keys", "/hetzner/firewalls", "/hetzner/networks",
+  "/vultr/regions", "/vultr/plans", "/vultr/os", "/vultr/ssh-keys",
+];
+const validationResponse = { $ref: "#/components/responses/422" };
+const providerFailureResponse = { description: "The cloud provider request failed.", content: { "application/json": { schema: { type: "object", required: ["message"], properties: { message: { type: "string" } }, additionalProperties: true } } } };
+for (const path of providerListPaths) {
+  const operation = paths[path].get;
+  operation["x-require-any-query"] = ["cloud_provider_token_uuid", "cloud_provider_token_id"];
+  for (const parameter of operation.parameters ?? []) {
+    if (["cloud_provider_token_uuid", "cloud_provider_token_id"].includes(parameter.name)) Object.assign(parameter.schema, { minLength: 1, pattern: "\\S" });
+  }
+  operation.responses["200"].content = { "application/json": { schema: { type: "array", items: genericObject } } };
+  operation.responses["422"] = validationResponse;
+  operation.responses["500"] = providerFailureResponse;
+  if (path.startsWith("/digitalocean/")) operation.responses["404"] = { $ref: "#/components/responses/404" };
+}
+const vultrTokenParameters = [
+  { name: "cloud_provider_token_uuid", in: "query", required: false, description: "Cloud provider token UUID. Required if cloud_provider_token_id is not provided.", schema: { type: "string", minLength: 1, pattern: "\\S" } },
+  { name: "cloud_provider_token_id", in: "query", required: false, deprecated: true, description: "Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID.", schema: { type: "string", minLength: 1, pattern: "\\S" } },
+];
+for (const path of ["/vultr/regions", "/vultr/plans", "/vultr/os", "/vultr/ssh-keys"]) {
+  paths[path].get.parameters = vultrTokenParameters;
+}
+const providerTokenProperties = {
+  cloud_provider_token_uuid: { type: "string", minLength: 1, pattern: "\\S", description: "Cloud provider token UUID. Required if cloud_provider_token_id is not provided." },
+  cloud_provider_token_id: { type: "string", minLength: 1, pattern: "\\S", deprecated: true, description: "Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID." },
+};
+const hostname = { maxLength: 253, pattern: "^$|^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$" };
+const digitalOceanServer = paths["/servers/digitalocean"].post;
+digitalOceanServer.requestBody = { required: true, content: { "application/json": { schema: {
+  type: "object",
+  required: ["region", "size", "image", "private_key_uuid"],
+  properties: {
+    ...providerTokenProperties,
+    region: { type: "string", minLength: 1 },
+    size: { type: "string", minLength: 1 },
+    image: { anyOf: [{ type: "string", minLength: 1 }, { type: "integer" }], description: "DigitalOcean image slug or ID." },
+    name: { type: "string", nullable: true, ...hostname },
+    private_key_uuid: { type: "string", minLength: 1 },
+    enable_ipv6: { type: "boolean", nullable: true },
+    monitoring: { type: "boolean", nullable: true },
+    digitalocean_ssh_key_ids: { type: "array", items: { type: "integer" }, nullable: true },
+    cloud_init_script: { type: "string", nullable: true, description: "Valid cloud-init YAML or a bash script beginning with #!." },
+    instant_validate: { type: "boolean", nullable: true },
+  },
+  "x-require-any": ["cloud_provider_token_uuid", "cloud_provider_token_id"],
+} } } };
+const vultrServer = paths["/servers/vultr"].post;
+vultrServer.requestBody = { required: true, content: { "application/json": { schema: {
+  type: "object",
+  required: ["region", "plan", "os_id", "private_key_uuid"],
+  properties: {
+    ...providerTokenProperties,
+    region: { type: "string", minLength: 1 },
+    plan: { type: "string", minLength: 1 },
+    os_id: { type: "integer" },
+    name: { type: "string", nullable: true, ...hostname },
+    private_key_uuid: { type: "string", minLength: 1 },
+    enable_ipv6: { type: "boolean", nullable: true },
+    disable_public_ipv4: { type: "boolean", nullable: true },
+    vultr_ssh_key_ids: { type: "array", items: { type: "string" }, nullable: true },
+    cloud_init_script: { type: "string", nullable: true, description: "Valid cloud-init YAML or a bash script beginning with #!." },
+    instant_validate: { type: "boolean", nullable: true },
+  },
+  "x-require-any": ["cloud_provider_token_uuid", "cloud_provider_token_id"],
+  "x-invalid-combinations": [{ values: { disable_public_ipv4: true, enable_ipv6: false }, message: "Enable public IPv4 or IPv6." }],
+} } } };
+for (const path of ["/servers/digitalocean", "/servers/hetzner", "/servers/vultr"]) {
+  const operation = paths[path].post;
+  const bodySchema = operation.requestBody.content["application/json"].schema;
+  bodySchema.properties.cloud_provider_token_uuid ??= providerTokenProperties.cloud_provider_token_uuid;
+  bodySchema.properties.cloud_provider_token_id ??= providerTokenProperties.cloud_provider_token_id;
+  for (const key of ["cloud_provider_token_uuid", "cloud_provider_token_id"]) Object.assign(bodySchema.properties[key], { minLength: 1, pattern: "\\S" });
+  bodySchema["x-require-any"] = ["cloud_provider_token_uuid", "cloud_provider_token_id"];
+  operation.responses["400"] ??= { $ref: "#/components/responses/400" };
+  operation.responses["404"] ??= { $ref: "#/components/responses/404" };
+  operation.responses["422"] = validationResponse;
+  operation.responses["500"] = providerFailureResponse;
+}
+const hetznerBody = paths["/servers/hetzner"].post.requestBody.content["application/json"].schema;
+for (const key of ["name", "enable_ipv4", "enable_ipv6", "enable_backups", "hetzner_ssh_key_ids", "hetzner_firewall_ids", "hetzner_network_ids", "cloud_init_script", "instant_validate"]) {
+  hetznerBody.properties[key].nullable = true;
+}
+hetznerBody.properties.name = { ...hetznerBody.properties.name, ...hostname };
+hetznerBody.properties.cloud_init_script.description = "Valid cloud-init YAML or a bash script beginning with #!.";
+hetznerBody.properties.location.minLength = 1;
+hetznerBody.properties.server_type.minLength = 1;
+hetznerBody.properties.private_key_uuid.minLength = 1;
+hetznerBody["x-invalid-combinations"] = [{ values: { enable_ipv4: false, enable_ipv6: false }, message: "Enable at least one public IP protocol." }];
+const providerRateLimitResponse = {
+  description: "The cloud provider rate limit was exceeded.",
+  headers: { "Retry-After": { description: "Seconds to wait before retrying, when provided by the upstream provider.", required: false, schema: { type: "string" } } },
+  content: { "application/json": { schema: { type: "object", required: ["message"], properties: { message: { type: "string" } }, additionalProperties: true } } },
+};
+for (const path of ["/servers/digitalocean", "/servers/hetzner", "/servers/vultr"]) paths[path].post.responses["429"] = providerRateLimitResponse;
+digitalOceanServer.responses["201"].content = { "application/json": { schema: {
+  type: "object", required: ["uuid", "digitalocean_droplet_id", "ip"], additionalProperties: true,
+  properties: { uuid: { type: "string" }, digitalocean_droplet_id: { type: "integer" }, ip: { type: "string", nullable: true } },
+} } };
+vultrServer.responses["201"].content = { "application/json": { schema: {
+  type: "object", required: ["uuid", "vultr_instance_id", "ip"], additionalProperties: true,
+  properties: { uuid: { type: "string" }, vultr_instance_id: { type: "string" }, ip: { type: "string", nullable: true } },
+} } };
+Object.assign(paths["/servers/hetzner"].post.responses["201"].content["application/json"].schema, { required: ["uuid", "hetzner_server_id", "ip"] });
+paths["/servers/hetzner"].post.responses["201"].content["application/json"].schema.properties.ip.nullable = true;
 schemas.Application.properties.build_pack.enum.push("dockerimage");
 paths["/cloud-init-scripts"].post.responses["201"].content = { "application/json": { schema: { type: "object", required: ["uuid"], properties: { uuid: { type: "string" }, name: { type: "string" }, script: { type: "string" } }, additionalProperties: true } } };
 paths["/cloud-init-scripts/{uuid}"].get.responses["200"].content = paths["/cloud-init-scripts"].post.responses["201"].content;
@@ -84,7 +226,6 @@ for (const type of ["postgresql", "mysql", "mariadb", "mongodb", "redis", "click
 paths["/databases/{uuid}"].get.responses["200"].content["application/json"].schema = databaseResponse;
 paths["/databases/{uuid}"].patch.responses["200"].content = { "application/json": { schema: databaseWriteResponse } };
 paths["/databases/{uuid}/backups"].get.responses["200"].content["application/json"].schema = { type: "array", items: databaseResponse };
-delete paths["/servers/{uuid}/validate"];
 Object.assign(schemas.Server.properties, { is_reachable: { type: "boolean" }, is_usable: { type: "boolean" } });
 schemas.Service.properties.status = { type: "string" };
 const persisted = `${JSON.stringify(spec, null, 4)}\n`;
@@ -114,7 +255,12 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Application deployment history is a count plus deployments collection",
     "Resource field nullability and identifiers match the active API",
     "Database updates expose custom Docker run options",
-    "Unsupported server validation operation removed",
+    "Cloud provider list and create requests require a token and provider response shapes match the v4.3.23 controllers",
+    "DigitalOcean and Vultr server creation contracts are restored from the v4.3.23 controllers where OpenAPI omits them",
+    "Provider create inputs include non-empty identifiers, hostname constraints, nullable Hetzner defaults, and IP cross-field rules",
+    "Provider server creation documents JSON rate-limit messages and optional Retry-After headers",
+    "Successful JSON response bodies omitted by upstream OpenAPI match v4.3.23 controller behavior",
+    "Server transfer endpoints document the APP_ENV=local gate, JSON bundle, and controller auth and validation errors",
     "Database PATCH omits unspecified health-check defaults",
     "Server reachability and service status are response fields",
     "Server metadata, deployment git type, and environment descriptions can be null",

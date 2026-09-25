@@ -78,16 +78,21 @@ for (const [path, pathItem] of Object.entries(document.paths ?? {})) {
       const bodySchema = bodyContent[bodyType]?.schema;
       let bodyText = schemaText(bodySchema, !requestBody.required);
       const requireAny = bodySchema?.["x-require-any"] as string[] | undefined;
-      if (requireAny?.length) bodyText += `.refine((body) => ${requireAny.map((key) => `Boolean(body[${quote(key)}])`).join(" || ")}, { message: ${quote(`At least one of ${requireAny.join(", ")} is required`)} })`;
+      if (requireAny?.length) bodyText += `.refine((body) => ${requireAny.map((key) => `typeof body[${quote(key)}] === "string" && body[${quote(key)}].trim().length > 0`).join(" || ")}, { message: ${quote(`At least one of ${requireAny.join(", ")} is required`)} })`;
+      const invalidCombinations = bodySchema?.["x-invalid-combinations"] as Array<{ values: Record<string, unknown>; message: string }> | undefined;
+      for (const combination of invalidCombinations ?? []) bodyText += `.refine((body) => !(${Object.entries(combination.values).map(([key, value]) => `body[${quote(key)}] === ${JSON.stringify(value)}`).join(" && ")}), { message: ${quote(combination.message)} })`;
       properties.push(`body: ${bodyText}`);
     }
+    let inputSchema = `z.object({ ${properties.join(", ")} })`;
+    const requireAnyQuery = operation["x-require-any-query"] as string[] | undefined;
+    if (requireAnyQuery?.length) inputSchema += `.refine((input) => ${requireAnyQuery.map((key) => `typeof input[${quote(key)}] === "string" && input[${quote(key)}].trim().length > 0`).join(" || ")}, { message: ${quote(`At least one of ${requireAnyQuery.join(", ")} is required`)} })`;
     const name = toolName(operation, method, path, usedNames);
     usedNames.add(name);
     const response = responseInfo(operation);
     const summary = String(operation.summary ?? operation.operationId ?? `${method.toUpperCase()} ${path}`);
-    const destructive = method === "delete" || /delete|reset|revoke|remove|destroy/iu.test(summary);
+    const destructive = method === "delete" || operation["x-destructive-hint"] === true || /delete|reset|revoke|remove|destroy/iu.test(summary);
     const idempotent = ["get", "head", "put", "delete", "options"].includes(method);
-    operations.push(`  { name: ${quote(name)}, method: ${quote(method.toUpperCase())}, path: ${quote(path)}, description: ${quote(summary)}, inputSchema: z.object({ ${properties.join(", ")} }), responseSchema: ${response.schema}, responseKind: ${quote(response.kind)}, parameters: [${parameterMeta.join(", ")}], annotations: { readOnlyHint: ${method === "get" || method === "head"}, destructiveHint: ${destructive}, idempotentHint: ${idempotent}, openWorldHint: false } }`);
+    operations.push(`  { name: ${quote(name)}, method: ${quote(method.toUpperCase())}, path: ${quote(path)}, description: ${quote(summary)}, inputSchema: ${inputSchema}, responseSchema: ${response.schema}, responseKind: ${quote(response.kind)}, parameters: [${parameterMeta.join(", ")}], annotations: { readOnlyHint: ${method === "get" || method === "head"}, destructiveHint: ${destructive}, idempotentHint: ${idempotent}, openWorldHint: false } }`);
   }
 }
 

@@ -30,7 +30,10 @@ describe("generated Coolify MCP server", () => {
     const deleteTool = result.tools.find((tool) => tool.name === "coolify_delete_application_by_uuid");
     expect(deleteTool?.annotations?.destructiveHint).toBe(true);
     expect(deleteTool?.annotations?.readOnlyHint).toBe(false);
-    expect(result.tools.some((tool) => tool.name === "coolify_validate_server_by_uuid")).toBe(false);
+    const validateTool = result.tools.find((tool) => tool.name === "coolify_validate_server_by_uuid");
+    expect(validateTool).toBeDefined();
+    expect(validateTool?.annotations?.destructiveHint).toBe(true);
+    expect(validateTool?.annotations?.readOnlyHint).toBe(false);
     await client.close();
     await server.close();
   });
