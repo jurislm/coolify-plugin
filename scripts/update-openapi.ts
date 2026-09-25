@@ -48,6 +48,8 @@ for (const [path, method] of [
   const operation = paths[path][method];
   operation.summary += " (APP_ENV=local only in v4.3.23)";
   operation.description += " This controller returns 404 unless APP_ENV is local.";
+  operation.responses["404"] ??= { $ref: "#/components/responses/404" };
+  operation.responses["422"] ??= { $ref: "#/components/responses/422" };
 }
 paths["/servers/{uuid}/validate"].post["x-destructive-hint"] = true;
 const providerListPaths = [

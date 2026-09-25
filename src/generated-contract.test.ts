@@ -132,6 +132,19 @@ test("accepts JSON success bodies omitted by the upstream OpenAPI", () => {
   }
 });
 
+test("documents transfer-controller 404 and 422 responses", async () => {
+  const spec = JSON.parse(await Bun.file("openapi/coolify-openapi.json").text()) as { paths: Record<string, Record<string, { responses: Record<string, unknown> }>> };
+  const endpoints = [
+    ["post", "/servers/{uuid}/migrate"], ["get", "/servers/{uuid}/export"], ["post", "/servers/import"],
+    ["post", "/servers/{uuid}/claim"], ["post", "/servers/{uuid}/transfer/complete"], ["post", "/servers/{uuid}/export/mailbox"],
+  ];
+  for (const [method, path] of endpoints) {
+    const responses = spec.paths[path][method].responses;
+    expect(responses["404"]).toBeDefined();
+    expect(responses["422"]).toBeDefined();
+  }
+});
+
 test("accepts Coolify resource IDs for log tools", () => {
   for (const name of ["coolify_get_database_logs_by_uuid", "coolify_get_service_logs_by_uuid"]) {
     const operation = operations.find((item) => item.name === name);

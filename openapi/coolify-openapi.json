@@ -16970,6 +16970,9 @@
                     "401": {
                         "$ref": "#/components/responses/401"
                     },
+                    "404": {
+                        "$ref": "#/components/responses/404"
+                    },
                     "422": {
                         "description": "Validation failed"
                     }
@@ -17032,6 +17035,9 @@
                     },
                     "404": {
                         "$ref": "#/components/responses/404"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/422"
                     }
                 },
                 "security": [
@@ -17096,6 +17102,9 @@
                     },
                     "404": {
                         "$ref": "#/components/responses/404"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/422"
                     }
                 },
                 "security": [
@@ -17157,6 +17166,9 @@
                     },
                     "404": {
                         "$ref": "#/components/responses/404"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/422"
                     }
                 },
                 "security": [

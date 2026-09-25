@@ -13833,6 +13833,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["401"];
+            404: components["responses"]["404"];
             /** @description Validation failed */
             422: {
                 headers: {
@@ -13874,6 +13875,7 @@ export interface operations {
                 };
             };
             404: components["responses"]["404"];
+            422: components["responses"]["422"];
         };
     };
     "complete-server-transfer": {
@@ -13906,6 +13908,7 @@ export interface operations {
                 };
             };
             404: components["responses"]["404"];
+            422: components["responses"]["422"];
         };
     };
     "export-server-transfer-mailbox": {
@@ -13944,6 +13947,7 @@ export interface operations {
                 content?: never;
             };
             404: components["responses"]["404"];
+            422: components["responses"]["422"];
         };
     };
     "list-servers": {
