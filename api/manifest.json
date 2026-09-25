@@ -1,7 +1,7 @@
 {
   "sourceUrl": "https://raw.githubusercontent.com/coollabsio/coolify/v4.3.23/openapi.json",
-  "fetchedAt": "2026-09-25T05:46:58.765Z",
-  "sha256": "9e0806ba5b6b7629f7571247c6ea2ae64c79437e83faa2f98bc74f99463862e5",
+  "fetchedAt": "2026-09-25T09:56:22.212Z",
+  "sha256": "86ba9fd7e74de66f46a6b2e8b2db20ed5ee05e3c3bc6207d3dd67f7c376746c2",
   "upstreamSha256": "964360ffb3d4c026252aa4657d6561190f59ac4256395bf0645bf6a4f171ec88",
   "openapiVersion": "3.1.0",
   "infoVersion": "0.1",
@@ -20,7 +20,7 @@
     "Server transfer endpoints document the APP_ENV=local gate, JSON bundle, and controller auth and validation errors",
     "Database PATCH omits unspecified health-check defaults",
     "Server reachability and service status are response fields",
-    "Server metadata, deployment git type, and environment descriptions can be null",
+    "Server metadata, deployment git type and commit message, and environment descriptions can be null",
     "Database responses and nullable service hash match live Coolify payloads",
     "Application settings, destination lists, shared environment variables, and log drain nulls match live responses",
     "Shared environment variable writes accept bodies and return live response shapes",
