@@ -61,4 +61,8 @@ test("accepts observed Coolify 4.3.23 read responses", () => {
   expect(response("coolify_delete_cloud_init_script_by_uuid", { message: "deleted" })).toBe(true);
   expect(response("coolify_clone_database_by_uuid", { uuid: "database", message: "cloned" })).toBe(true);
   expect(response("coolify_clone_service_by_uuid", { uuid: "service", message: "cloned" })).toBe(true);
+  expect(response("coolify_delete_tag_by_application_uuid", { message: "deleted" })).toBe(true);
+  expect(response("coolify_delete_tag_by_database_uuid", { message: "deleted" })).toBe(true);
+  expect(response("coolify_delete_tag_by_service_uuid", { message: "deleted" })).toBe(true);
+  expect(response("coolify_update_database_backup", { message: "updated" })).toBe(true);
 });
