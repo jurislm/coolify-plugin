@@ -4254,7 +4254,7 @@ export interface components {
              * @description Build pack.
              * @enum {string}
              */
-            build_pack?: "nixpacks" | "railpack" | "static" | "dockerfile" | "dockercompose";
+            build_pack?: "nixpacks" | "railpack" | "static" | "dockerfile" | "dockercompose" | "dockerimage";
             /** @description Static image used when static site is deployed. */
             static_image?: string;
             /** @description Install command. */
@@ -7571,7 +7571,15 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        uuid: string;
+                        name?: string;
+                        script?: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             /** @description Forbidden. */
@@ -7629,7 +7637,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    };
+                };
             };
             401: components["responses"]["401"];
             /** @description Forbidden. */
@@ -9690,7 +9702,14 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        uuid: string;
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -15395,7 +15414,14 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        uuid: string;
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];

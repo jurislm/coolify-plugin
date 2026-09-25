@@ -5363,7 +5363,29 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Cloud-init script created."
+                        "description": "Cloud-init script created.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "uuid"
+                                    ],
+                                    "properties": {
+                                        "uuid": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "script": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -5439,7 +5461,22 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Cloud-init script deleted."
+                        "description": "Cloud-init script deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -9482,7 +9519,27 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Database cloned."
+                        "description": "Database cloned.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "uuid",
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "uuid": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -19851,7 +19908,27 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Service cloned."
+                        "description": "Service cloned.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "uuid",
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "uuid": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -22361,7 +22438,8 @@
                             "railpack",
                             "static",
                             "dockerfile",
-                            "dockercompose"
+                            "dockercompose",
+                            "dockerimage"
                         ]
                     },
                     "static_image": {

@@ -18,6 +18,11 @@ for (const path of ["/applications/public", "/applications/private-github-app", 
   body["x-require-any"] = ["environment_name", "environment_uuid"];
 }
 const genericObject = { type: "object", additionalProperties: true };
+schemas.Application.properties.build_pack.enum.push("dockerimage");
+paths["/cloud-init-scripts"].post.responses["201"].content = { "application/json": { schema: { type: "object", required: ["uuid"], properties: { uuid: { type: "string" }, name: { type: "string" }, script: { type: "string" } }, additionalProperties: true } } };
+paths["/cloud-init-scripts/{uuid}"].delete.responses["200"].content = { "application/json": { schema: { type: "object", required: ["message"], properties: { message: { type: "string" } } } } };
+paths["/databases/{uuid}/clone"].post.responses["201"].content = { "application/json": { schema: { type: "object", required: ["uuid", "message"], properties: { uuid: { type: "string" }, message: { type: "string" } }, additionalProperties: true } } };
+paths["/services/{uuid}/clone"].post.responses["201"].content = paths["/databases/{uuid}/clone"].post.responses["201"].content;
 for (const path of ["/cloud-init-scripts", "/team/envs"]) paths[path].get.responses["200"].content = { "application/json": { schema: { type: "array", items: genericObject } } };
 for (const path of ["/notifications/email", "/notifications/discord", "/notifications/slack", "/notifications/telegram", "/notifications/pushover", "/notifications/webhook"]) paths[path].get.responses["200"].content = { "application/json": { schema: genericObject } };
 const githubAppFields = paths["/github-apps"].get.responses["200"].content["application/json"].schema.items.properties;
@@ -113,6 +118,7 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Plain Dockerfile input is encoded for the API",
     "Cloud-init, notifications, GitHub apps, private keys, and team metadata match live response shapes",
     "Resource creation accepts either environment name or UUID as documented",
+    "Docker image build packs and cloud-init/resource clone responses match live Coolify payloads",
   ],
 }, null, 2)}\n`);
 
