@@ -41,6 +41,8 @@ describe("generated Coolify MCP server", () => {
     expect(listTool?.description).toBe("List applications");
     expect(listTool?.title).toBe("List applications");
     expect(result.tools.every((tool) => tool.title !== tool.name)).toBe(true);
+    expect(new Set(result.tools.map((tool) => tool.title)).size).toBe(result.tools.length);
+    expect(result.tools.find((tool) => tool.name === "coolify_stop_application_by_uuid")?.title).toBe("Stop application by UUID");
     await client.close();
     await server.close();
   });
