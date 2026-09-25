@@ -1,7 +1,7 @@
 {
   "sourceUrl": "https://raw.githubusercontent.com/coollabsio/coolify/v4.3.23/openapi.json",
-  "fetchedAt": "2026-09-25T02:54:18.062Z",
-  "sha256": "62ff8f113c280f7463528c36067419ecd19cc07ef79f1450505fbb3de67d3dff",
+  "fetchedAt": "2026-09-25T02:56:46.865Z",
+  "sha256": "d7b334e85fb6003b1ab525027862acf4e8027db9fcac94f4401e4a72078062b1",
   "upstreamSha256": "964360ffb3d4c026252aa4657d6561190f59ac4256395bf0645bf6a4f171ec88",
   "openapiVersion": "3.1.0",
   "infoVersion": "0.1",
@@ -22,6 +22,6 @@
     "Plain Dockerfile input is encoded for the API",
     "Cloud-init, notifications, GitHub apps, private keys, and team metadata match live response shapes",
     "Resource creation accepts either environment name or UUID as documented",
-    "Docker image build packs and cloud-init/database clone responses match live Coolify payloads"
+    "Docker image build packs and cloud-init/resource clone responses match live Coolify payloads"
   ]
 }

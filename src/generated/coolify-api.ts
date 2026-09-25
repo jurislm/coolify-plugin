@@ -15414,7 +15414,14 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        uuid: string;
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];

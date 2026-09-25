@@ -19908,7 +19908,27 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Service cloned."
+                        "description": "Service cloned.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "uuid",
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "uuid": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
