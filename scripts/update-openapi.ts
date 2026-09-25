@@ -177,6 +177,11 @@ const githubAppFields = paths["/github-apps"].get.responses["200"].content["appl
 for (const key of ["app_id", "installation_id", "client_id"]) githubAppFields[key].nullable = true;
 githubAppFields.private_key_id.type = "string";
 schemas.PrivateKey.properties.description.nullable = true;
+const privateKeyUpdate = paths["/security/keys"].patch;
+privateKeyUpdate.parameters = paths["/security/keys/{uuid}"].get.parameters;
+privateKeyUpdate.responses["404"] = { $ref: "#/components/responses/404" };
+paths["/security/keys/{uuid}"].patch = privateKeyUpdate;
+delete paths["/security/keys"].patch;
 schemas.Team.properties.description.nullable = true;
 for (const key of ["email_verified_at", "two_factor_confirmed_at"]) schemas.User.properties[key].nullable = true;
 schemas.User.properties.force_password_reset.type = ["boolean", "string"];
@@ -273,6 +278,7 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Docker image build packs and cloud-init/resource clone responses match live Coolify payloads",
     "Application tag removal and database backup updates match live message responses",
     "Application ports_exposes can be null for new Git applications",
+    "Private key update uses the routed UUID path rather than the upstream annotation path",
   ],
 }, null, 2)}\n`);
 

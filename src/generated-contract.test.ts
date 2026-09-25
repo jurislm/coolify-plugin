@@ -21,6 +21,13 @@ test("exposes the official server validation operation", () => {
   expect(operation?.responseSchema.safeParse({ message: "Validation started." }).success).toBe(true);
 });
 
+test("routes private key updates by UUID", () => {
+  const operation = operations.find((item) => item.name === "coolify_update_private_key");
+  expect(operation?.path).toBe("/security/keys/{uuid}");
+  expect(operation?.inputSchema.safeParse({ uuid: "key", body: { private_key: "pem" } }).success).toBe(true);
+  expect(operation?.inputSchema.safeParse({ body: { private_key: "pem" } }).success).toBe(false);
+});
+
 test("requires a cloud provider token on every provider list operation", () => {
   const paths = [
     "/digitalocean/regions", "/digitalocean/sizes", "/digitalocean/images", "/digitalocean/ssh-keys",
