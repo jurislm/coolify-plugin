@@ -186,7 +186,7 @@ paths["/deployments/applications/{uuid}"].get.responses["200"].content["applicat
 schemas.DatabaseRecord = { type: "object", required: ["uuid"], additionalProperties: true, properties: { uuid: { type: "string" }, name: { type: "string" }, database_type: { type: "string" }, environment_id: { type: "integer" }, status: { type: "string" } } };
 schemas.ResourceRecord = { type: "object", required: ["uuid"], additionalProperties: true, properties: { uuid: { type: "string" }, name: { type: "string" }, type: { type: "string" }, status: { type: "string" } } };
 schemas.ApplicationDeploymentCollection = { type: "object", required: ["count", "deployments"], properties: { count: { type: "integer" }, deployments: { type: "array", items: { $ref: "#/components/schemas/ApplicationDeploymentQueue" } } } };
-for (const key of ["install_command", "build_command", "start_command", "publish_directory", "dockerfile_location"]) schemas.Application.properties[key].nullable = true;
+for (const key of ["install_command", "build_command", "start_command", "ports_exposes", "publish_directory", "dockerfile_location"]) schemas.Application.properties[key].nullable = true;
 schemas.Application.properties.private_key_id.type = "string";
 for (const key of ["logdrain_axiom_api_key", "logdrain_axiom_dataset_name", "logdrain_custom_config", "logdrain_custom_config_parser", "logdrain_highlight_project_id", "logdrain_newrelic_base_uri", "logdrain_newrelic_license_key", "wildcard_domain"]) schemas.ServerSetting.properties[key].nullable = true;
 for (const key of ["validation_logs", "swarm_cluster"]) schemas.Server.properties[key].nullable = true;
@@ -272,6 +272,7 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Resource creation accepts either environment name or UUID as documented",
     "Docker image build packs and cloud-init/resource clone responses match live Coolify payloads",
     "Application tag removal and database backup updates match live message responses",
+    "Application ports_exposes can be null for new Git applications",
   ],
 }, null, 2)}\n`);
 

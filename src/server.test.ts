@@ -54,14 +54,14 @@ describe("generated Coolify MCP server", () => {
   });
 
   test("accepts application nulls and string private-key IDs in list and detail responses", async () => {
-    const app = { uuid: "app", install_command: null, build_command: null, start_command: null, publish_directory: null, private_key_id: "key-uuid", dockerfile_location: null };
+    const app = { uuid: "app", install_command: null, build_command: null, start_command: null, ports_exposes: null, publish_directory: null, private_key_id: "key-uuid", dockerfile_location: null };
     const { server, client } = await connected(async (url) => json(new URL(String(url)).pathname === "/api/v1/applications" ? [app] : app));
     const list = await client.callTool({ name: "coolify_list_applications", arguments: {} });
     const detail = await client.callTool({ name: "coolify_get_application_by_uuid", arguments: { uuid: "app" } });
     expect(list.isError).not.toBe(true);
     expect(detail.isError).not.toBe(true);
-    expect(list.structuredContent).toMatchObject({ data: [{ install_command: null, private_key_id: "[REDACTED]" }] });
-    expect(detail.structuredContent).toMatchObject({ data: { install_command: null, private_key_id: "[REDACTED]" } });
+    expect(list.structuredContent).toMatchObject({ data: [{ install_command: null, ports_exposes: null, private_key_id: "[REDACTED]" }] });
+    expect(detail.structuredContent).toMatchObject({ data: { install_command: null, ports_exposes: null, private_key_id: "[REDACTED]" } });
     await client.close();
     await server.close();
   });
@@ -297,17 +297,18 @@ describe("generated Coolify MCP server", () => {
     await server.close();
   });
 
-  test("updates application envs with only generated-schema body fields", async () => {
+  test("updates existing application envs with only generated-schema body fields", async () => {
     const calls: Array<{ path: string; method?: string; body?: string }> = [];
     const { server, client } = await connected(async (url, init) => {
       const path = new URL(String(url)).pathname;
       calls.push({ path, method: init?.method, body: String(init?.body) });
-      return json(path === "/api/v1/applications" ? [] : { uuid: "env" });
+      return json(path === "/api/v1/applications" ? [{ uuid: "app", name: "qa", ports_exposes: null }] : { uuid: "env" });
     });
     const rejected = await client.callTool({ name: "coolify_bulk_update_application_env", arguments: { app_uuids: ["app"], key: "FOO", value: "BAR", is_build_time: true } });
     expect(rejected.isError).toBe(true);
     expect(calls).toHaveLength(0);
-    await client.callTool({ name: "coolify_bulk_update_application_env", arguments: { app_uuids: ["app"], key: "FOO", value: "BAR" } });
+    const updated = await client.callTool({ name: "coolify_bulk_update_application_env", arguments: { app_uuids: ["app"], key: "FOO", value: "BAR" } });
+    expect(updated.structuredContent).toMatchObject({ data: { summary: { succeeded: 1, failed: 0 } } });
     expect(calls).toContainEqual({ path: "/api/v1/applications/app/envs", method: "PATCH", body: JSON.stringify({ key: "FOO", value: "BAR" }) });
     await client.close();
     await server.close();

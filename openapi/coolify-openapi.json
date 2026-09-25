@@ -23776,7 +23776,8 @@
                     },
                     "ports_exposes": {
                         "type": "string",
-                        "description": "Ports exposes."
+                        "description": "Ports exposes.",
+                        "nullable": true
                     },
                     "ports_mappings": {
                         "type": "string",

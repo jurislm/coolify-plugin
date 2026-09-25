@@ -4284,7 +4284,7 @@ export interface components {
             /** @description Start command. */
             start_command?: string | null;
             /** @description Ports exposes. */
-            ports_exposes?: string;
+            ports_exposes?: string | null;
             /** @description Ports mappings. */
             ports_mappings?: string | null;
             /** @description Network aliases for Docker container. */
