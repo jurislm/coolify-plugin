@@ -3,7 +3,8 @@
     "coolify": {
       "type": "stdio",
       "command": "bunx",
-      "args": ["-y", "@jurislm/coolify-plugin@latest"]
+      "args": ["-y", "@jurislm/coolify-plugin@latest"],
+      "env_vars": ["COOLIFY_BASE_URL", "COOLIFY_ACCESS_TOKEN"]
     }
   }
 }
