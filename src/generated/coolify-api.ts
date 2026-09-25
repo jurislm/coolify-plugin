@@ -2502,11 +2502,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * Update
-         * @description Update a private key.
-         */
-        patch: operations["update-private-key"];
+        patch?: never;
         trace?: never;
     };
     "/security/keys/{uuid}": {
@@ -2530,7 +2526,11 @@ export interface paths {
         delete: operations["delete-private-key-by-uuid"];
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Update
+         * @description Update a private key.
+         */
+        patch: operations["update-private-key"];
         trace?: never;
     };
     "/servers/{uuid}/cloudflare-tunnel": {
@@ -12968,39 +12968,6 @@ export interface operations {
             422: components["responses"]["422"];
         };
     };
-    "update-private-key": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    name?: string;
-                    description?: string;
-                    private_key: string;
-                };
-            };
-        };
-        responses: {
-            /** @description The updated private key's UUID. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        uuid?: string;
-                    };
-                };
-            };
-            400: components["responses"]["400"];
-            401: components["responses"]["401"];
-            422: components["responses"]["422"];
-        };
-    };
     "get-private-key-by-uuid": {
         parameters: {
             query?: never;
@@ -13078,6 +13045,43 @@ export interface operations {
                     };
                 };
             };
+        };
+    };
+    "update-private-key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Private Key UUID */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name?: string;
+                    description?: string;
+                    private_key: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The updated private key's UUID. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        uuid?: string;
+                    };
+                };
+            };
+            400: components["responses"]["400"];
+            401: components["responses"]["401"];
+            404: components["responses"]["404"];
+            422: components["responses"]["422"];
         };
     };
     "get-server-cloudflare-tunnel": {

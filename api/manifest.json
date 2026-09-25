@@ -1,7 +1,7 @@
 {
   "sourceUrl": "https://raw.githubusercontent.com/coollabsio/coolify/v4.3.23/openapi.json",
-  "fetchedAt": "2026-09-25T10:52:36.232Z",
-  "sha256": "e891390faf1c4405ca4de1cfcfb0cbbc5316edcdee6f39e653cb05c68eee3563",
+  "fetchedAt": "2026-09-25T11:20:11.773Z",
+  "sha256": "934bb0ecd71db0b596df44d141152e0d4052a2604cbb302519276ba9558a0b38",
   "upstreamSha256": "964360ffb3d4c026252aa4657d6561190f59ac4256395bf0645bf6a4f171ec88",
   "openapiVersion": "3.1.0",
   "infoVersion": "0.1",
@@ -29,6 +29,7 @@
     "Resource creation accepts either environment name or UUID as documented",
     "Docker image build packs and cloud-init/resource clone responses match live Coolify payloads",
     "Application tag removal and database backup updates match live message responses",
-    "Application ports_exposes can be null for new Git applications"
+    "Application ports_exposes can be null for new Git applications",
+    "Private key update uses the routed UUID path rather than the upstream annotation path"
   ]
 }
