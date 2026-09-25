@@ -12,6 +12,16 @@ const upstream = text.endsWith("\n") ? text : `${text}\n`;
 const spec = Bun.YAML.parse(upstream) as { openapi?: string; info?: { version?: string }; paths: Record<string, any>; components: { schemas: Record<string, any> } };
 const paths = spec.paths;
 const schemas = spec.components.schemas;
+const genericObject = { type: "object", additionalProperties: true };
+for (const path of ["/cloud-init-scripts", "/team/envs"]) paths[path].get.responses["200"].content = { "application/json": { schema: { type: "array", items: genericObject } } };
+for (const path of ["/notifications/email", "/notifications/discord", "/notifications/slack", "/notifications/telegram", "/notifications/pushover", "/notifications/webhook"]) paths[path].get.responses["200"].content = { "application/json": { schema: genericObject } };
+const githubAppFields = paths["/github-apps"].get.responses["200"].content["application/json"].schema.items.properties;
+for (const key of ["app_id", "installation_id", "client_id"]) githubAppFields[key].nullable = true;
+githubAppFields.private_key_id.type = "string";
+schemas.PrivateKey.properties.description.nullable = true;
+schemas.Team.properties.description.nullable = true;
+for (const key of ["email_verified_at", "two_factor_confirmed_at"]) schemas.User.properties[key].nullable = true;
+schemas.User.properties.force_password_reset.type = ["boolean", "string"];
 paths["/databases"].get.responses["200"].content["application/json"].schema = { type: "array", items: { $ref: "#/components/schemas/DatabaseRecord" } };
 paths["/resources"].get.responses["200"].content["application/json"].schema = { type: "array", items: { $ref: "#/components/schemas/ResourceRecord" } };
 paths["/deployments/applications/{uuid}"].get.responses["200"].content["application/json"].schema = { $ref: "#/components/schemas/ApplicationDeploymentCollection" };
@@ -96,6 +106,7 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Application settings, destination lists, shared environment variables, and log drain nulls match live responses",
     "Shared environment variable writes accept bodies and return live response shapes",
     "Plain Dockerfile input is encoded for the API",
+    "Cloud-init, notifications, GitHub apps, private keys, and team metadata match live response shapes",
   ],
 }, null, 2)}\n`);
 

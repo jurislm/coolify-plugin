@@ -5295,7 +5295,18 @@
                 "operationId": "list-cloud-init-scripts",
                 "responses": {
                     "200": {
-                        "description": "Cloud-init scripts for the team."
+                        "description": "Cloud-init scripts for the team.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -10370,16 +10381,19 @@
                                                 "type": "integer"
                                             },
                                             "app_id": {
-                                                "type": "integer"
+                                                "type": "integer",
+                                                "nullable": true
                                             },
                                             "installation_id": {
-                                                "type": "integer"
+                                                "type": "integer",
+                                                "nullable": true
                                             },
                                             "client_id": {
-                                                "type": "string"
+                                                "type": "string",
+                                                "nullable": true
                                             },
                                             "private_key_id": {
-                                                "type": "integer"
+                                                "type": "string"
                                             },
                                             "is_system_wide": {
                                                 "type": "boolean"
@@ -11927,7 +11941,15 @@
                 "operationId": "get-current-team-email-notifications",
                 "responses": {
                     "200": {
-                        "description": "Email notification settings."
+                        "description": "Email notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -11983,7 +12005,15 @@
                 "operationId": "get-current-team-discord-notifications",
                 "responses": {
                     "200": {
-                        "description": "Discord notification settings."
+                        "description": "Discord notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -12039,7 +12069,15 @@
                 "operationId": "get-current-team-slack-notifications",
                 "responses": {
                     "200": {
-                        "description": "Slack notification settings."
+                        "description": "Slack notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -12095,7 +12133,15 @@
                 "operationId": "get-current-team-telegram-notifications",
                 "responses": {
                     "200": {
-                        "description": "Telegram notification settings."
+                        "description": "Telegram notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -12151,7 +12197,15 @@
                 "operationId": "get-current-team-pushover-notifications",
                 "responses": {
                     "200": {
-                        "description": "Pushover notification settings."
+                        "description": "Pushover notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -12207,7 +12261,15 @@
                 "operationId": "get-current-team-webhook-notifications",
                 "responses": {
                     "200": {
-                        "description": "Webhook notification settings."
+                        "description": "Webhook notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -19793,7 +19855,18 @@
                 "operationId": "list-team-shared-envs",
                 "responses": {
                     "200": {
-                        "description": "Team shared environment variables."
+                        "description": "Team shared environment variables.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": true
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -22927,7 +23000,8 @@
                         "type": "string"
                     },
                     "description": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "private_key": {
                         "type": "string",
@@ -23442,7 +23516,8 @@
                     },
                     "description": {
                         "type": "string",
-                        "description": "The description of the team."
+                        "description": "The description of the team.",
+                        "nullable": true
                     },
                     "personal_team": {
                         "type": "boolean",
@@ -23491,7 +23566,8 @@
                     },
                     "email_verified_at": {
                         "type": "string",
-                        "description": "The date when the user email was verified."
+                        "description": "The date when the user email was verified.",
+                        "nullable": true
                     },
                     "created_at": {
                         "type": "string",
@@ -23503,10 +23579,14 @@
                     },
                     "two_factor_confirmed_at": {
                         "type": "string",
-                        "description": "The date when the user two factor was confirmed."
+                        "description": "The date when the user two factor was confirmed.",
+                        "nullable": true
                     },
                     "force_password_reset": {
-                        "type": "boolean",
+                        "type": [
+                            "boolean",
+                            "string"
+                        ],
                         "description": "The flag to force the user to reset the password."
                     },
                     "marketing_emails": {

@@ -16,7 +16,7 @@ export interface BinaryEnvelope {
 
 export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 type Operation = Pick<GeneratedOperation, "method" | "path" | "parameters">;
-const sensitiveKey = /(^value$|real_?value|private_?key|token|secret|password|authorization|cookie)/iu;
+const sensitiveKey = /(^value$|real_?value|private_?key|api_?key|user_?key|webhook_?url|token|secret|password|authorization|cookie)/iu;
 
 export function redactSensitive<T>(value: T): T {
   if (Array.isArray(value)) return value.map(redactSensitive) as T;

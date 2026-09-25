@@ -46,10 +46,10 @@ describe("CoolifyClient", () => {
 
   test("redacts successful nested environment and private-key values", async () => {
     const client = new CoolifyClient(config, async () => new Response(JSON.stringify({
-      value: "env-secret", nested: { real_value: "actual", private_key: "pem", token: "token" }, keys: [{ client_secret: "secret" }],
+      value: "env-secret", nested: { real_value: "actual", private_key: "pem", token: "token", discord_webhook_url: "url", resend_api_key: "key" }, keys: [{ client_secret: "secret" }],
     }), { headers: { "content-type": "application/json" } }));
     await expect(client.request(operation, { uuid: "app" })).resolves.toMatchObject({
-      data: { value: "[REDACTED]", nested: { real_value: "[REDACTED]", private_key: "[REDACTED]", token: "[REDACTED]" }, keys: [{ client_secret: "[REDACTED]" }] },
+      data: { value: "[REDACTED]", nested: { real_value: "[REDACTED]", private_key: "[REDACTED]", token: "[REDACTED]", discord_webhook_url: "[REDACTED]", resend_api_key: "[REDACTED]" }, keys: [{ client_secret: "[REDACTED]" }] },
     });
   });
 

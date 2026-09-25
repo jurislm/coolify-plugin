@@ -35,4 +35,10 @@ test("accepts observed Coolify 4.3.23 read responses", () => {
   }
   expect(response("coolify_update_project_shared_env", { id: 1, value: "[REDACTED]" })).toBe(true);
   expect(response("coolify_delete_project_shared_env", { message: "deleted" })).toBe(true);
+  expect(response("coolify_list_cloud_init_scripts", [])).toBe(true);
+  expect(response("coolify_list_team_shared_envs", [])).toBe(true);
+  expect(response("coolify_get_current_team_email_notifications", { smtp_host: null })).toBe(true);
+  expect(response("coolify_list_github_apps", [{ app_id: null, installation_id: null, client_id: null, private_key_id: "key-id" }])).toBe(true);
+  expect(response("coolify_list_private_keys", [{ description: null }])).toBe(true);
+  expect(response("coolify_get_token_team_members", [{ email_verified_at: null, two_factor_confirmed_at: null, force_password_reset: "0" }])).toBe(true);
 });

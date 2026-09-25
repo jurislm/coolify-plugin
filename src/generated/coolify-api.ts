@@ -4519,7 +4519,7 @@ export interface components {
             id?: number;
             uuid?: string;
             name?: string;
-            description?: string;
+            description?: string | null;
             /** Format: private-key */
             private_key?: string;
             /** @description The public key of the private key. */
@@ -4754,7 +4754,7 @@ export interface components {
             /** @description The name of the team. */
             name?: string;
             /** @description The description of the team. */
-            description?: string;
+            description?: string | null;
             /** @description Whether the team is personal or not. */
             personal_team?: boolean;
             /** @description The date and time the team was created. */
@@ -4777,15 +4777,15 @@ export interface components {
             /** @description The user email. */
             email?: string;
             /** @description The date when the user email was verified. */
-            email_verified_at?: string;
+            email_verified_at?: string | null;
             /** @description The date when the user was created. */
             created_at?: string;
             /** @description The date when the user was updated. */
             updated_at?: string;
             /** @description The date when the user two factor was confirmed. */
-            two_factor_confirmed_at?: string;
+            two_factor_confirmed_at?: string | null;
             /** @description The flag to force the user to reset the password. */
-            force_password_reset?: boolean;
+            force_password_reset?: boolean | string;
             /** @description The flag to receive marketing emails. */
             marketing_emails?: boolean;
         };
@@ -7533,7 +7533,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
             /** @description Forbidden. */
@@ -10226,10 +10230,10 @@ export interface operations {
                         html_url?: string;
                         custom_user?: string;
                         custom_port?: number;
-                        app_id?: number;
-                        installation_id?: number;
-                        client_id?: string;
-                        private_key_id?: number;
+                        app_id?: number | null;
+                        installation_id?: number | null;
+                        client_id?: string | null;
+                        private_key_id?: string;
                         is_system_wide?: boolean;
                         is_public?: boolean;
                         team_id?: number;
@@ -11065,7 +11069,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -11113,7 +11121,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -11161,7 +11173,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -11209,7 +11225,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -11257,7 +11277,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -11305,7 +11329,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -15389,7 +15417,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
             };
             401: components["responses"]["401"];
         };
