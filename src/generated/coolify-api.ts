@@ -2783,8 +2783,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Migrate server to another Coolify instance
-         * @description One-shot handoff: export this server, import+claim on the target instance (using the provided token), then disable automations here. Requires read:sensitive and write.
+         * Migrate server to another Coolify instance (APP_ENV=local only in v4.3.23)
+         * @description One-shot handoff: export this server, import+claim on the target instance (using the provided token), then disable automations here. Requires read:sensitive and write. This controller returns 404 unless APP_ENV is local.
          */
         post: operations["migrate-server-between-instances"];
         delete?: never;
@@ -2801,8 +2801,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Export server transfer bundle
-         * @description Export a server and all resources hosted on it as a versioned transfer bundle for moving between Coolify instances. Requires read:sensitive.
+         * Export server transfer bundle (APP_ENV=local only in v4.3.23)
+         * @description Export a server and all resources hosted on it as a versioned transfer bundle for moving between Coolify instances. Requires read:sensitive. This controller returns 404 unless APP_ENV is local.
          */
         get: operations["export-server-transfer-bundle"];
         put?: never;
@@ -2823,8 +2823,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Import server transfer bundle
-         * @description Import a server transfer bundle into this Coolify instance (adopt mode by default).
+         * Import server transfer bundle (APP_ENV=local only in v4.3.23)
+         * @description Import a server transfer bundle into this Coolify instance (adopt mode by default). This controller returns 404 unless APP_ENV is local.
          */
         post: operations["import-server-transfer-bundle"];
         delete?: never;
@@ -2843,8 +2843,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Claim imported server
-         * @description Claim a managed host for this instance: write ownership file and rebind Sentinel.
+         * Claim imported server (APP_ENV=local only in v4.3.23)
+         * @description Claim a managed host for this instance: write ownership file and rebind Sentinel. This controller returns 404 unless APP_ENV is local.
          */
         post: operations["claim-server"];
         delete?: never;
@@ -2863,8 +2863,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Mark server transferred
-         * @description Source-instance step: disable automations after a successful export/import handoff.
+         * Mark server transferred (APP_ENV=local only in v4.3.23)
+         * @description Source-instance step: disable automations after a successful export/import handoff. This controller returns 404 unless APP_ENV is local.
          */
         post: operations["complete-server-transfer"];
         delete?: never;
@@ -2883,8 +2883,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Write transfer bundle to server mailbox
-         * @description Write an export bundle to /data/coolify/exports on the managed host for air-gapped import.
+         * Write transfer bundle to server mailbox (APP_ENV=local only in v4.3.23)
+         * @description Write an export bundle to /data/coolify/exports on the managed host for air-gapped import. This controller returns 404 unless APP_ENV is local.
          */
         post: operations["export-server-transfer-mailbox"];
         delete?: never;
@@ -7057,7 +7057,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -7509,7 +7513,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -7536,7 +7544,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -7709,7 +7721,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             /** @description Forbidden. */
@@ -9178,7 +9194,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -10306,6 +10326,7 @@ export interface operations {
                     enable_ipv6?: boolean | null;
                     monitoring?: boolean | null;
                     digitalocean_ssh_key_ids?: number[] | null;
+                    /** @description Valid cloud-init YAML or a bash script beginning with #!. */
                     cloud_init_script?: string | null;
                     instant_validate?: boolean | null;
                 };
@@ -10331,12 +10352,20 @@ export interface operations {
             401: components["responses"]["401"];
             404: components["responses"]["404"];
             422: components["responses"]["422"];
-            /** @description DigitalOcean rate limit exceeded. */
+            /** @description The cloud provider rate limit was exceeded. */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying, when provided by the upstream provider. */
+                    "Retry-After"?: string;
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description The cloud provider request failed. */
             500: {
@@ -11187,7 +11216,7 @@ export interface operations {
                      * @description Server name (auto-generated if not provided)
                      * @example my-server
                      */
-                    name?: string;
+                    name?: string | null;
                     /**
                      * @description Private key UUID
                      * @example xyz789
@@ -11197,30 +11226,30 @@ export interface operations {
                      * @description Enable IPv4 (default: true)
                      * @example true
                      */
-                    enable_ipv4?: boolean;
+                    enable_ipv4?: boolean | null;
                     /**
                      * @description Enable IPv6 (default: true)
                      * @example true
                      */
-                    enable_ipv6?: boolean;
+                    enable_ipv6?: boolean | null;
                     /**
                      * @description Enable Hetzner server backups after creation (adds 20% to the monthly server fee)
                      * @example false
                      */
-                    enable_backups?: boolean;
+                    enable_backups?: boolean | null;
                     /** @description Additional Hetzner SSH key IDs */
-                    hetzner_ssh_key_ids?: number[];
+                    hetzner_ssh_key_ids?: number[] | null;
                     /** @description Existing Hetzner firewall IDs to apply during server creation */
-                    hetzner_firewall_ids?: number[];
+                    hetzner_firewall_ids?: number[] | null;
                     /** @description Existing Hetzner network IDs to attach during server creation */
-                    hetzner_network_ids?: number[];
-                    /** @description Cloud-init YAML script (optional) */
-                    cloud_init_script?: string;
+                    hetzner_network_ids?: number[] | null;
+                    /** @description Valid cloud-init YAML or a bash script beginning with #!. */
+                    cloud_init_script?: string | null;
                     /**
                      * @description Validate server immediately after creation
                      * @example false
                      */
-                    instant_validate?: boolean;
+                    instant_validate?: boolean | null;
                 };
             };
         };
@@ -11248,7 +11277,21 @@ export interface operations {
             401: components["responses"]["401"];
             404: components["responses"]["404"];
             422: components["responses"]["422"];
-            429: components["responses"]["429"];
+            /** @description The cloud provider rate limit was exceeded. */
+            429: {
+                headers: {
+                    /** @description Seconds to wait before retrying, when provided by the upstream provider. */
+                    "Retry-After"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
+            };
             /** @description The cloud provider request failed. */
             500: {
                 headers: {
@@ -11302,7 +11345,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -11354,7 +11401,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -11406,7 +11457,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -11458,7 +11513,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -11510,7 +11569,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -11562,7 +11625,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -12807,7 +12874,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -12832,7 +12903,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -13058,7 +13133,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -13083,7 +13162,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -13108,7 +13191,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -13336,7 +13423,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -13571,7 +13662,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -13612,7 +13707,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Missing sensitive permission */
             403: {
@@ -13652,7 +13751,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             /** @description Missing sensitive permission */
@@ -13663,6 +13766,7 @@ export interface operations {
                 content?: never;
             };
             404: components["responses"]["404"];
+            422: components["responses"]["422"];
         };
     };
     "import-server-transfer-bundle": {
@@ -13711,14 +13815,22 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Imported */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             /** @description Validation failed */
@@ -13755,7 +13867,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             404: components["responses"]["404"];
         };
@@ -13783,7 +13899,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             404: components["responses"]["404"];
         };
@@ -13810,7 +13930,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Missing sensitive permission */
             403: {
@@ -15270,7 +15394,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             400: components["responses"]["400"];
             401: components["responses"]["401"];
@@ -16541,7 +16669,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             /** @description Forbidden. */
@@ -16627,7 +16759,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             /** @description Forbidden. */
@@ -16713,7 +16849,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             /** @description Forbidden. */
@@ -16750,7 +16890,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -16773,7 +16917,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -16796,7 +16944,11 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
             };
             401: components["responses"]["401"];
             404: components["responses"]["404"];
@@ -17011,6 +17163,7 @@ export interface operations {
                     enable_ipv6?: boolean | null;
                     disable_public_ipv4?: boolean | null;
                     vultr_ssh_key_ids?: string[] | null;
+                    /** @description Valid cloud-init YAML or a bash script beginning with #!. */
                     cloud_init_script?: string | null;
                     instant_validate?: boolean | null;
                 };
@@ -17036,12 +17189,20 @@ export interface operations {
             401: components["responses"]["401"];
             404: components["responses"]["404"];
             422: components["responses"]["422"];
-            /** @description Vultr API rate limit exceeded. */
+            /** @description The cloud provider rate limit was exceeded. */
             429: {
                 headers: {
+                    /** @description Seconds to wait before retrying, when provided by the upstream provider. */
+                    "Retry-After"?: string;
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        message: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description The cloud provider request failed. */
             500: {

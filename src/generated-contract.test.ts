@@ -31,6 +31,8 @@ test("requires a cloud provider token on every provider list operation", () => {
     const operation = operations.find((item) => item.path === path && item.method === "GET");
     expect(operation).toBeDefined();
     expect(operation?.inputSchema.safeParse({}).success).toBe(false);
+    expect(operation?.inputSchema.safeParse({ cloud_provider_token_uuid: " " }).success).toBe(false);
+    expect(operation?.inputSchema.safeParse({ cloud_provider_token_uuid: "", cloud_provider_token_id: "legacy-token" }).success).toBe(false);
     expect(operation?.responseSchema.safeParse([]).success).toBe(true);
     for (const key of ["cloud_provider_token_uuid", "cloud_provider_token_id"]) {
       const result = operation?.inputSchema.safeParse({ [key]: "provider-token" });
@@ -52,8 +54,27 @@ test("supports provider server creation inputs and response objects", () => {
     expect(operation?.inputSchema.safeParse({ body: item.body }).success).toBe(false);
     expect(operation?.inputSchema.safeParse({ body: { ...item.body, cloud_provider_token_uuid: "token" } }).success).toBe(true);
     expect(operation?.inputSchema.safeParse({ body: { ...item.body, cloud_provider_token_id: "legacy-token" } }).success).toBe(true);
+    expect(operation?.inputSchema.safeParse({ body: { ...item.body, cloud_provider_token_uuid: "", cloud_provider_token_id: "legacy-token" } }).success).toBe(false);
+    expect(operation?.inputSchema.safeParse({ body: { ...item.body, cloud_provider_token_uuid: "token", name: "qa-node.example.test" } }).success).toBe(true);
+    expect(operation?.inputSchema.safeParse({ body: { ...item.body, cloud_provider_token_uuid: "token", name: "bad..hostname" } }).success).toBe(false);
     expect(operation?.responseSchema.safeParse(item.response).success).toBe(true);
+    const requiredStrings = item.path === "/servers/hetzner"
+      ? ["location", "server_type", "private_key_uuid"]
+      : item.path === "/servers/vultr"
+        ? ["region", "plan", "private_key_uuid"]
+        : ["region", "size", "private_key_uuid"];
+    for (const key of requiredStrings) {
+      expect(operation?.inputSchema.safeParse({ body: { ...item.body, cloud_provider_token_uuid: "token", [key]: "" } }).success).toBe(false);
+    }
   }
+  const digitalOcean = operations.find((item) => item.path === "/servers/digitalocean" && item.method === "POST")!;
+  expect(digitalOcean.inputSchema.safeParse({ body: { region: "nyc1", size: "s-1vcpu-1gb", image: 1, private_key_uuid: "key", cloud_provider_token_uuid: "token" } }).success).toBe(true);
+  expect(digitalOcean.inputSchema.safeParse({ body: { region: "nyc1", size: "s-1vcpu-1gb", image: "", private_key_uuid: "key", cloud_provider_token_uuid: "token" } }).success).toBe(false);
+  const hetzner = operations.find((item) => item.path === "/servers/hetzner" && item.method === "POST")!;
+  expect(hetzner.inputSchema.safeParse({ body: { location: "nbg1", server_type: "cx11", image: 1, private_key_uuid: "key", cloud_provider_token_uuid: "token", enable_ipv4: null, enable_ipv6: true, name: null, hetzner_ssh_key_ids: null } }).success).toBe(true);
+  expect(hetzner.inputSchema.safeParse({ body: { location: "nbg1", server_type: "cx11", image: 1, private_key_uuid: "key", cloud_provider_token_uuid: "token", enable_ipv4: false, enable_ipv6: false } }).success).toBe(false);
+  const vultr = operations.find((item) => item.path === "/servers/vultr" && item.method === "POST")!;
+  expect(vultr.inputSchema.safeParse({ body: { region: "ewr", plan: "vc2-1c-1gb", os_id: 477, private_key_uuid: "key", cloud_provider_token_uuid: "token", disable_public_ipv4: true, enable_ipv6: false } }).success).toBe(false);
 });
 
 test("documents provider validation and upstream failure responses", async () => {
@@ -74,6 +95,40 @@ test("documents provider validation and upstream failure responses", async () =>
     expect((responses["422"] as { $ref?: string }).$ref).toBe("#/components/responses/422");
     const failure = responses["500"] as { content?: Record<string, { schema?: { properties?: Record<string, { type?: string }> } }> };
     expect(failure.content?.["application/json"]?.schema?.properties?.message?.type).toBe("string");
+    const rateLimit = responses["429"] as { content?: Record<string, { schema?: { properties?: Record<string, { type?: string }> } }>; headers?: Record<string, unknown> };
+    expect(rateLimit.content?.["application/json"]?.schema?.properties?.message?.type).toBe("string");
+    expect(rateLimit.headers?.["Retry-After"]).toBeDefined();
+  }
+});
+
+test("accepts JSON success bodies omitted by the upstream OpenAPI", () => {
+  const endpoints = [
+    ["POST", "/applications/{uuid}/migrate"], ["POST", "/applications/{uuid}/destinations"],
+    ["DELETE", "/applications/{uuid}/destinations/{destination_uuid}"], ["PATCH", "/cloud-init-scripts/{uuid}"],
+    ["POST", "/databases/{uuid}/migrate"], ["PATCH", "/notifications/email"], ["PATCH", "/notifications/discord"],
+    ["PATCH", "/notifications/slack"], ["PATCH", "/notifications/telegram"], ["PATCH", "/notifications/pushover"],
+    ["PATCH", "/notifications/webhook"], ["POST", "/applications/{uuid}/scheduled-tasks/{task_uuid}/execute"],
+    ["POST", "/services/{uuid}/scheduled-tasks/{task_uuid}/execute"], ["PATCH", "/servers/{uuid}/cloudflare-tunnel"],
+    ["POST", "/servers/{uuid}/cloudflare-tunnel/enable"], ["POST", "/servers/{uuid}/cloudflare-tunnel/disable"],
+    ["PATCH", "/servers/{uuid}/log-drains"], ["PATCH", "/servers/{uuid}/sentinel"], ["POST", "/servers/{uuid}/migrate"],
+    ["GET", "/servers/{uuid}/export"], ["POST", "/servers/import"], ["POST", "/servers/{uuid}/claim"],
+    ["POST", "/servers/{uuid}/transfer/complete"], ["POST", "/servers/{uuid}/export/mailbox"],
+    ["POST", "/services/{uuid}/migrate"], ["DELETE", "/applications/{uuid}/storages/{storage_uuid}/backups"],
+    ["DELETE", "/databases/{uuid}/storages/{storage_uuid}/backups"], ["DELETE", "/services/{uuid}/storages/{storage_uuid}/backups"],
+    ["POST", "/applications/{uuid}/storages/{storage_uuid}/backups/run"], ["POST", "/databases/{uuid}/storages/{storage_uuid}/backups/run"],
+    ["POST", "/services/{uuid}/storages/{storage_uuid}/backups/run"],
+  ];
+  for (const [method, path] of endpoints) {
+    const operation = operations.find((item) => item.method === method && item.path === path);
+    expect(operation).toBeDefined();
+    expect(operation?.responseKind).toBe("json");
+    expect(operation?.responseSchema.safeParse({}).success).toBe(true);
+  }
+  for (const [method, path] of [
+    ["POST", "/servers/{uuid}/migrate"], ["GET", "/servers/{uuid}/export"], ["POST", "/servers/import"],
+    ["POST", "/servers/{uuid}/claim"], ["POST", "/servers/{uuid}/transfer/complete"], ["POST", "/servers/{uuid}/export/mailbox"],
+  ]) {
+    expect(operations.find((item) => item.method === method && item.path === path)?.description).toContain("APP_ENV=local only in v4.3.23");
   }
 });
 

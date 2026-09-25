@@ -4327,7 +4327,15 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Application migration started or completed."
+                        "description": "Application migration started or completed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -5239,7 +5247,15 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Destination attached."
+                        "description": "Destination attached.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -5291,7 +5307,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Destination detached."
+                        "description": "Destination detached.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -5568,7 +5592,15 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Cloud-init script updated."
+                        "description": "Cloud-init script updated.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -8461,7 +8493,15 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Database migration started or completed."
+                        "description": "Database migration started or completed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -10297,7 +10337,9 @@
                         "in": "query",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     },
                     {
@@ -10306,7 +10348,9 @@
                         "required": false,
                         "deprecated": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     }
                 ],
@@ -10378,7 +10422,9 @@
                         "in": "query",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     },
                     {
@@ -10387,7 +10433,9 @@
                         "required": false,
                         "deprecated": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     }
                 ],
@@ -10459,7 +10507,9 @@
                         "in": "query",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     },
                     {
@@ -10468,7 +10518,9 @@
                         "required": false,
                         "deprecated": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     }
                 ],
@@ -10540,7 +10592,9 @@
                         "in": "query",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     },
                     {
@@ -10549,7 +10603,9 @@
                         "required": false,
                         "deprecated": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     }
                 ],
@@ -10657,7 +10713,32 @@
                         "$ref": "#/components/responses/422"
                     },
                     "429": {
-                        "description": "DigitalOcean rate limit exceeded."
+                        "description": "The cloud provider rate limit was exceeded.",
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying, when provided by the upstream provider.",
+                                "required": false,
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "The cloud provider request failed.",
@@ -10699,33 +10780,46 @@
                                 "properties": {
                                     "cloud_provider_token_uuid": {
                                         "type": "string",
+                                        "minLength": 1,
+                                        "pattern": "\\S",
                                         "description": "Cloud provider token UUID. Required if cloud_provider_token_id is not provided."
                                     },
                                     "cloud_provider_token_id": {
                                         "type": "string",
+                                        "minLength": 1,
+                                        "pattern": "\\S",
                                         "deprecated": true,
                                         "description": "Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID."
                                     },
                                     "region": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "minLength": 1
                                     },
                                     "size": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "minLength": 1
                                     },
                                     "image": {
-                                        "type": [
-                                            "string",
-                                            "integer"
+                                        "anyOf": [
+                                            {
+                                                "type": "string",
+                                                "minLength": 1
+                                            },
+                                            {
+                                                "type": "integer"
+                                            }
                                         ],
                                         "description": "DigitalOcean image slug or ID."
                                     },
                                     "name": {
                                         "type": "string",
                                         "nullable": true,
-                                        "maxLength": 253
+                                        "maxLength": 253,
+                                        "pattern": "^$|^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$"
                                     },
                                     "private_key_uuid": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "minLength": 1
                                     },
                                     "enable_ipv6": {
                                         "type": "boolean",
@@ -10744,7 +10838,8 @@
                                     },
                                     "cloud_init_script": {
                                         "type": "string",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "description": "Valid cloud-init YAML or a bash script beginning with #!."
                                     },
                                     "instant_validate": {
                                         "type": "boolean",
@@ -11737,7 +11832,9 @@
                         "description": "Cloud provider token UUID. Required if cloud_provider_token_id is not provided.",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     },
                     {
@@ -11747,7 +11844,9 @@
                         "required": false,
                         "deprecated": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     }
                 ],
@@ -11821,7 +11920,9 @@
                         "description": "Cloud provider token UUID. Required if cloud_provider_token_id is not provided.",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     },
                     {
@@ -11831,7 +11932,9 @@
                         "required": false,
                         "deprecated": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     }
                 ],
@@ -11905,7 +12008,9 @@
                         "description": "Cloud provider token UUID. Required if cloud_provider_token_id is not provided.",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     },
                     {
@@ -11915,7 +12020,9 @@
                         "required": false,
                         "deprecated": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     }
                 ],
@@ -11989,7 +12096,9 @@
                         "description": "Cloud provider token UUID. Required if cloud_provider_token_id is not provided.",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     },
                     {
@@ -11999,7 +12108,9 @@
                         "required": false,
                         "deprecated": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     }
                 ],
@@ -12073,7 +12184,9 @@
                         "description": "Cloud provider token UUID. Required if cloud_provider_token_id is not provided.",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     },
                     {
@@ -12083,7 +12196,9 @@
                         "required": false,
                         "deprecated": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     }
                 ],
@@ -12157,7 +12272,9 @@
                         "description": "Cloud provider token UUID. Required if cloud_provider_token_id is not provided.",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     },
                     {
@@ -12167,7 +12284,9 @@
                         "required": false,
                         "deprecated": true,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     }
                 ],
@@ -12250,23 +12369,29 @@
                                     "cloud_provider_token_uuid": {
                                         "type": "string",
                                         "example": "abc123",
-                                        "description": "Cloud provider token UUID. Required if cloud_provider_token_id is not provided."
+                                        "description": "Cloud provider token UUID. Required if cloud_provider_token_id is not provided.",
+                                        "minLength": 1,
+                                        "pattern": "\\S"
                                     },
                                     "cloud_provider_token_id": {
                                         "type": "string",
                                         "example": "abc123",
                                         "description": "Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID.",
-                                        "deprecated": true
+                                        "deprecated": true,
+                                        "minLength": 1,
+                                        "pattern": "\\S"
                                     },
                                     "location": {
                                         "type": "string",
                                         "example": "nbg1",
-                                        "description": "Hetzner location name"
+                                        "description": "Hetzner location name",
+                                        "minLength": 1
                                     },
                                     "server_type": {
                                         "type": "string",
                                         "example": "cx11",
-                                        "description": "Hetzner server type name"
+                                        "description": "Hetzner server type name",
+                                        "minLength": 1
                                     },
                                     "image": {
                                         "type": "integer",
@@ -12276,63 +12401,84 @@
                                     "name": {
                                         "type": "string",
                                         "example": "my-server",
-                                        "description": "Server name (auto-generated if not provided)"
+                                        "description": "Server name (auto-generated if not provided)",
+                                        "nullable": true,
+                                        "maxLength": 253,
+                                        "pattern": "^$|^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$"
                                     },
                                     "private_key_uuid": {
                                         "type": "string",
                                         "example": "xyz789",
-                                        "description": "Private key UUID"
+                                        "description": "Private key UUID",
+                                        "minLength": 1
                                     },
                                     "enable_ipv4": {
                                         "type": "boolean",
                                         "example": true,
-                                        "description": "Enable IPv4 (default: true)"
+                                        "description": "Enable IPv4 (default: true)",
+                                        "nullable": true
                                     },
                                     "enable_ipv6": {
                                         "type": "boolean",
                                         "example": true,
-                                        "description": "Enable IPv6 (default: true)"
+                                        "description": "Enable IPv6 (default: true)",
+                                        "nullable": true
                                     },
                                     "enable_backups": {
                                         "type": "boolean",
                                         "example": false,
-                                        "description": "Enable Hetzner server backups after creation (adds 20% to the monthly server fee)"
+                                        "description": "Enable Hetzner server backups after creation (adds 20% to the monthly server fee)",
+                                        "nullable": true
                                     },
                                     "hetzner_ssh_key_ids": {
                                         "type": "array",
                                         "items": {
                                             "type": "integer"
                                         },
-                                        "description": "Additional Hetzner SSH key IDs"
+                                        "description": "Additional Hetzner SSH key IDs",
+                                        "nullable": true
                                     },
                                     "hetzner_firewall_ids": {
                                         "type": "array",
                                         "items": {
                                             "type": "integer"
                                         },
-                                        "description": "Existing Hetzner firewall IDs to apply during server creation"
+                                        "description": "Existing Hetzner firewall IDs to apply during server creation",
+                                        "nullable": true
                                     },
                                     "hetzner_network_ids": {
                                         "type": "array",
                                         "items": {
                                             "type": "integer"
                                         },
-                                        "description": "Existing Hetzner network IDs to attach during server creation"
+                                        "description": "Existing Hetzner network IDs to attach during server creation",
+                                        "nullable": true
                                     },
                                     "cloud_init_script": {
                                         "type": "string",
-                                        "description": "Cloud-init YAML script (optional)"
+                                        "description": "Valid cloud-init YAML or a bash script beginning with #!.",
+                                        "nullable": true
                                     },
                                     "instant_validate": {
                                         "type": "boolean",
                                         "example": false,
-                                        "description": "Validate server immediately after creation"
+                                        "description": "Validate server immediately after creation",
+                                        "nullable": true
                                     }
                                 },
                                 "type": "object",
                                 "x-require-any": [
                                     "cloud_provider_token_uuid",
                                     "cloud_provider_token_id"
+                                ],
+                                "x-invalid-combinations": [
+                                    {
+                                        "values": {
+                                            "enable_ipv4": false,
+                                            "enable_ipv6": false
+                                        },
+                                        "message": "Enable at least one public IP protocol."
+                                    }
                                 ]
                             }
                         }
@@ -12383,7 +12529,32 @@
                         "$ref": "#/components/responses/422"
                     },
                     "429": {
-                        "$ref": "#/components/responses/429"
+                        "description": "The cloud provider rate limit was exceeded.",
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying, when provided by the upstream provider.",
+                                "required": false,
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "The cloud provider request failed.",
@@ -12454,7 +12625,15 @@
                 "operationId": "update-current-team-email-notifications",
                 "responses": {
                     "200": {
-                        "description": "Updated email notification settings."
+                        "description": "Updated email notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -12518,7 +12697,15 @@
                 "operationId": "update-current-team-discord-notifications",
                 "responses": {
                     "200": {
-                        "description": "Updated Discord notification settings."
+                        "description": "Updated Discord notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -12582,7 +12769,15 @@
                 "operationId": "update-current-team-slack-notifications",
                 "responses": {
                     "200": {
-                        "description": "Updated Slack notification settings."
+                        "description": "Updated Slack notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -12646,7 +12841,15 @@
                 "operationId": "update-current-team-telegram-notifications",
                 "responses": {
                     "200": {
-                        "description": "Updated Telegram notification settings."
+                        "description": "Updated Telegram notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -12710,7 +12913,15 @@
                 "operationId": "update-current-team-pushover-notifications",
                 "responses": {
                     "200": {
-                        "description": "Updated Pushover notification settings."
+                        "description": "Updated Pushover notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -12774,7 +12985,15 @@
                 "operationId": "update-current-team-webhook-notifications",
                 "responses": {
                     "200": {
-                        "description": "Updated webhook notification settings."
+                        "description": "Updated webhook notification settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -14895,7 +15114,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Scheduled task execution queued."
+                        "description": "Scheduled task execution queued.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -14941,7 +15168,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Scheduled task execution queued."
+                        "description": "Scheduled task execution queued.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -15330,7 +15565,15 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Updated Cloudflare Tunnel settings."
+                        "description": "Updated Cloudflare Tunnel settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -15373,7 +15616,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Cloudflare Tunnel enabled."
+                        "description": "Cloudflare Tunnel enabled.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -15416,7 +15667,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Cloudflare Tunnel disabled."
+                        "description": "Cloudflare Tunnel disabled.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -15912,7 +16171,15 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Updated log drain settings."
+                        "description": "Updated log drain settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -16434,7 +16701,15 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Updated Sentinel settings."
+                        "description": "Updated Sentinel settings.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -16461,8 +16736,8 @@
                 "tags": [
                     "Servers"
                 ],
-                "summary": "Migrate server to another Coolify instance",
-                "description": "One-shot handoff: export this server, import+claim on the target instance (using the provided token), then disable automations here. Requires read:sensitive and write.",
+                "summary": "Migrate server to another Coolify instance (APP_ENV=local only in v4.3.23)",
+                "description": "One-shot handoff: export this server, import+claim on the target instance (using the provided token), then disable automations here. Requires read:sensitive and write. This controller returns 404 unless APP_ENV is local.",
                 "operationId": "migrate-server-between-instances",
                 "parameters": [
                     {
@@ -16516,7 +16791,15 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Migrated"
+                        "description": "Migrated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "403": {
                         "description": "Missing sensitive permission"
@@ -16540,8 +16823,8 @@
                 "tags": [
                     "Servers"
                 ],
-                "summary": "Export server transfer bundle",
-                "description": "Export a server and all resources hosted on it as a versioned transfer bundle for moving between Coolify instances. Requires read:sensitive.",
+                "summary": "Export server transfer bundle (APP_ENV=local only in v4.3.23)",
+                "description": "Export a server and all resources hosted on it as a versioned transfer bundle for moving between Coolify instances. Requires read:sensitive. This controller returns 404 unless APP_ENV is local.",
                 "operationId": "export-server-transfer-bundle",
                 "parameters": [
                     {
@@ -16573,7 +16856,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Transfer bundle"
+                        "description": "Transfer bundle",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -16583,6 +16874,9 @@
                     },
                     "404": {
                         "$ref": "#/components/responses/404"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/422"
                     }
                 },
                 "security": [
@@ -16597,8 +16891,8 @@
                 "tags": [
                     "Servers"
                 ],
-                "summary": "Import server transfer bundle",
-                "description": "Import a server transfer bundle into this Coolify instance (adopt mode by default).",
+                "summary": "Import server transfer bundle (APP_ENV=local only in v4.3.23)",
+                "description": "Import a server transfer bundle into this Coolify instance (adopt mode by default). This controller returns 404 unless APP_ENV is local.",
                 "operationId": "import-server-transfer-bundle",
                 "requestBody": {
                     "required": true,
@@ -16652,10 +16946,26 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Dry-run result"
+                        "description": "Dry-run result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "201": {
-                        "description": "Imported"
+                        "description": "Imported",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -16676,8 +16986,8 @@
                 "tags": [
                     "Servers"
                 ],
-                "summary": "Claim imported server",
-                "description": "Claim a managed host for this instance: write ownership file and rebind Sentinel.",
+                "summary": "Claim imported server (APP_ENV=local only in v4.3.23)",
+                "description": "Claim a managed host for this instance: write ownership file and rebind Sentinel. This controller returns 404 unless APP_ENV is local.",
                 "operationId": "claim-server",
                 "parameters": [
                     {
@@ -16710,7 +17020,15 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Claim result"
+                        "description": "Claim result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "404": {
                         "$ref": "#/components/responses/404"
@@ -16728,8 +17046,8 @@
                 "tags": [
                     "Servers"
                 ],
-                "summary": "Mark server transferred",
-                "description": "Source-instance step: disable automations after a successful export/import handoff.",
+                "summary": "Mark server transferred (APP_ENV=local only in v4.3.23)",
+                "description": "Source-instance step: disable automations after a successful export/import handoff. This controller returns 404 unless APP_ENV is local.",
                 "operationId": "complete-server-transfer",
                 "parameters": [
                     {
@@ -16766,7 +17084,15 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Marked transferred"
+                        "description": "Marked transferred",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "404": {
                         "$ref": "#/components/responses/404"
@@ -16784,8 +17110,8 @@
                 "tags": [
                     "Servers"
                 ],
-                "summary": "Write transfer bundle to server mailbox",
-                "description": "Write an export bundle to /data/coolify/exports on the managed host for air-gapped import.",
+                "summary": "Write transfer bundle to server mailbox (APP_ENV=local only in v4.3.23)",
+                "description": "Write an export bundle to /data/coolify/exports on the managed host for air-gapped import. This controller returns 404 unless APP_ENV is local.",
                 "operationId": "export-server-transfer-mailbox",
                 "parameters": [
                     {
@@ -16816,7 +17142,15 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Mailbox write result"
+                        "description": "Mailbox write result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "403": {
                         "description": "Missing sensitive permission"
@@ -17400,7 +17734,8 @@
                     {
                         "bearerAuth": []
                     }
-                ]
+                ],
+                "x-destructive-hint": true
             }
         },
         "/services/{uuid}/applications": {
@@ -19636,7 +19971,15 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Service migration started or completed."
+                        "description": "Service migration started or completed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "$ref": "#/components/responses/400"
@@ -22134,7 +22477,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Backup schedule and archives deleted."
+                        "description": "Backup schedule and archives deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -22264,7 +22615,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Backup schedule and archives deleted."
+                        "description": "Backup schedule and archives deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -22394,7 +22753,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Backup schedule and archives deleted."
+                        "description": "Backup schedule and archives deleted.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -22444,7 +22811,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Storage backup queued."
+                        "description": "Storage backup queued.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -22488,7 +22863,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Storage backup queued."
+                        "description": "Storage backup queued.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -22532,7 +22915,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Storage backup queued."
+                        "description": "Storage backup queued.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "$ref": "#/components/responses/401"
@@ -22616,7 +23007,9 @@
                         "required": false,
                         "description": "Cloud provider token UUID. Required if cloud_provider_token_id is not provided.",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     },
                     {
@@ -22626,7 +23019,9 @@
                         "deprecated": true,
                         "description": "Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID.",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     }
                 ]
@@ -22700,7 +23095,9 @@
                         "required": false,
                         "description": "Cloud provider token UUID. Required if cloud_provider_token_id is not provided.",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     },
                     {
@@ -22710,7 +23107,9 @@
                         "deprecated": true,
                         "description": "Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID.",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     }
                 ]
@@ -22784,7 +23183,9 @@
                         "required": false,
                         "description": "Cloud provider token UUID. Required if cloud_provider_token_id is not provided.",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     },
                     {
@@ -22794,7 +23195,9 @@
                         "deprecated": true,
                         "description": "Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID.",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     }
                 ]
@@ -22868,7 +23271,9 @@
                         "required": false,
                         "description": "Cloud provider token UUID. Required if cloud_provider_token_id is not provided.",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     },
                     {
@@ -22878,7 +23283,9 @@
                         "deprecated": true,
                         "description": "Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID.",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "\\S"
                         }
                     }
                 ]
@@ -22934,7 +23341,32 @@
                         "$ref": "#/components/responses/422"
                     },
                     "429": {
-                        "description": "Vultr API rate limit exceeded."
+                        "description": "The cloud provider rate limit was exceeded.",
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying, when provided by the upstream provider.",
+                                "required": false,
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
                     },
                     "500": {
                         "description": "The cloud provider request failed.",
@@ -22976,18 +23408,24 @@
                                 "properties": {
                                     "cloud_provider_token_uuid": {
                                         "type": "string",
+                                        "minLength": 1,
+                                        "pattern": "\\S",
                                         "description": "Cloud provider token UUID. Required if cloud_provider_token_id is not provided."
                                     },
                                     "cloud_provider_token_id": {
                                         "type": "string",
+                                        "minLength": 1,
+                                        "pattern": "\\S",
                                         "deprecated": true,
                                         "description": "Deprecated: Use cloud_provider_token_uuid instead. Cloud provider token UUID."
                                     },
                                     "region": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "minLength": 1
                                     },
                                     "plan": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "minLength": 1
                                     },
                                     "os_id": {
                                         "type": "integer"
@@ -22995,10 +23433,12 @@
                                     "name": {
                                         "type": "string",
                                         "nullable": true,
-                                        "maxLength": 253
+                                        "maxLength": 253,
+                                        "pattern": "^$|^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*$"
                                     },
                                     "private_key_uuid": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "minLength": 1
                                     },
                                     "enable_ipv6": {
                                         "type": "boolean",
@@ -23017,7 +23457,8 @@
                                     },
                                     "cloud_init_script": {
                                         "type": "string",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "description": "Valid cloud-init YAML or a bash script beginning with #!."
                                     },
                                     "instant_validate": {
                                         "type": "boolean",
@@ -23027,6 +23468,15 @@
                                 "x-require-any": [
                                     "cloud_provider_token_uuid",
                                     "cloud_provider_token_id"
+                                ],
+                                "x-invalid-combinations": [
+                                    {
+                                        "values": {
+                                            "disable_public_ipv4": true,
+                                            "enable_ipv6": false
+                                        },
+                                        "message": "Enable public IPv4 or IPv6."
+                                    }
                                 ]
                             }
                         }
