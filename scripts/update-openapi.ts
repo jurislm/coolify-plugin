@@ -20,6 +20,7 @@ for (const path of ["/applications/public", "/applications/private-github-app", 
 const genericObject = { type: "object", additionalProperties: true };
 schemas.Application.properties.build_pack.enum.push("dockerimage");
 paths["/cloud-init-scripts"].post.responses["201"].content = { "application/json": { schema: { type: "object", required: ["uuid"], properties: { uuid: { type: "string" }, name: { type: "string" }, script: { type: "string" } }, additionalProperties: true } } };
+paths["/cloud-init-scripts/{uuid}"].get.responses["200"].content = paths["/cloud-init-scripts"].post.responses["201"].content;
 paths["/cloud-init-scripts/{uuid}"].delete.responses["200"].content = { "application/json": { schema: { type: "object", required: ["message"], properties: { message: { type: "string" } } } } };
 paths["/databases/{uuid}/clone"].post.responses["201"].content = { "application/json": { schema: { type: "object", required: ["uuid", "message"], properties: { uuid: { type: "string" }, message: { type: "string" } }, additionalProperties: true } } };
 paths["/services/{uuid}/clone"].post.responses["201"].content = paths["/databases/{uuid}/clone"].post.responses["201"].content;
