@@ -6,6 +6,7 @@ test("generated operations match the pinned Coolify manifest", async () => {
   expect(operations).toHaveLength(manifest.operationCount);
   expect(operations).toHaveLength(276);
   expect(operations.every((operation) => operation.name.startsWith("coolify_") && operation.path.startsWith("/"))).toBe(true);
+  expect(operations.every((operation) => !/^(list|get|create|update|delete)$/iu.test(operation.description))).toBe(true);
   expect(manifest.openapiVersion).toBe("3.1.0");
   expect(manifest.infoVersion).toBe("0.1");
   const fallback = JSON.parse(await Bun.file(".codex-plugin/plugin.json").text()) as { mcpServers?: string; apps?: string };

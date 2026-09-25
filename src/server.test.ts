@@ -34,6 +34,13 @@ describe("generated Coolify MCP server", () => {
     expect(validateTool).toBeDefined();
     expect(validateTool?.annotations?.destructiveHint).toBe(true);
     expect(validateTool?.annotations?.readOnlyHint).toBe(false);
+    for (const name of ["coolify_rollback_application_by_uuid", "coolify_run_server_docker_cleanup"]) {
+      expect(result.tools.find((tool) => tool.name === name)?.annotations?.destructiveHint).toBe(true);
+    }
+    const listTool = result.tools.find((tool) => tool.name === "coolify_list_applications");
+    expect(listTool?.description).toBe("List applications");
+    expect(listTool?.title).toBe("List applications");
+    expect(result.tools.every((tool) => tool.title !== tool.name)).toBe(true);
     await client.close();
     await server.close();
   });

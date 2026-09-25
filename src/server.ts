@@ -17,7 +17,7 @@ export function createServer(config: CoolifyConfig, fetchImpl?: FetchLike): McpS
   );
   for (const operation of operations) {
     server.registerTool(operation.name, {
-      title: operation.name,
+      title: operation.description,
       description: operation.description,
       inputSchema: operation.inputSchema,
       outputSchema: z.object({ data: operation.responseSchema, status: z.number(), request: outputRequestSchema }),

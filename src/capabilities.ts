@@ -41,7 +41,7 @@ export function registerCapabilities(server: McpServer, client: CoolifyClient): 
     return { structuredContent, content: [{ type: "text" as const, text: JSON.stringify(structuredContent) }] };
   };
   const register = (name: string, description: string, inputSchema: z.ZodType, annotations: { readOnlyHint: boolean; destructiveHint: boolean; idempotentHint: boolean; openWorldHint: boolean }, handler: (input: RecordValue) => Promise<unknown>) => {
-    server.registerTool(name, { title: name, description, inputSchema, outputSchema, annotations }, async (input) => result(name, await handler(input as RecordValue)));
+    server.registerTool(name, { title: description, description, inputSchema, outputSchema, annotations }, async (input) => result(name, await handler(input as RecordValue)));
   };
   const settledRows = async (names: string[]): Promise<{ values: RecordValue[][]; errors: string[] }> => {
     const settled = await Promise.allSettled(names.map((name) => call(`coolify_list_${name}`)));

@@ -2,6 +2,10 @@
 
 Portable Coolify MCP plugin. It exposes focused `coolify_*` stdio tools generated from one pinned Coolify API contract.
 
+## Scope
+
+This repository provides a local Codex and Cursor plugin. It runs a stdio MCP server against a user-configured Coolify instance. OpenAI public Plugin Directory submission is outside this scope; public HTTPS, OAuth, and listing requirements are not acceptance criteria for this local plugin.
+
 ## Configure
 
 The plugin reads the same global environment variables used by the Coolify setup:
@@ -19,7 +23,7 @@ bun run check
 bun dist/index.js
 ```
 
-`mcp.json` and `.mcp.json` use the same published-package `bunx` stdio registration as the Woodpecker CI plugin. `.mcp.json.example` contains placeholder environment values only. NPM package release is allowed. Remote MCP transport, OAuth, vault, hosting, and OpenAI Plugin Directory submission are out of scope.
+`mcp.json` and `.mcp.json` use the same published-package `bunx` stdio registration as the Woodpecker CI plugin. `.mcp.json.example` contains placeholder environment values only. NPM package release is allowed.
 
 For Codex repository marketplace installation, use the repository root and leave the sparse path empty. The supported marketplace manifest is `.agents/plugins/marketplace.json`; do not enter `plugins/codex`.
 The Codex MCP registration forwards `COOLIFY_BASE_URL` and `COOLIFY_ACCESS_TOKEN` from the Codex session environment. A desktop session may not inherit values exported in a terminal; start a new task after configuring the app environment, then verify a read-only Coolify tool before making changes.

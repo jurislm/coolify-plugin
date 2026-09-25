@@ -90,9 +90,12 @@ for (const [path, pathItem] of Object.entries(document.paths ?? {})) {
     usedNames.add(name);
     const response = responseInfo(operation);
     const summary = String(operation.summary ?? operation.operationId ?? `${method.toUpperCase()} ${path}`);
-    const destructive = method === "delete" || operation["x-destructive-hint"] === true || /delete|reset|revoke|remove|destroy/iu.test(summary);
+    const description = /^(list|get|create|update|delete)$/iu.test(summary)
+      ? name.replace(/^coolify_/u, "").replaceAll("_", " ").replace(/\buuid\b/giu, "UUID").replace(/^./u, (letter) => letter.toUpperCase())
+      : summary;
+    const destructive = method === "delete" || operation["x-destructive-hint"] === true || /delete|reset|revoke|remove|destroy/iu.test(summary) || (method === "post" && (path.endsWith("/rollback") || path.endsWith("/docker-cleanup/run")));
     const idempotent = ["get", "head", "put", "delete", "options"].includes(method);
-    operations.push(`  { name: ${quote(name)}, method: ${quote(method.toUpperCase())}, path: ${quote(path)}, description: ${quote(summary)}, inputSchema: ${inputSchema}, responseSchema: ${response.schema}, responseKind: ${quote(response.kind)}, parameters: [${parameterMeta.join(", ")}], annotations: { readOnlyHint: ${method === "get" || method === "head"}, destructiveHint: ${destructive}, idempotentHint: ${idempotent}, openWorldHint: false } }`);
+    operations.push(`  { name: ${quote(name)}, method: ${quote(method.toUpperCase())}, path: ${quote(path)}, description: ${quote(description)}, inputSchema: ${inputSchema}, responseSchema: ${response.schema}, responseKind: ${quote(response.kind)}, parameters: [${parameterMeta.join(", ")}], annotations: { readOnlyHint: ${method === "get" || method === "head"}, destructiveHint: ${destructive}, idempotentHint: ${idempotent}, openWorldHint: false } }`);
   }
 }
 

@@ -12,7 +12,8 @@ if (parsed["plugin.json"].$schema !== "https://agent-plugins.org/schemas/1.0.0/p
 if (portableInterface.displayName !== "Coolify Plugin") throw new Error("plugin.json must provide extensions.com.openai.interface");
 if (JSON.stringify(portableInterface.defaultPrompt) !== JSON.stringify(["List my Coolify resources."])) throw new Error("plugin.json must provide the portable Coolify starter prompt");
 for (const manifestInterface of [portableInterface, fallbackInterface]) {
-  if (manifestInterface.category !== "Developer tools") throw new Error("Plugin interface category must match Woodpecker");
+  if (manifestInterface.category !== "Developer Tools") throw new Error("Plugin interface category must be Developer Tools");
+  if (manifestInterface.shortDescription !== "Manage Coolify locally.") throw new Error("Plugin short description must describe local Coolify access");
   if (JSON.stringify(manifestInterface.capabilities) !== JSON.stringify(["Read", "Write"])) throw new Error("Plugin capabilities must match Woodpecker");
   if (manifestInterface.composerIcon !== "./assets/coolify.png" || manifestInterface.logo !== "./assets/coolify.png") throw new Error("Plugin icons must use the shipped Coolify PNG");
   if (manifestInterface.websiteURL !== "https://github.com/jurislm/coolify-plugin") throw new Error("Plugin websiteURL must point to the public repository");
