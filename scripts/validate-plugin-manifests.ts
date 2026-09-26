@@ -38,14 +38,10 @@ if (!("COOLIFY_BASE_URL" in exampleEnv) || !("COOLIFY_ACCESS_TOKEN" in exampleEn
 const cursorPlugin = parsed[".cursor-plugin/plugin.json"];
 const cursorMarketplace = parsed[".cursor-plugin/marketplace.json"];
 const cursorMarketplacePlugins = cursorMarketplace.plugins as unknown[];
-const cursorVariables = cursorPlugin.variables as Json;
-const cursorVariableProperties = cursorVariables.properties as Json;
 const cursorMcpServer = ((parsed[".cursor-plugin/mcp.json"].mcpServers as Json).coolify as Json);
-const cursorMcpEnv = cursorMcpServer.env as Json;
 const portableMcpServer = ((parsed["mcp.json"].mcpServers as Json).coolify as Json);
 if (cursorPlugin.name !== "coolify-plugin" || cursorPlugin.skills !== "./skills/" || cursorPlugin.mcpServers !== "./.cursor-plugin/mcp.json" || cursorPlugin.logo !== "assets/coolify.png") throw new Error("Cursor plugin manifest must reference the shipped Coolify components");
-if (cursorVariables.type !== "object" || JSON.stringify(cursorVariables.required) !== JSON.stringify(["COOLIFY_BASE_URL", "COOLIFY_ACCESS_TOKEN"]) || !("COOLIFY_BASE_URL" in cursorVariableProperties) || !("COOLIFY_ACCESS_TOKEN" in cursorVariableProperties)) throw new Error("Cursor plugin must declare Coolify connection variables");
-if (cursorMcpEnv.COOLIFY_BASE_URL !== "${COOLIFY_BASE_URL}" || cursorMcpEnv.COOLIFY_ACCESS_TOKEN !== "${COOLIFY_ACCESS_TOKEN}") throw new Error("Cursor MCP configuration must pass configured Coolify variables");
+if ("variables" in cursorPlugin || "env" in cursorMcpServer) throw new Error("Cursor MCP must inherit Coolify connection variables from its environment");
 if (cursorMcpServer.command !== portableMcpServer.command || JSON.stringify(cursorMcpServer.args) !== JSON.stringify(portableMcpServer.args)) throw new Error("Cursor MCP configuration must launch the portable Coolify package");
 if (cursorMarketplace.name !== "coolify-plugin" || (cursorMarketplace.owner as Json).name !== "JurisLM" || !Array.isArray(cursorMarketplacePlugins) || cursorMarketplacePlugins.length !== 1) throw new Error("Cursor marketplace must list the Coolify plugin");
 const cursorMarketplacePlugin = cursorMarketplacePlugins[0] as Json;

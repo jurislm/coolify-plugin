@@ -16,24 +16,5 @@
   ],
   "logo": "assets/coolify.png",
   "skills": "./skills/",
-  "mcpServers": "./.cursor-plugin/mcp.json",
-  "variables": {
-    "type": "object",
-    "properties": {
-      "COOLIFY_BASE_URL": {
-        "type": "string",
-        "title": "Coolify base URL",
-        "description": "Base URL for your Coolify instance, such as https://coolify.example."
-      },
-      "COOLIFY_ACCESS_TOKEN": {
-        "type": "string",
-        "title": "Coolify access token",
-        "description": "API token for your Coolify instance."
-      }
-    },
-    "required": [
-      "COOLIFY_BASE_URL",
-      "COOLIFY_ACCESS_TOKEN"
-    ]
-  }
+  "mcpServers": "./.cursor-plugin/mcp.json"
 }
