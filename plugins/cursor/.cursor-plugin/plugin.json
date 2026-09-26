@@ -20,12 +20,12 @@
   "variables": {
     "type": "object",
     "properties": {
-      "COOLIFY_BASE_URL": {
+      "CURSOR_COOLIFY_BASE_URL": {
         "type": "string",
         "title": "Coolify base URL",
         "description": "Base URL for your Coolify instance, such as https://coolify.example."
       },
-      "COOLIFY_ACCESS_TOKEN": {
+      "CURSOR_COOLIFY_ACCESS_TOKEN": {
         "type": "string",
         "title": "Coolify access token",
         "description": "API token for your Coolify instance."

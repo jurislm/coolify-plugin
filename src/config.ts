@@ -13,7 +13,7 @@ export class ConfigError extends Error {
 
 function cursorValue(env: Record<string, string | undefined>, name: string, cursorName: string): string | undefined {
   const cursor = env[cursorName]?.trim();
-  return cursor === `\${${name}}` ? undefined : cursor;
+  return cursor === `\${${name}}` || cursor === `\${${cursorName}}` ? undefined : cursor;
 }
 
 export function loadConfig(env: Record<string, string | undefined> = process.env): CoolifyConfig {
