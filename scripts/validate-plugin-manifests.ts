@@ -47,6 +47,9 @@ if (cursorPlugin.name !== "coolify-plugin" || cursorPlugin.skills !== "./skills/
 if (await Bun.file("plugins/cursor/skills/coolify/SKILL.md").text() !== await Bun.file("skills/coolify/SKILL.md").text()) throw new Error("Cursor skill must match the root Coolify skill");
 if (!(await Bun.file("plugins/cursor/assets/coolify.png").exists())) throw new Error("Cursor plugin logo is missing");
 if (cursorVariables.type !== "object" || JSON.stringify(cursorVariables.required) !== "[]" || !("CURSOR_COOLIFY_BASE_URL" in cursorVariableProperties) || !("CURSOR_COOLIFY_ACCESS_TOKEN" in cursorVariableProperties) || "COOLIFY_BASE_URL" in cursorVariableProperties || "COOLIFY_ACCESS_TOKEN" in cursorVariableProperties) throw new Error("Cursor plugin must declare only optional Configure aliases");
+for (const name of ["CURSOR_COOLIFY_BASE_URL", "CURSOR_COOLIFY_ACCESS_TOKEN"]) {
+  if ((cursorVariableProperties[name] as Json).default !== "") throw new Error(`${name} must default to an empty string`);
+}
 if (cursorMcpEnv.CURSOR_COOLIFY_BASE_URL !== "${CURSOR_COOLIFY_BASE_URL}" || cursorMcpEnv.CURSOR_COOLIFY_ACCESS_TOKEN !== "${CURSOR_COOLIFY_ACCESS_TOKEN}" || "COOLIFY_BASE_URL" in cursorMcpEnv || "COOLIFY_ACCESS_TOKEN" in cursorMcpEnv) throw new Error("Cursor MCP must not override inherited Coolify connection variables");
 if (cursorMcpServer.command !== portableMcpServer.command || JSON.stringify(cursorMcpServer.args) !== JSON.stringify(portableMcpServer.args)) throw new Error("Cursor MCP configuration must launch the portable Coolify package");
 if (cursorMarketplace.name !== "coolify-plugin" || (cursorMarketplace.owner as Json).name !== "JurisLM" || !Array.isArray(cursorMarketplacePlugins) || cursorMarketplacePlugins.length !== 1) throw new Error("Cursor marketplace must list the Coolify plugin");
