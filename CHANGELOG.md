@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [4.0.19](https://github.com/jurislm/coolify-plugin/compare/v4.0.18...v4.0.19) (2026-09-26)
+
+
+### Bug Fixes
+
+* keep complete inherited pair when Cursor Configure is partial ([a9d9006](https://github.com/jurislm/coolify-plugin/commit/a9d9006245995ee8af4a98c28103c97b1ccf58a5))
+* prefer Cursor Configure over inherited Coolify credentials ([f8f6b09](https://github.com/jurislm/coolify-plugin/commit/f8f6b090554d603514a83e36f1ed635f1bb346e1))
+* prefer Cursor Configure over inherited Coolify credentials (JUR-330) ([f7b71e9](https://github.com/jurislm/coolify-plugin/commit/f7b71e9435f84f65e6f3d0779c0e7f3fa77ca6aa))
+
 ## [4.0.18](https://github.com/jurislm/coolify-plugin/compare/v4.0.17...v4.0.18) (2026-09-26)
 
 
