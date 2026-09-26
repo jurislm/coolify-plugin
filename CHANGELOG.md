@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [4.0.20](https://github.com/jurislm/coolify-plugin/compare/v4.0.19...v4.0.20) (2026-09-26)
+
+
+### Bug Fixes
+
+* default optional Cursor Configure variables to empty strings ([09f8bfa](https://github.com/jurislm/coolify-plugin/commit/09f8bfafb3aec1b609f2cd4fed2c9183526d2d16))
+* default optional Cursor plugin variables to empty (JUR-324) ([0612b3a](https://github.com/jurislm/coolify-plugin/commit/0612b3a69d340bff76191fc336bb6a2284045d70))
+
 ## [4.0.19](https://github.com/jurislm/coolify-plugin/compare/v4.0.18...v4.0.19) (2026-09-26)
 
 
