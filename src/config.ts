@@ -11,9 +11,17 @@ export class ConfigError extends Error {
   }
 }
 
+function cursorValue(env: Record<string, string | undefined>, name: string, cursorName: string): string | undefined {
+  const cursor = env[cursorName]?.trim();
+  return cursor === `\${${name}}` ? undefined : cursor;
+}
+
 export function loadConfig(env: Record<string, string | undefined> = process.env): CoolifyConfig {
-  const rawUrl = env.COOLIFY_BASE_URL?.trim();
-  const token = env.COOLIFY_ACCESS_TOKEN?.trim();
+  const cloudUrl = env.COOLIFY_BASE_URL?.trim();
+  const cloudToken = env.COOLIFY_ACCESS_TOKEN?.trim();
+  const useCloud = Boolean(cloudUrl || cloudToken);
+  const rawUrl = useCloud ? cloudUrl : cursorValue(env, "COOLIFY_BASE_URL", "CURSOR_COOLIFY_BASE_URL");
+  const token = useCloud ? cloudToken : cursorValue(env, "COOLIFY_ACCESS_TOKEN", "CURSOR_COOLIFY_ACCESS_TOKEN");
 
   if (!rawUrl) return { ...(token ? { token } : {}), timeoutMs: 30_000 };
 
