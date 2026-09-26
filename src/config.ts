@@ -20,11 +20,13 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   const cloudUrl = environmentValue(env, "COOLIFY_CLOUD_BASE_URL");
   const cloudToken = environmentValue(env, "COOLIFY_CLOUD_ACCESS_TOKEN");
   const useCloud = Boolean(cloudUrl || cloudToken);
+  const configureUrl = environmentValue(env, "CURSOR_COOLIFY_BASE_URL", "COOLIFY_BASE_URL");
+  const configureToken = environmentValue(env, "CURSOR_COOLIFY_ACCESS_TOKEN", "COOLIFY_ACCESS_TOKEN");
+  const useConfigure = Boolean(configureUrl || configureToken);
   const canonicalUrl = environmentValue(env, "COOLIFY_BASE_URL");
   const canonicalToken = environmentValue(env, "COOLIFY_ACCESS_TOKEN");
-  const useCanonical = Boolean(canonicalUrl || canonicalToken);
-  const rawUrl = useCloud ? cloudUrl : useCanonical ? canonicalUrl : environmentValue(env, "CURSOR_COOLIFY_BASE_URL", "COOLIFY_BASE_URL");
-  const token = useCloud ? cloudToken : useCanonical ? canonicalToken : environmentValue(env, "CURSOR_COOLIFY_ACCESS_TOKEN", "COOLIFY_ACCESS_TOKEN");
+  const rawUrl = useCloud ? cloudUrl : useConfigure ? configureUrl : canonicalUrl;
+  const token = useCloud ? cloudToken : useConfigure ? configureToken : canonicalToken;
 
   if (!rawUrl) return { ...(token ? { token } : {}), timeoutMs: 30_000 };
 

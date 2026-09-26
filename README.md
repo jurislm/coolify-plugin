@@ -39,6 +39,8 @@ In Cursor, open **Customize → Plugins → Add Marketplace → Import from GitH
 
 If Cursor Cloud passes literal `${COOLIFY_BASE_URL}` and `${COOLIFY_ACCESS_TOKEN}` to a stdio server, also set `COOLIFY_CLOUD_BASE_URL` and `COOLIFY_CLOUD_ACCESS_TOKEN` in the same Cloud environment. The plugin uses this pair first and never mixes it with the canonical or Configure pair.
 
+For local agents, the plugin uses both saved Configure values before inherited `COOLIFY_BASE_URL` and `COOLIFY_ACCESS_TOKEN` values. It does not combine values from different sources.
+
 ## OpenAPI contract
 
 `openapi/coolify-openapi.json` is built from the official Coolify v4.3.23 release. `api/manifest.json` records the upstream SHA-256, the current API contract corrections, and the persisted SHA-256. `bun run api:check` verifies the contract offline before checking generated parity. The runtime uses the generated schemas directly.
