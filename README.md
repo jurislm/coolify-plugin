@@ -39,7 +39,7 @@ In Cursor, open **Customize → Plugins → Add Marketplace → Import from GitH
 
 If Cursor Cloud passes literal `${COOLIFY_BASE_URL}` and `${COOLIFY_ACCESS_TOKEN}` to a stdio server, also set `COOLIFY_CLOUD_BASE_URL` and `COOLIFY_CLOUD_ACCESS_TOKEN` in the same Cloud environment. The plugin uses this pair first and never mixes it with the canonical or Configure pair.
 
-For local agents, the plugin uses both saved Configure values before inherited `COOLIFY_BASE_URL` and `COOLIFY_ACCESS_TOKEN` values. It does not combine values from different sources.
+For local agents, a complete saved Configure URL/token pair takes precedence over inherited `COOLIFY_BASE_URL` and `COOLIFY_ACCESS_TOKEN` values. It does not combine values from different sources.
 
 ## OpenAPI contract
 
