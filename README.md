@@ -37,6 +37,8 @@ codex plugin add coolify-plugin@coolify-marketplace
 
 In Cursor, open **Customize → Plugins → Add Marketplace → Import from GitHub**, enter `https://github.com/jurislm/coolify-plugin`, then install **Coolify Plugin**. The marketplace selects `plugins/cursor`, keeping the Codex-only root `.mcp.json` out of Cursor's plugin root. For Cloud Agents, set both `COOLIFY_BASE_URL` and `COOLIFY_ACCESS_TOKEN` in the Cloud environment's secrets and start a new agent from that environment. Local agents can use the plugin's **Configure** panel. After updating from v4.0.16 or earlier, re-enter both Local Configure fields because their variable names changed. If either Cloud environment variable is set, the plugin uses only the Cloud pair and does not mix it with Configure values. Run a read-only Coolify tool to verify provider access.
 
+If Cursor Cloud passes literal `${COOLIFY_BASE_URL}` and `${COOLIFY_ACCESS_TOKEN}` to a stdio server, also set `COOLIFY_CLOUD_BASE_URL` and `COOLIFY_CLOUD_ACCESS_TOKEN` in the same Cloud environment. The plugin uses this pair first and never mixes it with the canonical or Configure pair.
+
 ## OpenAPI contract
 
 `openapi/coolify-openapi.json` is built from the official Coolify v4.3.23 release. `api/manifest.json` records the upstream SHA-256, the current API contract corrections, and the persisted SHA-256. `bun run api:check` verifies the contract offline before checking generated parity. The runtime uses the generated schemas directly.
