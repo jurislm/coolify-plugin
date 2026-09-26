@@ -42,6 +42,10 @@ describe("loadConfig", () => {
       CURSOR_COOLIFY_ACCESS_TOKEN: "${COOLIFY_ACCESS_TOKEN}",
     })).toEqual({ timeoutMs: 30_000 });
     expect(loadConfig({
+      CURSOR_COOLIFY_BASE_URL: "${CURSOR_COOLIFY_BASE_URL}",
+      CURSOR_COOLIFY_ACCESS_TOKEN: "${CURSOR_COOLIFY_ACCESS_TOKEN}",
+    })).toEqual({ timeoutMs: 30_000 });
+    expect(loadConfig({
       COOLIFY_BASE_URL: "https://cloud.example",
       CURSOR_COOLIFY_ACCESS_TOKEN: "local-token",
     })).toEqual({ baseUrl: "https://cloud.example/api/v1", timeoutMs: 30_000 });
