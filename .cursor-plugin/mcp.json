@@ -7,8 +7,8 @@
         "@jurislm/coolify-plugin@latest"
       ],
       "env": {
-        "COOLIFY_BASE_URL": "${COOLIFY_BASE_URL}",
-        "COOLIFY_ACCESS_TOKEN": "${COOLIFY_ACCESS_TOKEN}"
+        "CURSOR_COOLIFY_BASE_URL": "${COOLIFY_BASE_URL}",
+        "CURSOR_COOLIFY_ACCESS_TOKEN": "${COOLIFY_ACCESS_TOKEN}"
       }
     }
   }

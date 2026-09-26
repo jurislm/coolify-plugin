@@ -31,9 +31,6 @@
         "description": "API token for your Coolify instance."
       }
     },
-    "required": [
-      "COOLIFY_BASE_URL",
-      "COOLIFY_ACCESS_TOKEN"
-    ]
+    "required": []
   }
 }
