@@ -28,6 +28,19 @@ describe("loadConfig", () => {
 
   test("uses cloud credentials before Cursor Configure and ignores unresolved Configure placeholders", () => {
     expect(loadConfig({
+      COOLIFY_CLOUD_BASE_URL: "https://cloud.example",
+      COOLIFY_CLOUD_ACCESS_TOKEN: "cloud-token",
+      COOLIFY_BASE_URL: "${COOLIFY_BASE_URL}",
+      COOLIFY_ACCESS_TOKEN: "${COOLIFY_ACCESS_TOKEN}",
+      CURSOR_COOLIFY_BASE_URL: "${CURSOR_COOLIFY_BASE_URL}",
+      CURSOR_COOLIFY_ACCESS_TOKEN: "${CURSOR_COOLIFY_ACCESS_TOKEN}",
+    })).toEqual({ baseUrl: "https://cloud.example/api/v1", token: "cloud-token", timeoutMs: 30_000 });
+    expect(loadConfig({
+      COOLIFY_CLOUD_BASE_URL: "https://cloud.example",
+      COOLIFY_BASE_URL: "https://canonical.example",
+      COOLIFY_ACCESS_TOKEN: "canonical-token",
+    })).toEqual({ baseUrl: "https://cloud.example/api/v1", timeoutMs: 30_000 });
+    expect(loadConfig({
       COOLIFY_BASE_URL: "https://cloud.example",
       COOLIFY_ACCESS_TOKEN: "cloud-token",
       CURSOR_COOLIFY_BASE_URL: "https://local.example",
@@ -45,6 +58,12 @@ describe("loadConfig", () => {
       CURSOR_COOLIFY_BASE_URL: "${CURSOR_COOLIFY_BASE_URL}",
       CURSOR_COOLIFY_ACCESS_TOKEN: "${CURSOR_COOLIFY_ACCESS_TOKEN}",
     })).toEqual({ timeoutMs: 30_000 });
+    expect(loadConfig({
+      COOLIFY_BASE_URL: "${COOLIFY_BASE_URL}",
+      COOLIFY_ACCESS_TOKEN: "${COOLIFY_ACCESS_TOKEN}",
+      CURSOR_COOLIFY_BASE_URL: "https://local.example",
+      CURSOR_COOLIFY_ACCESS_TOKEN: "local-token",
+    })).toEqual({ baseUrl: "https://local.example/api/v1", token: "local-token", timeoutMs: 30_000 });
     expect(loadConfig({
       COOLIFY_BASE_URL: "https://cloud.example",
       CURSOR_COOLIFY_ACCESS_TOKEN: "local-token",

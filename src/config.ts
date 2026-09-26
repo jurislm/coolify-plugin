@@ -11,17 +11,20 @@ export class ConfigError extends Error {
   }
 }
 
-function cursorValue(env: Record<string, string | undefined>, name: string, cursorName: string): string | undefined {
-  const cursor = env[cursorName]?.trim();
-  return cursor === `\${${name}}` || cursor === `\${${cursorName}}` ? undefined : cursor;
+function environmentValue(env: Record<string, string | undefined>, name: string, alias?: string): string | undefined {
+  const value = env[name]?.trim();
+  return value === `\${${name}}` || (alias && value === `\${${alias}}`) ? undefined : value;
 }
 
 export function loadConfig(env: Record<string, string | undefined> = process.env): CoolifyConfig {
-  const cloudUrl = env.COOLIFY_BASE_URL?.trim();
-  const cloudToken = env.COOLIFY_ACCESS_TOKEN?.trim();
+  const cloudUrl = environmentValue(env, "COOLIFY_CLOUD_BASE_URL");
+  const cloudToken = environmentValue(env, "COOLIFY_CLOUD_ACCESS_TOKEN");
   const useCloud = Boolean(cloudUrl || cloudToken);
-  const rawUrl = useCloud ? cloudUrl : cursorValue(env, "COOLIFY_BASE_URL", "CURSOR_COOLIFY_BASE_URL");
-  const token = useCloud ? cloudToken : cursorValue(env, "COOLIFY_ACCESS_TOKEN", "CURSOR_COOLIFY_ACCESS_TOKEN");
+  const canonicalUrl = environmentValue(env, "COOLIFY_BASE_URL");
+  const canonicalToken = environmentValue(env, "COOLIFY_ACCESS_TOKEN");
+  const useCanonical = Boolean(canonicalUrl || canonicalToken);
+  const rawUrl = useCloud ? cloudUrl : useCanonical ? canonicalUrl : environmentValue(env, "CURSOR_COOLIFY_BASE_URL", "COOLIFY_BASE_URL");
+  const token = useCloud ? cloudToken : useCanonical ? canonicalToken : environmentValue(env, "CURSOR_COOLIFY_ACCESS_TOKEN", "COOLIFY_ACCESS_TOKEN");
 
   if (!rawUrl) return { ...(token ? { token } : {}), timeoutMs: 30_000 };
 
