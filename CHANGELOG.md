@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [4.0.18](https://github.com/jurislm/coolify-plugin/compare/v4.0.17...v4.0.18) (2026-09-26)
+
+
+### Bug Fixes
+
+* use Cloud fallback pair when Cursor overrides env ([#57](https://github.com/jurislm/coolify-plugin/issues/57)) ([586d0f2](https://github.com/jurislm/coolify-plugin/commit/586d0f21add885ca664c73d93804adbeca67bf24))
+
 ## [4.0.17](https://github.com/jurislm/coolify-plugin/compare/v4.0.16...v4.0.17) (2026-09-26)
 
 
