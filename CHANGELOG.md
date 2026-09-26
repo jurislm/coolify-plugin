@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [4.0.15](https://github.com/jurislm/coolify-plugin/compare/v4.0.14...v4.0.15) (2026-09-26)
+
+
+### Bug Fixes
+
+* **cursor:** inherit Cloud connection secrets ([#51](https://github.com/jurislm/coolify-plugin/issues/51)) ([9f19bca](https://github.com/jurislm/coolify-plugin/commit/9f19bca7f1af851f4e0b43d10890efc4dc8f377e))
+
 ## [4.0.14](https://github.com/jurislm/coolify-plugin/compare/v4.0.13...v4.0.14) (2026-09-26)
 
 
