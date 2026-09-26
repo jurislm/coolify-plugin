@@ -1,5 +1,5 @@
 type Json = Record<string, unknown>;
-const files = ["plugin.json", ".codex-plugin/plugin.json", ".cursor-plugin/plugin.json", ".cursor-plugin/marketplace.json", ".cursor-plugin/mcp.json", "mcp.json", ".mcp.json", ".mcp.json.example", ".app.json.example"];
+const files = ["plugin.json", ".codex-plugin/plugin.json", "plugins/cursor/.cursor-plugin/plugin.json", ".cursor-plugin/marketplace.json", "plugins/cursor/mcp.json", "mcp.json", ".mcp.json", ".mcp.json.example", ".app.json.example"];
 const parsed = Object.fromEntries(await Promise.all(files.map(async (file) => [file, JSON.parse(await Bun.file(file).text()) as Json])));
 const packageJson = JSON.parse(await Bun.file("package.json").text()) as Json;
 const packageVersion = String(packageJson.version);
@@ -35,21 +35,23 @@ const exampleServer = (parsed[".mcp.json.example"].mcpServers as Json).coolify a
 if (exampleServer.command !== "bunx" || !(exampleServer.args as string[]).includes("@jurislm/coolify-plugin@latest")) throw new Error(".mcp.json.example must match the Woodpecker bunx registration");
 const exampleEnv = exampleServer.env as Json;
 if (!("COOLIFY_BASE_URL" in exampleEnv) || !("COOLIFY_ACCESS_TOKEN" in exampleEnv) || "COOLIFY_URL" in exampleEnv || "COOLIFY_TOKEN" in exampleEnv) throw new Error(".mcp.json.example must use the global Coolify environment variable names");
-const cursorPlugin = parsed[".cursor-plugin/plugin.json"];
+const cursorPlugin = parsed["plugins/cursor/.cursor-plugin/plugin.json"];
 const cursorMarketplace = parsed[".cursor-plugin/marketplace.json"];
 const cursorMarketplacePlugins = cursorMarketplace.plugins as unknown[];
 const cursorVariables = cursorPlugin.variables as Json;
 const cursorVariableProperties = cursorVariables.properties as Json;
-const cursorMcpServer = ((parsed[".cursor-plugin/mcp.json"].mcpServers as Json).coolify as Json);
+const cursorMcpServer = ((parsed["plugins/cursor/mcp.json"].mcpServers as Json).coolify as Json);
 const cursorMcpEnv = cursorMcpServer.env as Json;
 const portableMcpServer = ((parsed["mcp.json"].mcpServers as Json).coolify as Json);
-if (cursorPlugin.name !== "coolify-plugin" || cursorPlugin.skills !== "./skills/" || cursorPlugin.mcpServers !== "./.cursor-plugin/mcp.json" || cursorPlugin.logo !== "assets/coolify.png") throw new Error("Cursor plugin manifest must reference the shipped Coolify components");
+if (cursorPlugin.name !== "coolify-plugin" || cursorPlugin.skills !== "./skills/" || cursorPlugin.mcpServers !== "./mcp.json" || cursorPlugin.logo !== "assets/coolify.png") throw new Error("Cursor plugin manifest must reference the shipped Coolify components");
+if (await Bun.file("plugins/cursor/skills/coolify/SKILL.md").text() !== await Bun.file("skills/coolify/SKILL.md").text()) throw new Error("Cursor skill must match the root Coolify skill");
+if (!(await Bun.file("plugins/cursor/assets/coolify.png").exists())) throw new Error("Cursor plugin logo is missing");
 if (cursorVariables.type !== "object" || JSON.stringify(cursorVariables.required) !== "[]" || !("COOLIFY_BASE_URL" in cursorVariableProperties) || !("COOLIFY_ACCESS_TOKEN" in cursorVariableProperties)) throw new Error("Cursor plugin must declare optional Coolify connection variables");
 if (cursorMcpEnv.CURSOR_COOLIFY_BASE_URL !== "${COOLIFY_BASE_URL}" || cursorMcpEnv.CURSOR_COOLIFY_ACCESS_TOKEN !== "${COOLIFY_ACCESS_TOKEN}" || "COOLIFY_BASE_URL" in cursorMcpEnv || "COOLIFY_ACCESS_TOKEN" in cursorMcpEnv) throw new Error("Cursor MCP must not override inherited Coolify connection variables");
 if (cursorMcpServer.command !== portableMcpServer.command || JSON.stringify(cursorMcpServer.args) !== JSON.stringify(portableMcpServer.args)) throw new Error("Cursor MCP configuration must launch the portable Coolify package");
 if (cursorMarketplace.name !== "coolify-plugin" || (cursorMarketplace.owner as Json).name !== "JurisLM" || !Array.isArray(cursorMarketplacePlugins) || cursorMarketplacePlugins.length !== 1) throw new Error("Cursor marketplace must list the Coolify plugin");
 const cursorMarketplacePlugin = cursorMarketplacePlugins[0] as Json;
-if (cursorMarketplacePlugin.name !== cursorPlugin.name || cursorMarketplacePlugin.source !== ".") throw new Error("Cursor marketplace source must resolve to the root Coolify plugin");
+if (cursorMarketplacePlugin.name !== cursorPlugin.name || cursorMarketplacePlugin.source !== "plugins/cursor") throw new Error("Cursor marketplace source must resolve to the Cursor-only plugin");
 const dependencies = packageJson.dependencies as Json;
 for (const [name, version] of Object.entries({ "@modelcontextprotocol/sdk": "1.30.0", zod: "4.6.5" })) {
   if (dependencies[name] !== version) throw new Error(`${name} must be pinned to ${version}`);

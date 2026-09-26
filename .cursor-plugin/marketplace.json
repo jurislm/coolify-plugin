@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "coolify-plugin",
-      "source": ".",
+      "source": "plugins/cursor",
       "description": "Inspect and manage Coolify applications, servers, databases, services, deployments, and environment configuration."
     }
   ]

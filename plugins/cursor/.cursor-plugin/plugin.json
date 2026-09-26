@@ -16,7 +16,7 @@
   ],
   "logo": "assets/coolify.png",
   "skills": "./skills/",
-  "mcpServers": "./.cursor-plugin/mcp.json",
+  "mcpServers": "./mcp.json",
   "variables": {
     "type": "object",
     "properties": {
