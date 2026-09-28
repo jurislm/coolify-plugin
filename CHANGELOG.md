@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [4.0.21](https://github.com/jurislm/coolify-plugin/compare/v4.0.20...v4.0.21) (2026-09-28)
+
+
+### Bug Fixes
+
+* expose Coolify connection status and fail closed on inventory errors (JUR-399) ([9854749](https://github.com/jurislm/coolify-plugin/commit/98547491d27805c2bf0d78946dd02e6e48888318))
+* make Coolify connection and inventory failures explicit (JUR-399) ([0df8e8c](https://github.com/jurislm/coolify-plugin/commit/0df8e8cf1b4b628e77261299672bbf5c09bb6e89))
+* retain auth errors and probe public health without a token (JUR-399) ([db5db68](https://github.com/jurislm/coolify-plugin/commit/db5db68a2a0189a6ed54a790994d73af8e2fb310))
+
 ## [4.0.20](https://github.com/jurislm/coolify-plugin/compare/v4.0.19...v4.0.20) (2026-09-26)
 
 
