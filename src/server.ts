@@ -36,6 +36,6 @@ export function createServer(config: CoolifyConfig, fetchImpl?: FetchLike): McpS
       }
     });
   }
-  registerCapabilities(server, client);
+  registerCapabilities(server, client, config);
   return server;
 }

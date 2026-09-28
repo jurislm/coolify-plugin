@@ -2,10 +2,18 @@ import { describe, expect, test } from "bun:test";
 import { ConfigError, loadConfig } from "./config.js";
 
 describe("loadConfig", () => {
+  test("identifies the selected variable pair without revealing values", () => {
+    expect(loadConfig({}).selectedVariables).toBe("none");
+    expect(loadConfig({ COOLIFY_BASE_URL: "https://coolify.example", COOLIFY_ACCESS_TOKEN: "secret" }).selectedVariables).toBe("COOLIFY_*");
+    expect(loadConfig({ CURSOR_COOLIFY_BASE_URL: "https://coolify.example", CURSOR_COOLIFY_ACCESS_TOKEN: "secret" }).selectedVariables).toBe("CURSOR_COOLIFY_*");
+    expect(loadConfig({ COOLIFY_CLOUD_BASE_URL: "https://coolify.example", COOLIFY_CLOUD_ACCESS_TOKEN: "secret" }).selectedVariables).toBe("COOLIFY_CLOUD_*");
+  });
+
   test("defers missing credentials and normalizes a configured API root", () => {
-    expect(loadConfig({})).toEqual({ timeoutMs: 30_000 });
+    expect(loadConfig({})).toEqual({ selectedVariables: "none", timeoutMs: 30_000 });
     expect(loadConfig({ COOLIFY_BASE_URL: "https://coolify.example" })).toEqual({
       baseUrl: "https://coolify.example/api/v1",
+      selectedVariables: "COOLIFY_*",
       timeoutMs: 30_000,
     });
     expect(loadConfig({
@@ -14,6 +22,7 @@ describe("loadConfig", () => {
     })).toEqual({
       baseUrl: "https://coolify.example/api/v1",
       token: "secret",
+      selectedVariables: "COOLIFY_*",
       timeoutMs: 30_000,
     });
     expect(() => loadConfig({ COOLIFY_BASE_URL: "not-a-url" })).toThrow(ConfigError);
@@ -23,7 +32,7 @@ describe("loadConfig", () => {
     expect(loadConfig({
       COOLIFY_URL: "https://coolify.example",
       COOLIFY_TOKEN: "secret",
-    })).toEqual({ timeoutMs: 30_000 });
+    })).toEqual({ selectedVariables: "none", timeoutMs: 30_000 });
   });
 
   test("uses Cloud overrides, then Cursor Configure, then inherited credentials without mixing pairs", () => {
@@ -34,48 +43,48 @@ describe("loadConfig", () => {
       COOLIFY_ACCESS_TOKEN: "${COOLIFY_ACCESS_TOKEN}",
       CURSOR_COOLIFY_BASE_URL: "https://local.example",
       CURSOR_COOLIFY_ACCESS_TOKEN: "local-token",
-    })).toEqual({ baseUrl: "https://cloud.example/api/v1", token: "cloud-token", timeoutMs: 30_000 });
+    })).toEqual({ baseUrl: "https://cloud.example/api/v1", token: "cloud-token", selectedVariables: "COOLIFY_CLOUD_*", timeoutMs: 30_000 });
     expect(loadConfig({
       COOLIFY_CLOUD_BASE_URL: "https://cloud.example",
       COOLIFY_BASE_URL: "https://canonical.example",
       COOLIFY_ACCESS_TOKEN: "canonical-token",
-    })).toEqual({ baseUrl: "https://cloud.example/api/v1", timeoutMs: 30_000 });
+    })).toEqual({ baseUrl: "https://cloud.example/api/v1", selectedVariables: "COOLIFY_CLOUD_*", timeoutMs: 30_000 });
     expect(loadConfig({
       COOLIFY_BASE_URL: "https://cloud.example",
       COOLIFY_ACCESS_TOKEN: "cloud-token",
       CURSOR_COOLIFY_BASE_URL: "https://local.example",
       CURSOR_COOLIFY_ACCESS_TOKEN: "local-token",
-    })).toEqual({ baseUrl: "https://local.example/api/v1", token: "local-token", timeoutMs: 30_000 });
+    })).toEqual({ baseUrl: "https://local.example/api/v1", token: "local-token", selectedVariables: "CURSOR_COOLIFY_*", timeoutMs: 30_000 });
     expect(loadConfig({
       COOLIFY_BASE_URL: "https://cloud.example",
       COOLIFY_ACCESS_TOKEN: "cloud-token",
       CURSOR_COOLIFY_ACCESS_TOKEN: "local-token",
-    })).toEqual({ baseUrl: "https://cloud.example/api/v1", token: "cloud-token", timeoutMs: 30_000 });
+    })).toEqual({ baseUrl: "https://cloud.example/api/v1", token: "cloud-token", selectedVariables: "COOLIFY_*", timeoutMs: 30_000 });
     expect(loadConfig({
       CURSOR_COOLIFY_BASE_URL: "https://local.example",
       CURSOR_COOLIFY_ACCESS_TOKEN: "local-token",
-    })).toEqual({ baseUrl: "https://local.example/api/v1", token: "local-token", timeoutMs: 30_000 });
+    })).toEqual({ baseUrl: "https://local.example/api/v1", token: "local-token", selectedVariables: "CURSOR_COOLIFY_*", timeoutMs: 30_000 });
     expect(loadConfig({
       CURSOR_COOLIFY_BASE_URL: "${COOLIFY_BASE_URL}",
       CURSOR_COOLIFY_ACCESS_TOKEN: "${COOLIFY_ACCESS_TOKEN}",
-    })).toEqual({ timeoutMs: 30_000 });
+    })).toEqual({ selectedVariables: "none", timeoutMs: 30_000 });
     expect(loadConfig({
       CURSOR_COOLIFY_BASE_URL: "${CURSOR_COOLIFY_BASE_URL}",
       CURSOR_COOLIFY_ACCESS_TOKEN: "${CURSOR_COOLIFY_ACCESS_TOKEN}",
-    })).toEqual({ timeoutMs: 30_000 });
+    })).toEqual({ selectedVariables: "none", timeoutMs: 30_000 });
     expect(loadConfig({
       COOLIFY_BASE_URL: "${COOLIFY_BASE_URL}",
       COOLIFY_ACCESS_TOKEN: "${COOLIFY_ACCESS_TOKEN}",
       CURSOR_COOLIFY_BASE_URL: "https://local.example",
       CURSOR_COOLIFY_ACCESS_TOKEN: "local-token",
-    })).toEqual({ baseUrl: "https://local.example/api/v1", token: "local-token", timeoutMs: 30_000 });
+    })).toEqual({ baseUrl: "https://local.example/api/v1", token: "local-token", selectedVariables: "CURSOR_COOLIFY_*", timeoutMs: 30_000 });
     expect(loadConfig({
       COOLIFY_BASE_URL: "https://cloud.example",
       CURSOR_COOLIFY_ACCESS_TOKEN: "local-token",
-    })).toEqual({ token: "local-token", timeoutMs: 30_000 });
+    })).toEqual({ token: "local-token", selectedVariables: "CURSOR_COOLIFY_*", timeoutMs: 30_000 });
     expect(loadConfig({
       COOLIFY_ACCESS_TOKEN: "cloud-token",
       CURSOR_COOLIFY_BASE_URL: "https://local.example",
-    })).toEqual({ baseUrl: "https://local.example/api/v1", timeoutMs: 30_000 });
+    })).toEqual({ baseUrl: "https://local.example/api/v1", selectedVariables: "CURSOR_COOLIFY_*", timeoutMs: 30_000 });
   });
 });

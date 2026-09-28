@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { CoolifyClient, redactSensitive } from "./client.js";
+import { CoolifyApiError, CoolifyClient, redactSensitive } from "./client.js";
+import type { CoolifyConfig } from "./config.js";
 import { operations } from "./generated/operations.js";
 import { pluginVersion } from "./version.js";
 
@@ -29,7 +30,7 @@ function environmentSummary(value: unknown): RecordValue[] {
   return rows(value).map((item) => ({ key: item.key, is_build_time: item.is_buildtime === true }));
 }
 
-export function registerCapabilities(server: McpServer, client: CoolifyClient): void {
+export function registerCapabilities(server: McpServer, client: CoolifyClient, config: CoolifyConfig): void {
   const call = async (name: string, input: RecordValue = {}): Promise<unknown> => {
     const operation = operations.find((item) => item.name === name);
     if (!operation) throw new Error(`Missing generated operation: ${name}`);
@@ -43,21 +44,29 @@ export function registerCapabilities(server: McpServer, client: CoolifyClient): 
   const register = (name: string, description: string, inputSchema: z.ZodType, annotations: { readOnlyHint: boolean; destructiveHint: boolean; idempotentHint: boolean; openWorldHint: boolean }, handler: (input: RecordValue) => Promise<unknown>) => {
     server.registerTool(name, { title: description, description, inputSchema, outputSchema, annotations }, async (input) => result(name, await handler(input as RecordValue)));
   };
-  const settledRows = async (names: string[]): Promise<{ values: RecordValue[][]; errors: string[] }> => {
+  const settledRows = async (names: string[]): Promise<{ values: RecordValue[][]; errors: string[]; failed: Set<number> }> => {
     const settled = await Promise.allSettled(names.map((name) => call(`coolify_list_${name}`)));
+    const first = settled[0];
+    if (first?.status === "rejected" && settled.every((entry) => entry.status === "rejected")) throw first.reason;
     const values: RecordValue[][] = [];
     const errors: string[] = [];
+    const failed = new Set<number>();
     settled.forEach((entry, index) => {
       if (entry.status === "fulfilled") values[index] = rows(entry.value);
-      else { values[index] = []; errors.push(`${names[index]}: ${errorMessage(entry.reason)}`); }
+      else {
+        if (entry.reason instanceof CoolifyApiError && [401, 403].includes(entry.reason.status)) throw entry.reason;
+        values[index] = [];
+        failed.add(index);
+        errors.push(`${names[index]}: ${errorMessage(entry.reason)}`);
+      }
     });
-    return { values, errors };
+    return { values, errors, failed };
   };
   const overview = async () => {
     const names = ["servers", "projects", "applications", "databases", "services"];
-    const { values, errors } = await settledRows(names);
+    const { values, errors, failed } = await settledRows(names);
     const data = Object.fromEntries(names.map((name, index) => [name, values[index]]));
-    return { summary: Object.fromEntries(names.map((name, index) => [name, values[index].length])), ...data, ...(errors.length ? { errors } : {}) };
+    return { complete: errors.length === 0, summary: Object.fromEntries(names.map((name, index) => [name, failed.has(index) ? null : values[index].length])), ...data, ...(errors.length ? { errors } : {}) };
   };
   const batch = async (resources: RecordValue[], action: (resource: RecordValue) => Promise<unknown>) => {
     const settled = await Promise.allSettled(resources.map(action));
@@ -89,6 +98,16 @@ export function registerCapabilities(server: McpServer, client: CoolifyClient): 
   };
 
   register("coolify_get_mcp_version", "Get the local Coolify plugin version.", z.object({}), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async () => ({ name: "@jurislm/coolify-plugin", version: pluginVersion }));
+  register("coolify_check_connection", "Check selected configuration and Coolify API status without exposing credentials.", z.object({}), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async () => {
+    const probe = async (name: string): Promise<number | null> => {
+      const operation = operations.find((item) => item.name === name);
+      if (!operation || !config.baseUrl || !config.token) return null;
+      try { return (await client.request(operation, {})).status; }
+      catch (error) { return error instanceof CoolifyApiError && error.status > 0 ? error.status : null; }
+    };
+    const [healthStatus, versionStatus] = await Promise.all([probe("coolify_healthcheck"), probe("coolify_version")]);
+    return { plugin_version: pluginVersion, configuration: { selected_variables: config.selectedVariables ?? "unknown", base_url_configured: Boolean(config.baseUrl), credential_present: Boolean(config.token) }, provider: { health_status: healthStatus, version_status: versionStatus } };
+  });
   register("coolify_get_infrastructure_overview", "Summarize Coolify infrastructure.", z.object({}), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, overview);
   register("coolify_diagnose_application", "Diagnose an application by UUID, name, or domain.", z.object({ query: z.string() }), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async ({ query }) => {
     let app: RecordValue | undefined;

@@ -1,6 +1,7 @@
 export interface CoolifyConfig {
   baseUrl?: string;
   token?: string;
+  selectedVariables?: "COOLIFY_CLOUD_*" | "CURSOR_COOLIFY_*" | "COOLIFY_*" | "none";
   timeoutMs: number;
 }
 
@@ -29,8 +30,9 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   const useConfigure = configureComplete || (!canonicalComplete && Boolean(configureUrl || configureToken));
   const rawUrl = useCloud ? cloudUrl : useConfigure ? configureUrl : canonicalUrl;
   const token = useCloud ? cloudToken : useConfigure ? configureToken : canonicalToken;
+  const selectedVariables = useCloud ? "COOLIFY_CLOUD_*" : useConfigure ? "CURSOR_COOLIFY_*" : canonicalUrl || canonicalToken ? "COOLIFY_*" : "none";
 
-  if (!rawUrl) return { ...(token ? { token } : {}), timeoutMs: 30_000 };
+  if (!rawUrl) return { ...(token ? { token } : {}), selectedVariables, timeoutMs: 30_000 };
 
   let url: URL;
   try {
@@ -45,5 +47,5 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   url.pathname = url.pathname.replace(/\/+$/u, "");
   if (!url.pathname.endsWith("/api/v1")) url.pathname = `${url.pathname}/api/v1`.replace(/^\/\//u, "/");
 
-  return { baseUrl: url.toString().replace(/\/$/u, ""), ...(token ? { token } : {}), timeoutMs: 30_000 };
+  return { baseUrl: url.toString().replace(/\/$/u, ""), ...(token ? { token } : {}), selectedVariables, timeoutMs: 30_000 };
 }
