@@ -33,7 +33,7 @@ codex plugin marketplace add https://github.com/jurislm/coolify-plugin
 codex plugin add coolify-plugin@coolify-marketplace
 ```
 
-To check a connection, call `coolify_get_mcp_version`, then `coolify_check_connection`. The second tool reports the selected variable pair, whether a URL and credential are present, and the HTTP status of `/health` and `/version`. It never returns credential values. A healthy `/health` with a 401 from `/version` means the instance is reachable but rejected the authenticated request; the response alone does not establish whether the credential expired, was revoked, or came from the wrong launcher.
+To check a connection, call `coolify_get_mcp_version`, then `coolify_check_connection`. The second tool reports the selected variable pair, whether a URL and credential are present, and the HTTP status of `/health` and `/version`. It never returns credential values. With a URL but no credential, it still checks public `/health` and leaves `/version` unattempted. A healthy `/health` with a 401 from `/version` means the instance is reachable but rejected the authenticated request; the response alone does not establish whether the credential expired, was revoked, or came from the wrong launcher.
 
 Check the active MCP registration separately. A standalone server named `coolify` can run the same package while the marketplace plugin's MCP is disabled. `coolify_get_mcp_version` identifies the package version, not which registration launched it. `coolify_get_infrastructure_overview` reports authentication failures and all-list failures as tool errors. When only some lists fail for other reasons, their counts are `null` and `complete` is `false`.
 

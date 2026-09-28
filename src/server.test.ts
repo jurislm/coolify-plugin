@@ -407,6 +407,17 @@ describe("generated Coolify MCP server", () => {
     await server.close();
   });
 
+  test("reports authentication failure even when another inventory request fails first", async () => {
+    const { server, client } = await connected(async (url) => new Response("Unavailable", {
+      status: new URL(String(url)).pathname.endsWith("/projects") ? 401 : 503,
+    }));
+    const result = await client.callTool({ name: "coolify_get_infrastructure_overview", arguments: {} });
+    expect(result.isError).toBe(true);
+    expect(JSON.stringify(result)).toContain("401");
+    await client.close();
+    await server.close();
+  });
+
   test("checks connection without exposing credentials", async () => {
     const { server, client } = await connected(async (url) => new URL(String(url)).pathname.endsWith("/health")
       ? new Response("OK", { status: 200, headers: { "content-type": "text/plain" } })
@@ -414,6 +425,19 @@ describe("generated Coolify MCP server", () => {
     const result = await client.callTool({ name: "coolify_check_connection", arguments: {} });
     expect(result.structuredContent).toMatchObject({ data: { configuration: { base_url_configured: true, credential_present: true }, provider: { health_status: 200, version_status: 401 } } });
     expect(JSON.stringify(result)).not.toContain("secret");
+    await client.close();
+    await server.close();
+  });
+
+  test("checks public health when the URL is set but the credential is missing", async () => {
+    const requests: Array<{ path: string; authorization: string | null }> = [];
+    const { server, client } = await connected(async (url, init) => {
+      requests.push({ path: new URL(String(url)).pathname, authorization: new Headers(init?.headers).get("authorization") });
+      return new Response("OK", { status: 200, headers: { "content-type": "text/plain" } });
+    }, { baseUrl: "https://coolify.example/api/v1", timeoutMs: 30_000 });
+    const result = await client.callTool({ name: "coolify_check_connection", arguments: {} });
+    expect(result.structuredContent).toMatchObject({ data: { configuration: { credential_present: false }, provider: { health_status: 200, version_status: null } } });
+    expect(requests).toEqual([{ path: "/api/v1/health", authorization: null }]);
     await client.close();
     await server.close();
   });

@@ -46,6 +46,8 @@ export function registerCapabilities(server: McpServer, client: CoolifyClient, c
   };
   const settledRows = async (names: string[]): Promise<{ values: RecordValue[][]; errors: string[]; failed: Set<number> }> => {
     const settled = await Promise.allSettled(names.map((name) => call(`coolify_list_${name}`)));
+    const auth = settled.find((entry) => entry.status === "rejected" && entry.reason instanceof CoolifyApiError && [401, 403].includes(entry.reason.status));
+    if (auth?.status === "rejected") throw auth.reason;
     const first = settled[0];
     if (first?.status === "rejected" && settled.every((entry) => entry.status === "rejected")) throw first.reason;
     const values: RecordValue[][] = [];
@@ -54,7 +56,6 @@ export function registerCapabilities(server: McpServer, client: CoolifyClient, c
     settled.forEach((entry, index) => {
       if (entry.status === "fulfilled") values[index] = rows(entry.value);
       else {
-        if (entry.reason instanceof CoolifyApiError && [401, 403].includes(entry.reason.status)) throw entry.reason;
         values[index] = [];
         failed.add(index);
         errors.push(`${names[index]}: ${errorMessage(entry.reason)}`);
@@ -101,7 +102,7 @@ export function registerCapabilities(server: McpServer, client: CoolifyClient, c
   register("coolify_check_connection", "Check selected configuration and Coolify API status without exposing credentials.", z.object({}), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async () => {
     const probe = async (name: string): Promise<number | null> => {
       const operation = operations.find((item) => item.name === name);
-      if (!operation || !config.baseUrl || !config.token) return null;
+      if (!operation || !config.baseUrl || (!config.token && operation.path !== "/health")) return null;
       try { return (await client.request(operation, {})).status; }
       catch (error) { return error instanceof CoolifyApiError && error.status > 0 ? error.status : null; }
     };
