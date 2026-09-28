@@ -12,6 +12,18 @@ const operation = {
 };
 
 describe("CoolifyClient", () => {
+  test("allows public health without a credential while protecting other endpoints", async () => {
+    const requests: string[] = [];
+    const client = new CoolifyClient({ baseUrl: config.baseUrl, timeoutMs: 30_000 }, async (url, init) => {
+      requests.push(new URL(String(url)).pathname);
+      expect(new Headers(init?.headers).get("authorization")).toBeNull();
+      return new Response("OK", { headers: { "content-type": "text/plain" } });
+    });
+    await expect(client.request({ method: "GET", path: "/health", parameters: [] }, {})).resolves.toMatchObject({ data: "OK", status: 200 });
+    await expect(client.request(operation, { uuid: "app" })).rejects.toThrow("COOLIFY_ACCESS_TOKEN is required");
+    expect(requests).toEqual(["/api/v1/health"]);
+  });
+
   test("returns a structured envelope with encoded requests", async () => {
     let request = "";
     const client = new CoolifyClient(config, async (url, init) => {

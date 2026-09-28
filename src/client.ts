@@ -51,7 +51,7 @@ export class CoolifyClient {
     const baseUrl = this.config.baseUrl;
     if (!baseUrl) throw new CoolifyApiError(0, operation.method, operation.path, "COOLIFY_BASE_URL is required");
     const token = this.config.token;
-    if (!token) throw new CoolifyApiError(0, operation.method, operation.path, "COOLIFY_ACCESS_TOKEN is required");
+    if (!token && !(operation.method === "GET" && operation.path === "/health")) throw new CoolifyApiError(0, operation.method, operation.path, "COOLIFY_ACCESS_TOKEN is required");
     let path = operation.path;
     for (const parameter of operation.parameters) if (parameter.location === "path") {
       path = path.replace(`{${parameter.name}}`, pathValue(input[parameter.name], parameter.name));
@@ -59,7 +59,8 @@ export class CoolifyClient {
     if (path.includes("{")) throw new Error(`Unresolved path parameter in ${operation.path}`);
     const url = new URL(baseUrl + path);
     for (const parameter of operation.parameters) if (parameter.location === "query") appendQuery(url, parameter.name, input[parameter.name]);
-    const headers = new Headers({ accept: "application/json, text/plain, */*", authorization: `Bearer ${token}` });
+    const headers = new Headers({ accept: "application/json, text/plain, */*" });
+    if (token) headers.set("authorization", `Bearer ${token}`);
     const init: RequestInit = { method: operation.method, headers, signal: AbortSignal.timeout(this.config.timeoutMs) };
     if (input.body !== undefined && !["GET", "HEAD"].includes(operation.method)) {
       headers.set("content-type", "application/json");
@@ -73,7 +74,8 @@ export class CoolifyClient {
     try {
       response = await this.fetchImpl(url, init);
     } catch (error) {
-      throw new CoolifyApiError(0, operation.method, path, `Coolify request failed for ${operation.method} ${path}: ${error instanceof Error ? error.message.replaceAll(token, "[REDACTED]") : "request error"}`);
+      const cause = error instanceof Error ? error.message : "request error";
+      throw new CoolifyApiError(0, operation.method, path, `Coolify request failed for ${operation.method} ${path}: ${token ? cause.replaceAll(token, "[REDACTED]") : cause}`);
     }
     if (!response.ok) {
       let fields = "";
@@ -82,7 +84,7 @@ export class CoolifyClient {
           const body = await response.json() as Record<string, unknown>;
           const errors = body?.errors;
           if (errors && typeof errors === "object" && !Array.isArray(errors)) {
-            fields = Object.keys(errors).filter((key) => /^[a-z][a-z0-9_.-]{0,63}$/iu.test(key)).slice(0, 8).map((key) => key.replaceAll(token, "[REDACTED]")).join(", ");
+            fields = Object.keys(errors).filter((key) => /^[a-z][a-z0-9_.-]{0,63}$/iu.test(key)).slice(0, 8).map((key) => token ? key.replaceAll(token, "[REDACTED]") : key).join(", ");
           }
         } catch {}
       }

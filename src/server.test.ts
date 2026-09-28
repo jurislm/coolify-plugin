@@ -9,8 +9,8 @@ import { pluginVersion } from "./version.js";
 const config: CoolifyConfig = { baseUrl: "https://coolify.example/api/v1", token: "secret", timeoutMs: 30_000 };
 const json = (value: unknown) => new Response(JSON.stringify(value), { headers: { "content-type": "application/json" } });
 
-async function connected(fetchImpl: Parameters<typeof createServer>[1]) {
-  const server = createServer(config, fetchImpl);
+async function connected(fetchImpl: Parameters<typeof createServer>[1], runtimeConfig: CoolifyConfig = config) {
+  const server = createServer(runtimeConfig, fetchImpl);
   const client = new Client({ name: "test", version: "0.0.0" });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
@@ -25,7 +25,7 @@ describe("generated Coolify MCP server", () => {
     await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
 
     const result = await client.listTools();
-    expect(result.tools).toHaveLength(operations.length + 11);
+    expect(result.tools).toHaveLength(operations.length + 12);
     expect(result.tools.every((tool) => tool.name.startsWith("coolify_"))).toBe(true);
     const deleteTool = result.tools.find((tool) => tool.name === "coolify_delete_application_by_uuid");
     expect(deleteTool?.annotations?.destructiveHint).toBe(true);
@@ -113,7 +113,7 @@ describe("generated Coolify MCP server", () => {
 
     const tools = await client.listTools();
     for (const name of [
-      "coolify_get_mcp_version", "coolify_get_infrastructure_overview", "coolify_diagnose_application", "coolify_diagnose_server", "coolify_find_issues",
+      "coolify_get_mcp_version", "coolify_check_connection", "coolify_get_infrastructure_overview", "coolify_diagnose_application", "coolify_diagnose_server", "coolify_find_issues",
       "coolify_restart_project_applications", "coolify_bulk_update_application_env", "coolify_stop_all_applications",
       "coolify_redeploy_project_applications", "coolify_docker_network_alias",
     ]) expect(tools.tools.some((tool) => tool.name === name)).toBe(true);
@@ -372,7 +372,72 @@ describe("generated Coolify MCP server", () => {
       return json(path.endsWith("/servers") ? [{ uuid: "server" }] : path.endsWith("/applications") ? [{ uuid: "app" }] : []);
     });
     const result = await client.callTool({ name: "coolify_get_infrastructure_overview", arguments: {} });
-    expect(result.structuredContent).toMatchObject({ data: { servers: [{ uuid: "server" }], projects: [], errors: ["projects: Coolify request failed for GET /projects: projects unavailable"] } });
+    expect(result.structuredContent).toMatchObject({ data: { complete: false, summary: { servers: 1, projects: null }, servers: [{ uuid: "server" }], projects: [], errors: ["projects: Coolify request failed for GET /projects: projects unavailable"] } });
+    await client.close();
+    await server.close();
+  });
+
+  test("does not report empty infrastructure when authentication is rejected", async () => {
+    const { server, client } = await connected(async () => new Response("Unauthorized", { status: 401 }));
+    const result = await client.callTool({ name: "coolify_get_infrastructure_overview", arguments: {} });
+    expect(result.isError).toBe(true);
+    expect(JSON.stringify(result)).toContain("401");
+    expect(JSON.stringify(result)).not.toContain('"servers":0');
+    await client.close();
+    await server.close();
+  });
+
+  test("does not report empty infrastructure when connection variables are missing", async () => {
+    let requests = 0;
+    const { server, client } = await connected(async () => { requests++; throw new Error("unexpected request"); }, { timeoutMs: 30_000 });
+    const result = await client.callTool({ name: "coolify_get_infrastructure_overview", arguments: {} });
+    expect(result.isError).toBe(true);
+    expect(requests).toBe(0);
+    expect(JSON.stringify(result)).not.toContain('"servers":0');
+    await client.close();
+    await server.close();
+  });
+
+  test("does not report an inventory when every resource request fails", async () => {
+    const { server, client } = await connected(async () => new Response("Unavailable", { status: 503 }));
+    const result = await client.callTool({ name: "coolify_get_infrastructure_overview", arguments: {} });
+    expect(result.isError).toBe(true);
+    expect(JSON.stringify(result)).toContain("503");
+    await client.close();
+    await server.close();
+  });
+
+  test("reports authentication failure even when another inventory request fails first", async () => {
+    const { server, client } = await connected(async (url) => new Response("Unavailable", {
+      status: new URL(String(url)).pathname.endsWith("/projects") ? 401 : 503,
+    }));
+    const result = await client.callTool({ name: "coolify_get_infrastructure_overview", arguments: {} });
+    expect(result.isError).toBe(true);
+    expect(JSON.stringify(result)).toContain("401");
+    await client.close();
+    await server.close();
+  });
+
+  test("checks connection without exposing credentials", async () => {
+    const { server, client } = await connected(async (url) => new URL(String(url)).pathname.endsWith("/health")
+      ? new Response("OK", { status: 200, headers: { "content-type": "text/plain" } })
+      : new Response("Unauthorized", { status: 401 }));
+    const result = await client.callTool({ name: "coolify_check_connection", arguments: {} });
+    expect(result.structuredContent).toMatchObject({ data: { configuration: { base_url_configured: true, credential_present: true }, provider: { health_status: 200, version_status: 401 } } });
+    expect(JSON.stringify(result)).not.toContain("secret");
+    await client.close();
+    await server.close();
+  });
+
+  test("checks public health when the URL is set but the credential is missing", async () => {
+    const requests: Array<{ path: string; authorization: string | null }> = [];
+    const { server, client } = await connected(async (url, init) => {
+      requests.push({ path: new URL(String(url)).pathname, authorization: new Headers(init?.headers).get("authorization") });
+      return new Response("OK", { status: 200, headers: { "content-type": "text/plain" } });
+    }, { baseUrl: "https://coolify.example/api/v1", timeoutMs: 30_000 });
+    const result = await client.callTool({ name: "coolify_check_connection", arguments: {} });
+    expect(result.structuredContent).toMatchObject({ data: { configuration: { credential_present: false }, provider: { health_status: 200, version_status: null } } });
+    expect(requests).toEqual([{ path: "/api/v1/health", authorization: null }]);
     await client.close();
     await server.close();
   });

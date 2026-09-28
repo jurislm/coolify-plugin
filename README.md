@@ -33,6 +33,10 @@ codex plugin marketplace add https://github.com/jurislm/coolify-plugin
 codex plugin add coolify-plugin@coolify-marketplace
 ```
 
+To check a connection, call `coolify_get_mcp_version`, then `coolify_check_connection`. The second tool reports the selected variable pair, whether a URL and credential are present, and the HTTP status of `/health` and `/version`. It never returns credential values. With a URL but no credential, it still checks public `/health` and leaves `/version` unattempted. A healthy `/health` with a 401 from `/version` means the instance is reachable but rejected the authenticated request; the response alone does not establish whether the credential expired, was revoked, or came from the wrong launcher.
+
+Check the active MCP registration separately. A standalone server named `coolify` can run the same package while the marketplace plugin's MCP is disabled. `coolify_get_mcp_version` identifies the package version, not which registration launched it. `coolify_get_infrastructure_overview` reports authentication failures and all-list failures as tool errors. When only some lists fail for other reasons, their counts are `null` and `complete` is `false`.
+
 ## Install in Cursor
 
 In Cursor, open **Customize → Plugins → Add Marketplace → Import from GitHub**, enter `https://github.com/jurislm/coolify-plugin`, then install **Coolify Plugin**. The marketplace selects `plugins/cursor`, keeping the Codex-only root `.mcp.json` out of Cursor's plugin root. For Cloud Agents, set both `COOLIFY_BASE_URL` and `COOLIFY_ACCESS_TOKEN` in the Cloud environment's secrets and start a new agent from that environment. Local agents can use the plugin's **Configure** panel. After updating from v4.0.16 or earlier, re-enter both Local Configure fields because their variable names changed. If either Cloud environment variable is set, the plugin uses only the Cloud pair and does not mix it with Configure values. Run a read-only Coolify tool to verify provider access.
