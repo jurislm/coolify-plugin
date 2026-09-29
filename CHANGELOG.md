@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [4.0.22](https://github.com/jurislm/coolify-plugin/compare/v4.0.21...v4.0.22) (2026-09-29)
+
+
+### Documentation
+
+* update Coolify README and add AGENTS guide ([580a11e](https://github.com/jurislm/coolify-plugin/commit/580a11eda4ffe7f5568c3448aa35c0995a4ab210))
+* update Coolify README and add AGENTS.md ([4d6a945](https://github.com/jurislm/coolify-plugin/commit/4d6a945f9b763fd207fff6eed62acbebb5b3fb22))
+
 ## [4.0.21](https://github.com/jurislm/coolify-plugin/compare/v4.0.20...v4.0.21) (2026-09-28)
 
 
