@@ -3,6 +3,8 @@ const files = ["plugin.json", ".codex-plugin/plugin.json", "plugins/cursor/.curs
 const parsed = Object.fromEntries(await Promise.all(files.map(async (file) => [file, JSON.parse(await Bun.file(file).text()) as Json])));
 const packageJson = JSON.parse(await Bun.file("package.json").text()) as Json;
 const packageVersion = String(packageJson.version);
+const officialWebsite = "https://jurislm.github.io/coolify-plugin/";
+const repositoryUrl = "https://github.com/jurislm/coolify-plugin";
 const portableKeys = ["$schema", "name", "version", "description", "author", "homepage", "repository", "license", "keywords", "extensions"];
 const unexpectedPortableKeys = Object.keys(parsed["plugin.json"]).filter((key) => !portableKeys.includes(key));
 if (unexpectedPortableKeys.length > 0) throw new Error(`plugin.json contains non-portable fields: ${unexpectedPortableKeys.join(", ")}`);
@@ -16,10 +18,10 @@ for (const manifestInterface of [portableInterface, fallbackInterface]) {
   if (manifestInterface.shortDescription !== "Manage Coolify locally.") throw new Error("Plugin short description must describe local Coolify access");
   if (JSON.stringify(manifestInterface.capabilities) !== JSON.stringify(["Read", "Write"])) throw new Error("Plugin capabilities must match Woodpecker");
   if (manifestInterface.composerIcon !== "./assets/coolify.png" || manifestInterface.logo !== "./assets/coolify.png") throw new Error("Plugin icons must use the shipped Coolify PNG");
-  if (manifestInterface.websiteURL !== "https://github.com/jurislm/coolify-plugin") throw new Error("Plugin websiteURL must point to the public repository");
+  if (manifestInterface.websiteURL !== officialWebsite) throw new Error("Plugin websiteURL must point to the official website");
 }
-if (parsed["plugin.json"].homepage !== "https://github.com/jurislm/coolify-plugin" || parsed["plugin.json"].repository !== "https://github.com/jurislm/coolify-plugin") throw new Error("Portable manifest repository metadata must match Woodpecker");
-if ((parsed[".codex-plugin/plugin.json"].repository as string) !== "https://github.com/jurislm/coolify-plugin") throw new Error("Fallback manifest repository metadata must match Woodpecker");
+if (parsed["plugin.json"].homepage !== officialWebsite || parsed["plugin.json"].repository !== repositoryUrl) throw new Error("Portable manifest must link to the official website and repository");
+if ((parsed[".codex-plugin/plugin.json"].repository as string) !== repositoryUrl) throw new Error("Fallback manifest repository metadata must point to the public repository");
 if (parsed["mcp.json"].$schema !== "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json") throw new Error("mcp.json must use the portable Agent Plugins schema");
 for (const file of ["plugin.json", ".codex-plugin/plugin.json"]) {
   const manifest = parsed[file];
