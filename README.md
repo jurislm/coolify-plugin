@@ -1,6 +1,6 @@
 # @jurislm/coolify-plugin
 
-Portable Coolify MCP plugin. It exposes focused `coolify_*` stdio tools generated from one pinned Coolify API contract.
+Portable Coolify MCP plugin. It exposes focused `coolify_*` tools generated from one pinned Coolify API contract, plus explicit composite tools for common workflows.
 
 ## Scope
 
@@ -47,7 +47,7 @@ For local agents, a complete saved Configure URL/token pair takes precedence ove
 
 ## OpenAPI contract
 
-`openapi/coolify-openapi.json` is built from the official Coolify v4.3.23 release. `api/manifest.json` records the upstream SHA-256, the current API contract corrections, and the persisted SHA-256. `bun run api:check` verifies the contract offline before checking generated parity. The runtime uses the generated schemas directly.
+`openapi/coolify-openapi.json` is built from the official Coolify v4.3.23 release. `api/manifest.json` records the upstream SHA-256, the current API contract corrections, and the persisted SHA-256. `bun run api:check` verifies the contract offline before checking generated parity. The server registers every generated operation with its generated schema and adds explicit composite capabilities for connection checks, inventory, diagnostics, and batch operations.
 
 ```sh
 bun run api:fetch
