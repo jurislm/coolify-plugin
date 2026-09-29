@@ -45,7 +45,7 @@ const cursorVariableProperties = cursorVariables.properties as Json;
 const cursorMcpServer = ((parsed["plugins/cursor/mcp.json"].mcpServers as Json).coolify as Json);
 const cursorMcpEnv = cursorMcpServer.env as Json;
 const portableMcpServer = ((parsed["mcp.json"].mcpServers as Json).coolify as Json);
-if (cursorPlugin.name !== "coolify-plugin" || cursorPlugin.skills !== "./skills/" || cursorPlugin.mcpServers !== "./mcp.json" || cursorPlugin.logo !== "assets/coolify.png") throw new Error("Cursor plugin manifest must reference the shipped Coolify components");
+if (cursorPlugin.name !== "coolify-plugin" || cursorPlugin.skills !== "./skills/" || cursorPlugin.mcpServers !== "./mcp.json" || cursorPlugin.logo !== "assets/coolify.png" || cursorPlugin.homepage !== officialWebsite) throw new Error("Cursor plugin manifest must reference the official website and shipped components");
 if (await Bun.file("plugins/cursor/skills/coolify/SKILL.md").text() !== await Bun.file("skills/coolify/SKILL.md").text()) throw new Error("Cursor skill must match the root Coolify skill");
 if (!(await Bun.file("plugins/cursor/assets/coolify.png").exists())) throw new Error("Cursor plugin logo is missing");
 if (cursorVariables.type !== "object" || JSON.stringify(cursorVariables.required) !== "[]" || !("CURSOR_COOLIFY_BASE_URL" in cursorVariableProperties) || !("CURSOR_COOLIFY_ACCESS_TOKEN" in cursorVariableProperties) || "COOLIFY_BASE_URL" in cursorVariableProperties || "COOLIFY_ACCESS_TOKEN" in cursorVariableProperties) throw new Error("Cursor plugin must declare only optional Configure aliases");
