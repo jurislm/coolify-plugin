@@ -22,7 +22,7 @@
     ],
     "composerIcon": "./assets/coolify.png",
     "logo": "./assets/coolify.png",
-    "websiteURL": "https://github.com/jurislm/coolify-plugin",
+    "websiteURL": "https://jurislm.github.io/coolify-plugin/",
     "defaultPrompt": "List my Coolify resources."
   }
 }

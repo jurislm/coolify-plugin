@@ -2,6 +2,8 @@
 
 Portable Coolify MCP plugin. It exposes focused `coolify_*` tools generated from one pinned Coolify API contract, plus explicit composite tools for common workflows.
 
+Official website: [JurisLM Coolify Plugin](https://jurislm.github.io/coolify-plugin/).
+
 ## Scope
 
 This repository provides a local Codex and Cursor plugin. It runs a stdio MCP server against a user-configured Coolify instance. OpenAI public Plugin Directory submission is outside this scope; public HTTPS, OAuth, and listing requirements are not acceptance criteria for this local plugin.

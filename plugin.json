@@ -7,7 +7,7 @@
     "name": "JurisLM",
     "url": "https://github.com/jurislm"
   },
-  "homepage": "https://github.com/jurislm/coolify-plugin",
+  "homepage": "https://jurislm.github.io/coolify-plugin/",
   "repository": "https://github.com/jurislm/coolify-plugin",
   "license": "MIT",
   "keywords": [
@@ -33,7 +33,7 @@
         ],
         "composerIcon": "./assets/coolify.png",
         "logo": "./assets/coolify.png",
-        "websiteURL": "https://github.com/jurislm/coolify-plugin"
+        "websiteURL": "https://jurislm.github.io/coolify-plugin/"
       }
     }
   }
