@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [4.0.24](https://github.com/jurislm/coolify-plugin/compare/v4.0.23...v4.0.24) (2026-09-29)
+
+
+### Documentation
+
+* align Cursor marketplace instructions ([47ca11f](https://github.com/jurislm/coolify-plugin/commit/47ca11fbb11beaa4cb28f677fcd9f54b3671b07d))
+* refine Coolify plugin site copy ([5624daf](https://github.com/jurislm/coolify-plugin/commit/5624daf2b1b415ef68cbe6fd41d6ae36d7ebf59b))
+* refine Coolify plugin website copy ([0e01c7a](https://github.com/jurislm/coolify-plugin/commit/0e01c7a45ea8f6ea3f1da884c0fac7fd2c75d1b6))
+* show copyable Cursor repository URL ([35abc06](https://github.com/jurislm/coolify-plugin/commit/35abc06bc8a830320090adc016e96155b6bf8f3c))
+
 ## [4.0.23](https://github.com/jurislm/coolify-plugin/compare/v4.0.22...v4.0.23) (2026-09-29)
 
 
