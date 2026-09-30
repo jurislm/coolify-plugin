@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { CoolifyApiError, CoolifyClient, redactSensitive } from "./client.js";
+import { errorMessage as safeErrorMessage } from "./errors.js";
 import type { CoolifyConfig } from "./config.js";
 import { operations } from "./generated/operations.js";
 import { pluginVersion } from "./version.js";
@@ -18,7 +19,6 @@ function rows(value: unknown): RecordValue[] {
 function status(value: RecordValue): string { return typeof value.status === "string" ? value.status : ""; }
 function running(value: RecordValue): boolean { return /(^|:)running($|:)/iu.test(status(value)); }
 function unhealthy(value: RecordValue): boolean { return /exited|unhealthy|error|stopped/iu.test(status(value)); }
-function errorMessage(value: unknown): string { return value instanceof Error ? value.message : String(value); }
 function truncateLogs(logs: string, lineLimit = 200, charLimit = 50_000): string {
   if (logs.split("\n").length <= lineLimit && logs.length <= charLimit) return logs;
   let result = logs.split("\n").slice(-lineLimit).join("\n");
@@ -31,6 +31,7 @@ function environmentSummary(value: unknown): RecordValue[] {
 }
 
 export function registerCapabilities(server: McpServer, client: CoolifyClient, config: CoolifyConfig): void {
+  const errorMessage = (error: unknown) => safeErrorMessage(error, [config.token]);
   const call = async (name: string, input: RecordValue = {}): Promise<unknown> => {
     const operation = operations.find((item) => item.name === name);
     if (!operation) throw new Error(`Missing generated operation: ${name}`);
@@ -42,7 +43,10 @@ export function registerCapabilities(server: McpServer, client: CoolifyClient, c
     return { structuredContent, content: [{ type: "text" as const, text: JSON.stringify(structuredContent) }] };
   };
   const register = (name: string, description: string, inputSchema: z.ZodType, annotations: { readOnlyHint: boolean; destructiveHint: boolean; idempotentHint: boolean; openWorldHint: boolean }, handler: (input: RecordValue) => Promise<unknown>) => {
-    server.registerTool(name, { title: description, description, inputSchema, outputSchema, annotations }, async (input) => result(name, await handler(input as RecordValue)));
+    server.registerTool(name, { title: description, description, inputSchema, outputSchema, annotations }, async (input) => {
+      try { return result(name, await handler(input as RecordValue)); }
+      catch (error) { return { isError: true, content: [{ type: "text" as const, text: errorMessage(error) }] }; }
+    });
   };
   const settledRows = async (names: string[]): Promise<{ values: RecordValue[][]; errors: string[]; failed: Set<number> }> => {
     const settled = await Promise.allSettled(names.map((name) => call(`coolify_list_${name}`)));
@@ -98,7 +102,7 @@ export function registerCapabilities(server: McpServer, client: CoolifyClient, c
     return rows(apps).filter((app) => environmentIds.has(app.environment_id));
   };
 
-  register("coolify_get_mcp_version", "Get the local Coolify plugin version.", z.object({}), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async () => ({ name: "@jurislm/coolify-plugin", version: pluginVersion }));
+  register("coolify_get_mcp_version", "Get the local Coolify plugin version.", z.object({}), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, () => Promise.resolve({ name: "@jurislm/coolify-plugin", version: pluginVersion }));
   register("coolify_check_connection", "Check selected configuration and Coolify API status without exposing credentials.", z.object({}), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async () => {
     const probe = async (name: string): Promise<number | null> => {
       const operation = operations.find((item) => item.name === name);
@@ -113,7 +117,7 @@ export function registerCapabilities(server: McpServer, client: CoolifyClient, c
   register("coolify_diagnose_application", "Diagnose an application by UUID, name, or domain.", z.object({ query: z.string() }), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async ({ query }) => {
     let app: RecordValue | undefined;
     try { app = await application(String(query)); } catch (error) { return { application: null, health: { status: "unknown", issues: [] }, logs: null, environment_variables: { count: 0, variables: [] }, recent_deployments: [], errors: [errorMessage(error)] }; }
-    if (!app?.uuid) return { application: null, health: { status: "unknown", issues: [] }, logs: null, environment_variables: { count: 0, variables: [] }, recent_deployments: [], errors: [`No application found matching ${query}`] };
+    if (!app?.uuid) return { application: null, health: { status: "unknown", issues: [] }, logs: null, environment_variables: { count: 0, variables: [] }, recent_deployments: [], errors: [`No application found matching ${String(query)}`] };
     const names = ["application", "logs", "environment_variables", "deployments"];
     const settled = await Promise.allSettled([
       call("coolify_get_application_by_uuid", { uuid: app.uuid }), running(app) ? call("coolify_get_application_logs_by_uuid", { uuid: app.uuid, lines: 50 }) : Promise.resolve(null), call("coolify_list_envs_by_application_uuid", { uuid: app.uuid }), call("coolify_list_deployments_by_app_uuid", { uuid: app.uuid }),
@@ -139,7 +143,7 @@ export function registerCapabilities(server: McpServer, client: CoolifyClient, c
   register("coolify_diagnose_server", "Diagnose a server by UUID, name, or IP.", z.object({ query: z.string() }), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async ({ query }) => {
     let found: RecordValue | undefined;
     try { found = await serverByQuery(String(query)); } catch (error) { return { server: null, health: { status: "unknown", issues: [] }, resources: [], domains: [], errors: [errorMessage(error)] }; }
-    if (!found?.uuid) return { server: null, health: { status: "unknown", issues: [] }, resources: [], domains: [], errors: [`No server found matching ${query}`] };
+    if (!found?.uuid) return { server: null, health: { status: "unknown", issues: [] }, resources: [], domains: [], errors: [`No server found matching ${String(query)}`] };
     const names = ["server", "resources", "domains"];
     const settled = await Promise.allSettled([
       call("coolify_get_server_by_uuid", { uuid: found.uuid }), call("coolify_get_resources_by_server_uuid", { uuid: found.uuid }), call("coolify_get_domains_by_server_uuid", { uuid: found.uuid }),
@@ -165,7 +169,7 @@ export function registerCapabilities(server: McpServer, client: CoolifyClient, c
   });
   register("coolify_restart_project_applications", "Restart every application in a project.", z.object({ project_uuid: z.string() }), { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }, async ({ project_uuid }) => batch(await projectApplications(String(project_uuid)), (app) => call("coolify_restart_application_by_uuid", { uuid: app.uuid })));
   register("coolify_bulk_update_application_env", "Update an environment variable across applications.", z.object({ app_uuids: z.array(z.string()), key: z.string(), value: z.string() }).strict(), { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }, async ({ app_uuids, key, value }) => {
-    if (!(app_uuids as string[]).length) return batch([], async () => undefined);
+    if (!(app_uuids as string[]).length) return batch([], () => Promise.resolve(undefined));
     const names = rows(await call("coolify_list_applications"));
     const labels = new Map(names.map((item) => [item.uuid, item.name ?? item.uuid]));
     return batch((app_uuids as string[]).map((uuid) => ({ uuid, name: labels.get(uuid) ?? uuid })), (app) => call("coolify_update_env_by_application_uuid", { uuid: app.uuid, body: { key, value } }));
@@ -180,13 +184,13 @@ export function registerCapabilities(server: McpServer, client: CoolifyClient, c
     if (!environment) return { environment: null, missing_database_types: [...databaseTypes], ...(errors.length ? { errors } : {}) };
     const matching = databases.filter((database) => environment.id !== undefined && database.environment_id === environment.id);
     const byType = new Map<string, RecordValue[]>();
-    matching.forEach((database) => { const type = String(database.database_type ?? "").toLowerCase(); for (const expected of databaseTypes) if (type.includes(expected)) byType.set(expected, [...(byType.get(expected) ?? []), database]); });
+    matching.forEach((database) => { const type = typeof database.database_type === "string" ? database.database_type.toLowerCase() : ""; for (const expected of databaseTypes) if (type.includes(expected)) byType.set(expected, [...(byType.get(expected) ?? []), database]); });
     const missing = databaseTypes.filter((type) => !byType.has(type));
     return { ...environment, ...Object.fromEntries(databaseTypes.filter((type) => byType.has(type)).map((type) => [`${type}s`, byType.get(type)])), missing_database_types: missing, ...(errors.length ? { errors } : {}) };
   });
   register("coolify_docker_network_alias", "Generate Docker network alias remediation commands.", z.object({ server_uuid: z.string().regex(/^[a-zA-Z0-9-]{1,64}$/u), db_uuid: z.string().regex(/^[a-zA-Z0-9-]{1,64}$/u), name: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,62}$/u), network: z.string().optional() }), { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }, async ({ server_uuid, db_uuid, name, network = "coolify" }) => {
     const server = await call("coolify_get_server_by_uuid", { uuid: server_uuid }).catch(() => null) as RecordValue | null;
     const quote = (value: string) => `'${value.replace(/'/gu, "'\\''")}'`;
-    return { bug: "Coolify database containers may require a friendly Docker network alias.", warning: "The alias is lost after a rebuild or redeploy.", ...(server ? { server: { ip: server.ip, user: server.user, port: server.port } } : { server_lookup_failed: "Could not retrieve server details" }), commands: { ssh_connect: server ? `ssh -p ${server.port} ${server.user}@${server.ip}` : "ssh -p <port> <user>@<server-ip>", add_alias: [`docker network disconnect ${quote(String(network))} ${quote(String(db_uuid))}`, `docker network connect ${quote(String(network))} ${quote(String(db_uuid))} --alias ${quote(String(name))} --alias ${quote(String(db_uuid))}`], verify: `docker exec <any-app-container> getent hosts ${quote(String(name))}` }, next_actions: [{ tool: "coolify_get_database_by_uuid", args: { uuid: db_uuid }, hint: "Check database status" }] };
+    return { bug: "Coolify database containers may require a friendly Docker network alias.", warning: "The alias is lost after a rebuild or redeploy.", ...(server ? { server: { ip: server.ip, user: server.user, port: server.port } } : { server_lookup_failed: "Could not retrieve server details" }), commands: { ssh_connect: server ? `ssh -p ${String(server.port)} ${String(server.user)}@${String(server.ip)}` : "ssh -p <port> <user>@<server-ip>", add_alias: [`docker network disconnect ${quote(String(network))} ${quote(String(db_uuid))}`, `docker network connect ${quote(String(network))} ${quote(String(db_uuid))} --alias ${quote(String(name))} --alias ${quote(String(db_uuid))}`], verify: `docker exec <any-app-container> getent hosts ${quote(String(name))}` }, next_actions: [{ tool: "coolify_get_database_by_uuid", args: { uuid: db_uuid }, hint: "Check database status" }] };
   });
 }

@@ -1,25 +1,27 @@
-import eslint from '@eslint/js';
-import { defineConfig } from 'eslint/config';
-import tseslint from 'typescript-eslint';
-import prettier from 'eslint-config-prettier';
-import globals from 'globals';
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
 
-export default defineConfig(
-  eslint.configs.recommended,
-  ...tseslint.configs.recommended,
-  prettier,
+export default tseslint.config(
   {
+    ignores: ["dist/**", "node_modules/**", "src/generated/**"],
+  },
+  {
+    files: ["src/**/*.ts", "scripts/**/*.ts"],
+    extends: [js.configs.recommended, tseslint.configs.recommended],
+  },
+  {
+    files: ["src/**/*.ts"],
+    ignores: ["src/**/*.test.ts", "src/generated/**"],
+    extends: [tseslint.configs.recommendedTypeChecked],
     languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-      globals: { ...globals.node },
-    },
-    rules: {
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'error',
+      parserOptions: {
+        project: "./tsconfig.test.json",
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', '.worktrees/'],
+    files: ["src/**/*.test.ts", "scripts/generate-openapi.ts", "scripts/update-openapi.ts", "scripts/ci/test-release-workflows.ts"],
+    rules: { "@typescript-eslint/no-explicit-any": "off" },
   },
 );

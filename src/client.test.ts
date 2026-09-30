@@ -12,6 +12,12 @@ const operation = {
 };
 
 describe("CoolifyClient", () => {
+  test("preserves binary base64 bytes", async () => {
+    const client = new CoolifyClient(config, async () => new Response(new Uint8Array([65]), { headers: { "content-type": "application/octet-stream" } }));
+    await expect(client.request(operation, { uuid: "app" })).resolves.toEqual({
+      data: { encoding: "base64", contentType: "application/octet-stream", value: "QQ==" }, status: 200, request: { method: "GET", path: "/applications/app" },
+    });
+  });
   test("allows public health without a credential while protecting other endpoints", async () => {
     const requests: string[] = [];
     const client = new CoolifyClient({ baseUrl: config.baseUrl, timeoutMs: 30_000 }, async (url, init) => {

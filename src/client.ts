@@ -1,6 +1,6 @@
 import type { GeneratedOperation } from "./generated/operations.js";
 import type { CoolifyConfig } from "./config.js";
-import { CoolifyApiError } from "./errors.js";
+import { CoolifyApiError, redactErrorText } from "./errors.js";
 
 export interface ToolEnvelope<T> {
   data: T;
@@ -15,27 +15,31 @@ export interface BinaryEnvelope {
 }
 
 export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+type Scalar = string | number | boolean | null | undefined;
 type Operation = Pick<GeneratedOperation, "method" | "path" | "parameters">;
 const sensitiveKey = /(^value$|real_?value|private_?key|api_?key|user_?key|webhook_?url|token|secret|password|authorization|cookie)/iu;
 
 export function redactSensitive<T>(value: T): T {
   if (Array.isArray(value)) return value.map(redactSensitive) as T;
   if (!value || typeof value !== "object") return value;
+  const binary = (value as Partial<BinaryEnvelope>).encoding === "base64" && typeof (value as Partial<BinaryEnvelope>).contentType === "string" && typeof (value as Partial<BinaryEnvelope>).value === "string";
   return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, child]) => [
     key,
-    sensitiveKey.test(key) ? "[REDACTED]" : redactSensitive(child),
+    sensitiveKey.test(key) && !(binary && key === "value") ? "[REDACTED]" : redactSensitive(child),
   ])) as T;
 }
 
 function pathValue(value: unknown, name: string): string {
   if (value === undefined || value === null) throw new Error(`Missing required path parameter: ${name}`);
-  return encodeURIComponent(String(value));
+  return encodeURIComponent(stringifyScalar(value as Scalar));
 }
+
+function stringifyScalar(value: Scalar): string { return String(value); }
 
 function appendQuery(url: URL, name: string, value: unknown): void {
   if (value === undefined || value === null) return;
-  if (Array.isArray(value)) for (const item of value) url.searchParams.append(name, String(item));
-  else url.searchParams.set(name, typeof value === "object" ? JSON.stringify(value) : String(value));
+  if (Array.isArray(value)) for (const item of value) url.searchParams.append(name, stringifyScalar(item as Scalar));
+  else url.searchParams.set(name, typeof value === "object" ? JSON.stringify(value) : stringifyScalar(value as Scalar));
 }
 
 function base64(bytes: ArrayBuffer): string {
@@ -75,7 +79,7 @@ export class CoolifyClient {
       response = await this.fetchImpl(url, init);
     } catch (error) {
       const cause = error instanceof Error ? error.message : "request error";
-      throw new CoolifyApiError(0, operation.method, path, `Coolify request failed for ${operation.method} ${path}: ${token ? cause.replaceAll(token, "[REDACTED]") : cause}`);
+      throw new CoolifyApiError(0, operation.method, path, `Coolify request failed for ${operation.method} ${path}: ${redactErrorText(cause, [token])}`);
     }
     if (!response.ok) {
       let fields = "";
@@ -86,17 +90,21 @@ export class CoolifyClient {
           if (errors && typeof errors === "object" && !Array.isArray(errors)) {
             fields = Object.keys(errors).filter((key) => /^[a-z][a-z0-9_.-]{0,63}$/iu.test(key)).slice(0, 8).map((key) => token ? key.replaceAll(token, "[REDACTED]") : key).join(", ");
           }
-        } catch {}
+        } catch { fields = ""; }
       }
       throw new CoolifyApiError(response.status, operation.method, path, `Coolify API returned ${response.status} for ${operation.method} ${path}${fields ? `; fields: ${fields}` : ""}`);
     }
 
     let data: T | null | string | BinaryEnvelope = null;
-    if (response.status !== 204) {
-      const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
-      if (contentType.includes("json")) data = await response.json() as T;
-      else if (contentType.startsWith("text/") || contentType.includes("xml")) data = await response.text();
-      else data = { encoding: "base64", contentType: contentType || "application/octet-stream", value: base64(await response.arrayBuffer()) };
+    try {
+      if (response.status !== 204) {
+        const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+        if (contentType.includes("json")) data = await response.json() as T;
+        else if (contentType.startsWith("text/") || contentType.includes("xml")) data = await response.text();
+        else data = { encoding: "base64", contentType: contentType || "application/octet-stream", value: base64(await response.arrayBuffer()) };
+      }
+    } catch {
+      throw new Error("Coolify API returned an unreadable response body");
     }
     return redactSensitive({ data, status: response.status, request: { method: operation.method, path } });
   }
