@@ -6,7 +6,7 @@ steps:
   - name: verify
     image: oven/bun:1.3.14-alpine
     commands:
-      - apk add --no-cache git
+      - apk add --no-cache git zsh
       - bun install --frozen-lockfile
       - bun run check
       - bun scripts/check-release-tag.ts
