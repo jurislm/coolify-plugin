@@ -63,8 +63,8 @@ test("desktop launcher stops after startup failure even with inherited complete 
   expect(result).toMatchObject({ code: 12, output: "", error: "startup-failure\n" });
 });
 
-test("desktop launcher permits a benign final optional guard with complete credentials", () => {
-  const result = launch('export COOLIFY_BASE_URL=https://canonical.example\nexport COOLIFY_ACCESS_TOKEN=fixture-canonical\n[[ -n ${OPTIONAL_FIXTURE:-} ]] && export OPTIONAL_FIXTURE\n');
+test.each(["", "setopt ERR_EXIT\n"])("desktop launcher permits a benign final optional guard with complete credentials: %s", (options) => {
+  const result = launch(`${options}export COOLIFY_BASE_URL=https://canonical.example\nexport COOLIFY_ACCESS_TOKEN=fixture-canonical\n[[ -n \${OPTIONAL_FIXTURE:-} ]] && export OPTIONAL_FIXTURE\n`);
   expect(result.code).toBe(0);
   expect(JSON.parse(result.output).result.serverInfo.name).toBe("coolify-plugin");
 });

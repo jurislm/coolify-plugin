@@ -2,8 +2,8 @@
 startup_file="${ZDOTDIR:-$HOME}/.zshenv"
 if [[ -r $startup_file ]]; then
   /bin/zsh -f -n "$startup_file" >/dev/null || exit $?
-  source "$startup_file" >/dev/null
-  startup_status=$?
+  startup_status=0
+  source "$startup_file" >/dev/null || startup_status=$?
   if (( startup_status > 1 )); then
     exit "$startup_status"
   fi
