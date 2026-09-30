@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { ciMetadataValue } from "./ci-metadata";
+import { ciMetadataValue } from "./ci-metadata.js";
 
 const REPOSITORY = "jurislm/coolify-plugin";
 const BASE_BRANCH = "main";

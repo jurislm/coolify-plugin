@@ -4,7 +4,7 @@ import {
   selectReleaseCandidate,
   validateChangedFiles,
   validateReleaseContents,
-} from "./release-pr-auto-merge";
+} from "./release-pr-auto-merge.js";
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);

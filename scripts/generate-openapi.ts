@@ -76,7 +76,7 @@ for (const [path, pathItem] of Object.entries(document.paths ?? {})) {
     const bodyType = Object.keys(bodyContent)[0];
     if (bodyType) {
       const bodySchema = bodyContent[bodyType]?.schema;
-      let bodyText = schemaText(bodySchema, !requestBody.required);
+      let bodyText = schemaText(bodySchema, !requestBody?.required);
       const requireAny = bodySchema?.["x-require-any"] as string[] | undefined;
       if (requireAny?.length) bodyText += `.refine((body) => ${requireAny.map((key) => `typeof body[${quote(key)}] === "string" && body[${quote(key)}].trim().length > 0`).join(" || ")}, { message: ${quote(`At least one of ${requireAny.join(", ")} is required`)} })`;
       const invalidCombinations = bodySchema?.["x-invalid-combinations"] as Array<{ values: Record<string, unknown>; message: string }> | undefined;

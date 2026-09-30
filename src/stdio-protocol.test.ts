@@ -9,6 +9,7 @@ test("serves the generated tool catalog over local stdio", async () => {
   delete env.COOLIFY_ACCESS_TOKEN;
   delete env.COOLIFY_URL;
   delete env.COOLIFY_TOKEN;
+  for (const name of ["COOLIFY_CLOUD_BASE_URL", "COOLIFY_CLOUD_ACCESS_TOKEN", "CURSOR_COOLIFY_BASE_URL", "CURSOR_COOLIFY_ACCESS_TOKEN"]) delete env[name];
   const transport = new StdioClientTransport({
     command: "bun",
     args: ["dist/index.js"],

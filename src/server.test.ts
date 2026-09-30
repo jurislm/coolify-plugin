@@ -18,6 +18,62 @@ async function connected(fetchImpl: Parameters<typeof createServer>[1], runtimeC
 }
 
 describe("generated Coolify MCP server", () => {
+  test("keeps generated JSON and composite plaintext API error contracts", async () => {
+    const { server, client } = await connected(async () => new Response("unavailable", { status: 503 }));
+    try {
+      expect(await client.callTool({ name: "coolify_list_applications", arguments: {} })).toEqual({
+        isError: true,
+        content: [{ type: "text", text: '{"error":{"code":"COOLIFY_API_ERROR","status":503,"method":"GET","path":"/applications","message":"Coolify API returned 503 for GET /applications"}}' }],
+      });
+      expect(await client.callTool({ name: "coolify_get_infrastructure_overview", arguments: {} })).toEqual({
+        isError: true, content: [{ type: "text", text: "Coolify API returned 503 for GET /servers" }],
+      });
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+
+  test("preserves complete composite partial-result envelopes and failed counts", async () => {
+    const { server, client } = await connected(async (url) => new URL(String(url)).pathname.endsWith("/projects") ? new Response("unavailable", { status: 503 }) : json([]));
+    try {
+      const structuredContent = {
+        data: { complete: false, summary: { servers: 0, projects: null, applications: 0, databases: 0, services: 0 }, servers: [], projects: [], applications: [], databases: [], services: [], errors: ["projects: Coolify API returned 503 for GET /projects"] },
+        status: 200, request: { method: "COMPOSITE", path: "/capabilities/coolify_get_infrastructure_overview" },
+      };
+      expect(await client.callTool({ name: "coolify_get_infrastructure_overview", arguments: {} })).toEqual({
+        structuredContent, content: [{ type: "text", text: JSON.stringify(structuredContent) }],
+      });
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+
+  test("redacts bearer secrets from generated and composite error adapters", async () => {
+    const { server, client } = await connected(async () => { throw new Error("Bearer unrelated-fixture failed"); });
+    try {
+      const generated = await client.callTool({ name: "coolify_list_applications", arguments: {} });
+      const composite = await client.callTool({ name: "coolify_get_infrastructure_overview", arguments: {} });
+      expect(generated).toEqual({ isError: true, content: [{ type: "text", text: '{"error":{"code":"COOLIFY_API_ERROR","status":0,"method":"GET","path":"/applications","message":"Coolify request failed for GET /applications: Bearer [REDACTED] failed"}}' }] });
+      expect(composite).toEqual({ isError: true, content: [{ type: "text", text: "Coolify request failed for GET /servers: Bearer [REDACTED] failed" }] });
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+
+  test("omits raw response-read errors from generated and composite outputs", async () => {
+    const { server, client } = await connected(async () => new Response(new ReadableStream({ start(controller) { controller.error(new Error("secret raw provider body")); } }), { headers: { "content-type": "application/json" } }));
+    try {
+      expect(await client.callTool({ name: "coolify_list_applications", arguments: {} })).toEqual({ isError: true, content: [{ type: "text", text: '{"error":{"code":"COOLIFY_TOOL_ERROR","message":"Coolify API returned an unreadable response body"}}' }] });
+      expect(await client.callTool({ name: "coolify_get_infrastructure_overview", arguments: {} })).toEqual({ isError: true, content: [{ type: "text", text: "Coolify API returned an unreadable response body" }] });
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+
   test("registers the authoritative generated contract with accurate metadata", async () => {
     const server = createServer(config, async () => new Response(JSON.stringify([]), { headers: { "content-type": "application/json" } }));
     const client = new Client({ name: "test", version: "0.0.0" });

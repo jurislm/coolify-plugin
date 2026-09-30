@@ -4,6 +4,8 @@ Portable Coolify MCP plugin. It exposes focused `coolify_*` tools generated from
 
 Official website: [JurisLM Coolify Plugin](https://jurislm.github.io/coolify-plugin/).
 
+Follow the shared [JurisLM Plugin Architecture v1](https://github.com/jurislm/woodpecker-ci-plugin/blob/main/docs/plugin-architecture.md) for package, host configuration and acceptance boundaries.
+
 ## Scope
 
 This repository provides a local Codex and Cursor plugin. It runs a stdio MCP server against a user-configured Coolify instance. OpenAI public Plugin Directory submission is outside this scope; public HTTPS, OAuth, and listing requirements are not acceptance criteria for this local plugin.
@@ -28,12 +30,30 @@ bun dist/index.js
 `mcp.json` and `.mcp.json` use the same published-package `bunx` stdio registration as the Woodpecker CI plugin. `.mcp.json.example` contains placeholder environment values only. NPM package release is allowed.
 
 For Codex repository marketplace installation, use the repository root and leave the sparse path empty. The supported marketplace manifest is `.agents/plugins/marketplace.json`; do not enter `plugins/codex`.
-The Codex MCP registration forwards `COOLIFY_BASE_URL` and `COOLIFY_ACCESS_TOKEN` from the Codex session environment. A desktop session may not inherit values exported in a terminal; start a new task after configuring the app environment, then verify a read-only Coolify tool before making changes.
+The native Codex registration forwards `COOLIFY_CLOUD_BASE_URL`, `COOLIFY_CLOUD_ACCESS_TOKEN`, `CURSOR_COOLIFY_BASE_URL`, `CURSOR_COOLIFY_ACCESS_TOKEN`, `COOLIFY_BASE_URL` and `COOLIFY_ACCESS_TOKEN` from its owning environment. Portable `mcp.json` contains no host-specific fields or credential defaults.
 
 ```sh
 codex plugin marketplace add https://github.com/jurislm/coolify-plugin
 codex plugin add coolify-plugin@coolify-marketplace
 ```
+
+### Codex desktop on macOS
+
+A Codex process launched from the Dock or Finder does not read zsh startup files. If your connection settings are exported by `.zshenv`, copy [`launchers/coolify-desktop.zsh`](launchers/coolify-desktop.zsh) to `~/.codex/bin/coolify-mcp.zsh`, then add this opt-in override to `~/.codex/config.toml`:
+
+```toml
+[plugins."coolify-plugin@coolify-marketplace".mcp_servers.coolify]
+enabled = false
+
+[mcp_servers.coolify]
+command = "/bin/zsh"
+args = ["-f", "-c", 'source "$HOME/.codex/bin/coolify-mcp.zsh"']
+startup_timeout_sec = 30
+```
+
+The launcher checks startup-file syntax before explicitly sourcing `${ZDOTDIR:-$HOME}/.zshenv`, suppresses stdout and preserves stderr. Source status 0 or 1 is accepted because a final optional guard can return 1; higher statuses stop startup. It retains only the six supported connection variables, `HOME`, `PATH`, `TMPDIR` and `LANG`, fixes PATH to `$HOME/.bun/bin:/usr/bin:/bin` and executes the absolute `$HOME/.bun/bin/bunx` path. The `--require-config` option reuses `loadConfig` to require the selected complete URL/token pair before starting stdio; trim, placeholder handling and pair precedence remain the same. Ordinary portable initialization and tool discovery can still start without credentials.
+
+Check `codex mcp get coolify`, restart Codex and open a fresh chat. Read `coolify_get_mcp_version` before connection checks and authenticated reads. Record the resolved package version, actual registration source, HTTP status and returned counts. Standalone stdio checks establish process behavior; fresh chat registration and provider reads require their own evidence.
 
 To check a connection, call `coolify_get_mcp_version`, then `coolify_check_connection`. The second tool reports the selected variable pair, whether a URL and credential are present, and the HTTP status of `/health` and `/version`. It never returns credential values. With a URL but no credential, it still checks public `/health` and leaves `/version` unattempted. A healthy `/health` with a 401 from `/version` means the instance is reachable but rejected the authenticated request; the response alone does not establish whether the credential expired, was revoked, or came from the wrong launcher.
 
@@ -60,7 +80,9 @@ bun run api:check
 ## Checks
 
 ```sh
+bun run check
 bun run api:check
+bun run lint
 bun run typecheck
 bun test
 bun run build

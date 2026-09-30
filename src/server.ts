@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { CoolifyApiError, CoolifyClient, redactSensitive } from "./client.js";
+import { CoolifyClient, redactSensitive } from "./client.js";
+import { formatToolError } from "./errors.js";
 import { registerCapabilities } from "./capabilities.js";
 import type { FetchLike } from "./client.js";
 import type { CoolifyConfig } from "./config.js";
@@ -29,9 +30,7 @@ export function createServer(config: CoolifyConfig, fetchImpl?: FetchLike): McpS
         const structuredContent = redactSensitive({ data, status: envelope.status, request: envelope.request });
         return { structuredContent, content: [{ type: "text" as const, text: JSON.stringify(structuredContent) }] };
       } catch (error) {
-        const details = error instanceof CoolifyApiError
-          ? { code: "COOLIFY_API_ERROR", status: error.status, method: error.method, path: error.path, message: error.message }
-          : { code: "COOLIFY_TOOL_ERROR", message: error instanceof Error ? error.message : String(error) };
+        const details = formatToolError(error, [config.token]);
         return { isError: true, content: [{ type: "text" as const, text: JSON.stringify({ error: details }) }] };
       }
     });
