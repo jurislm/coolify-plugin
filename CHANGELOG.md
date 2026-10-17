@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [4.0.27](https://github.com/jurislm/coolify-plugin/compare/v4.0.26...v4.0.27) (2026-10-17)
+
+
+### Bug Fixes
+
+* fill credential groups atomically from plugin env (JUR-751) ([1ff19fa](https://github.com/jurislm/coolify-plugin/commit/1ff19fafd928c8fb724d3996dbfd8e010387a66e))
+* launch with bun x and self-load plugin env (JUR-751) ([5905eb0](https://github.com/jurislm/coolify-plugin/commit/5905eb01383a5333be10582f40aeebd82c137e16))
+* launch with bun x and self-load plugin env (JUR-751) ([0b776e9](https://github.com/jurislm/coolify-plugin/commit/0b776e9d239c149539dfff33d196b20b7cbba0dd))
+
 ## [4.0.26](https://github.com/jurislm/coolify-plugin/compare/v4.0.25...v4.0.26) (2026-09-30)
 
 
