@@ -45,6 +45,17 @@ test.each(["env_vars", "env"])("portable MCP rejects %s credential settings", as
   expect(result.error).toContain("mcp.json:");
 });
 
+test.each([{ targets: ["mcp.json", ".mcp.json", "plugins/cursor/mcp.json"] }, { targets: [".mcp.json.example"] }])("%o must launch through bun x instead of the bunx shim", async ({ targets }) => {
+  const result = await validate((manifests) => {
+    for (const file of targets) {
+      server(manifests[file]).command = "bunx";
+      server(manifests[file]).args = ["-y", "@jurislm/coolify-plugin@latest"];
+    }
+  });
+  expect(result.code).not.toBe(0);
+  expect(result.error).toContain("bun x");
+});
+
 test("native MCP must keep the portable server identity and launch target", async () => {
   const result = await validate((manifests) => {
     (manifests[".mcp.json"].mcpServers as Json).unrelated = server(manifests[".mcp.json"]);

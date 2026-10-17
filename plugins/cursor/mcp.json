@@ -1,9 +1,9 @@
 {
   "mcpServers": {
     "coolify": {
-      "command": "bunx",
+      "command": "bun",
       "args": [
-        "-y",
+        "x",
         "@jurislm/coolify-plugin@latest"
       ],
       "env": {

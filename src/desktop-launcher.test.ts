@@ -10,7 +10,7 @@ test.each([
   { COOLIFY_BASE_URL: "https://canonical.example", CURSOR_COOLIFY_ACCESS_TOKEN: "fixture-cursor" },
   { COOLIFY_CLOUD_BASE_URL: "https://cloud.example", COOLIFY_BASE_URL: "https://canonical.example", COOLIFY_ACCESS_TOKEN: "fixture-canonical" },
 ])("opt-in startup rejects missing or mixed selected credentials: %j", (environment) => {
-  const result = Bun.spawnSync([process.execPath, resolve("src/index.ts"), "--require-config"], { env: { PATH: "/usr/bin:/bin", ...environment }, stdin: Buffer.from(initialize), stdout: "pipe", stderr: "pipe" });
+  const result = Bun.spawnSync([process.execPath, resolve("src/index.ts"), "--require-config"], { env: { PATH: "/usr/bin:/bin", JURISLM_PLUGIN_ENV: "/nonexistent/jurislm/plugin.env", ...environment }, stdin: Buffer.from(initialize), stdout: "pipe", stderr: "pipe" });
   expect(result.exitCode).toBe(1);
   expect(result.stdout.length).toBe(0);
   expect(new TextDecoder().decode(result.stderr)).toContain("complete URL/token pair");
@@ -26,8 +26,8 @@ function launch(startup: string, environment: Record<string, string | undefined>
     mkdirSync(startupDirectory);
     writeFileSync(join(fixtureHome, ".zshenv"), "return 88\n");
     writeFileSync(join(startupDirectory, ".zshenv"), startup);
-    const executable = join(bin, "bunx");
-    writeFileSync(executable, `#!/bin/sh\n[ "$1" = -y ] || exit 11\n[ "$2" = @jurislm/coolify-plugin@latest ] || exit 12\n[ "$3" = --require-config ] || exit 13\n[ "$PATH" = "$HOME/.bun/bin:/usr/bin:/bin" ] || exit 14\n[ -z "\${UNRELATED_SECRET+x}" ] || exit 15\n[ -z "\${PARENT_SECRET+x}" ] || exit 16\n[ -z "\${ZDOTDIR+x}" ] || exit 17\nexec '${process.execPath}' '${resolve("src/index.ts")}' --require-config\n`);
+    const executable = join(bin, "bun");
+    writeFileSync(executable, `#!/bin/sh\n[ "$1" = x ] || exit 11\n[ "$2" = @jurislm/coolify-plugin@latest ] || exit 12\n[ "$3" = --require-config ] || exit 13\n[ "$PATH" = "$HOME/.bun/bin:/usr/bin:/bin" ] || exit 14\n[ -z "\${UNRELATED_SECRET+x}" ] || exit 15\n[ -z "\${PARENT_SECRET+x}" ] || exit 16\n[ -z "\${ZDOTDIR+x}" ] || exit 17\nexec '${process.execPath}' '${resolve("src/index.ts")}' --require-config\n`);
     chmodSync(executable, 0o700);
     const result = Bun.spawnSync(["/bin/zsh", "-f", resolve("launchers/coolify-desktop.zsh")], {
       env: { HOME: fixtureHome, ZDOTDIR: startupDirectory, PATH: "/usr/bin:/bin", LANG: "C", PARENT_SECRET: "fixture-parent", ...environment }, stdin: Buffer.from(initialize), stdout: "pipe", stderr: "pipe",

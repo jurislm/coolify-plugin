@@ -20,4 +20,4 @@ for name in ${(k)parameters}; do
       ;;
   esac
 done
-exec "$HOME/.bun/bin/bunx" -y @jurislm/coolify-plugin@latest --require-config
+exec "$HOME/.bun/bin/bun" x @jurislm/coolify-plugin@latest --require-config
