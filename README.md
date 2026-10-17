@@ -27,7 +27,7 @@ bun run check
 bun dist/index.js
 ```
 
-`mcp.json` and `.mcp.json` use the same published-package `bunx` stdio registration as the Woodpecker CI plugin. `.mcp.json.example` contains placeholder environment values only. NPM package release is allowed.
+`mcp.json`, `.mcp.json` and `plugins/cursor/mcp.json` launch the published package with `bun x` (not the separate `bunx` executable, which some package-manager shims break). When a connection variable is missing, empty, or an unsubstituted `${...}` placeholder, the server fills it from `~/.config/jurislm/plugin.env` (`KEY=value` or `export KEY=value` lines; override the path with `JURISLM_PLUGIN_ENV`); host values always take precedence and values are never logged. `.mcp.json.example` contains placeholder environment values only. NPM package release is allowed.
 
 For Codex repository marketplace installation, use the repository root and leave the sparse path empty. The supported marketplace manifest is `.agents/plugins/marketplace.json`; do not enter `plugins/codex`.
 The native Codex registration forwards `COOLIFY_CLOUD_BASE_URL`, `COOLIFY_CLOUD_ACCESS_TOKEN`, `CURSOR_COOLIFY_BASE_URL`, `CURSOR_COOLIFY_ACCESS_TOKEN`, `COOLIFY_BASE_URL` and `COOLIFY_ACCESS_TOKEN` from its owning environment. Portable `mcp.json` contains no host-specific fields or credential defaults.
@@ -51,7 +51,7 @@ args = ["-f", "-c", 'source "$HOME/.codex/bin/coolify-mcp.zsh"']
 startup_timeout_sec = 30
 ```
 
-The launcher checks startup-file syntax before explicitly sourcing `${ZDOTDIR:-$HOME}/.zshenv`, suppresses stdout and preserves stderr. Source status 0 or 1 is accepted because a final optional guard can return 1; higher statuses stop startup. It retains only the six supported connection variables, `HOME`, `PATH`, `TMPDIR` and `LANG`, fixes PATH to `$HOME/.bun/bin:/usr/bin:/bin` and executes the absolute `$HOME/.bun/bin/bunx` path. The `--require-config` option reuses `loadConfig` to require the selected complete URL/token pair before starting stdio; trim, placeholder handling and pair precedence remain the same. Ordinary portable initialization and tool discovery can still start without credentials.
+The launcher checks startup-file syntax before explicitly sourcing `${ZDOTDIR:-$HOME}/.zshenv`, suppresses stdout and preserves stderr. Source status 0 or 1 is accepted because a final optional guard can return 1; higher statuses stop startup. It retains only the six supported connection variables, `HOME`, `PATH`, `TMPDIR` and `LANG`, fixes PATH to `$HOME/.bun/bin:/usr/bin:/bin` and executes the absolute `$HOME/.bun/bin/bun x` path. The `--require-config` option reuses `loadConfig` to require the selected complete URL/token pair before starting stdio; trim, placeholder handling and pair precedence remain the same. Ordinary portable initialization and tool discovery can still start without credentials.
 
 Check `codex mcp get coolify`, restart Codex and open a fresh chat. Read `coolify_get_mcp_version` before connection checks and authenticated reads. Record the resolved package version, actual registration source, HTTP status and returned counts. Standalone stdio checks establish process behavior; fresh chat registration and provider reads require their own evidence.
 

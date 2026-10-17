@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "coolify": {
-      "command": "bunx",
-      "args": ["-y", "@jurislm/coolify-plugin@latest"],
+      "command": "bun",
+      "args": ["x", "@jurislm/coolify-plugin@latest"],
       "env": {
         "COOLIFY_BASE_URL": "https://coolify.example",
         "COOLIFY_ACCESS_TOKEN": "<set-in-host-environment>"

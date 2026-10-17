@@ -3,8 +3,8 @@
   "mcpServers": {
     "coolify": {
       "type": "stdio",
-      "command": "bunx",
-      "args": ["-y", "@jurislm/coolify-plugin@latest"]
+      "command": "bun",
+      "args": ["x", "@jurislm/coolify-plugin@latest"]
     }
   }
 }

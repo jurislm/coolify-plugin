@@ -1,3 +1,9 @@
+export const CREDENTIAL_GROUPS = [
+  ["COOLIFY_CLOUD_BASE_URL", "COOLIFY_CLOUD_ACCESS_TOKEN"],
+  ["CURSOR_COOLIFY_BASE_URL", "CURSOR_COOLIFY_ACCESS_TOKEN"],
+  ["COOLIFY_BASE_URL", "COOLIFY_ACCESS_TOKEN"],
+] as const;
+
 export interface CoolifyConfig {
   baseUrl?: string;
   token?: string;
