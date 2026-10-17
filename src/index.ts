@@ -1,12 +1,12 @@
 #!/usr/bin/env bun
 
-import { CONFIG_VARIABLES, ConfigError, loadConfig } from "./config.js";
+import { CREDENTIAL_GROUPS, ConfigError, loadConfig } from "./config.js";
 import { withPluginEnv } from "./plugin-env.js";
 import { createServer } from "./server.js";
 import { createStdioTransport } from "./transports/stdio.js";
 
 try {
-  const config = loadConfig(withPluginEnv(process.env, CONFIG_VARIABLES));
+  const config = loadConfig(withPluginEnv(process.env, CREDENTIAL_GROUPS));
   if (process.argv.includes("--require-config") && (!config.baseUrl || !config.token)) throw new ConfigError("A complete URL/token pair is required for the selected Coolify configuration");
   await createServer(config).connect(createStdioTransport());
 } catch (error) {
