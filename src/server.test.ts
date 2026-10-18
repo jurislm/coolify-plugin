@@ -585,4 +585,98 @@ describe("generated Coolify MCP server", () => {
     await client.close();
     await server.close();
   });
+
+  const composeWithSecrets = [
+    "services:",
+    "  db:",
+    "    image: postgres:16",
+    "    environment:",
+    "      - POSTGRES_PASSWORD=fake-pass-123",
+    "      - POSTGRES_USER=app",
+    "      - \"API_TOKEN=fake-token-456\"",
+    "      - ADMIN_PASSWORD=${SERVICE_PASSWORD_ADMIN}",
+    "  app:",
+    "    environment:",
+    "      DATABASE_URL: postgres://app:fake-url-pass@db:5432/app",
+    "      JWT_SECRET: fake-jwt-789",
+    "      STRIPE_API_KEY: \"fake-stripe-000\"",
+    "      PRIVATE_KEY: |",
+    "        fake-pem-line-1",
+    "        fake-pem-line-2",
+    "      DB_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}",
+    "      NODE_ENV: production",
+    "      PORT: \"3000\"",
+    "",
+  ].join("\n");
+  const composeRedacted = [
+    "services:",
+    "  db:",
+    "    image: postgres:16",
+    "    environment:",
+    "      - POSTGRES_PASSWORD=[REDACTED]",
+    "      - POSTGRES_USER=app",
+    "      - \"API_TOKEN=[REDACTED]\"",
+    "      - ADMIN_PASSWORD=${SERVICE_PASSWORD_ADMIN}",
+    "  app:",
+    "    environment:",
+    "      DATABASE_URL: postgres://app:[REDACTED]@db:5432/app",
+    "      JWT_SECRET: [REDACTED]",
+    "      STRIPE_API_KEY: [REDACTED]",
+    "      PRIVATE_KEY: [REDACTED]",
+    "      DB_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}",
+    "      NODE_ENV: production",
+    "      PORT: \"3000\"",
+    "",
+  ].join("\n");
+  const fakeSecrets = ["fake-pass-123", "fake-token-456", "fake-url-pass", "fake-jwt-789", "fake-stripe-000", "fake-pem-line"];
+  const expectNoFakeSecrets = (result: unknown) => {
+    for (const secret of fakeSecrets) expect(JSON.stringify(result)).not.toContain(secret);
+  };
+
+  test("redacts secrets inside service docker compose content from get service", async () => {
+    const { server, client } = await connected(async () => json({ uuid: "svc", name: "stack", docker_compose: composeWithSecrets, docker_compose_raw: composeWithSecrets }));
+    try {
+      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
+      expect(result.isError).not.toBe(true);
+      expect(result.structuredContent).toMatchObject({ data: { uuid: "svc", name: "stack", docker_compose: composeRedacted, docker_compose_raw: composeRedacted } });
+      expectNoFakeSecrets(result);
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+
+  test("redacts secrets inside docker compose content from list services", async () => {
+    const encoded = Buffer.from(composeWithSecrets, "utf8").toString("base64");
+    const { server, client } = await connected(async () => json([{ uuid: "one", docker_compose: composeWithSecrets }, { uuid: "two", docker_compose_raw: encoded }]));
+    try {
+      const result = await client.callTool({ name: "coolify_list_services", arguments: {} });
+      expect(result.isError).not.toBe(true);
+      const data = (result.structuredContent as { data: Array<Record<string, string>> }).data;
+      expect(data[0]).toEqual({ uuid: "one", docker_compose: composeRedacted });
+      expect(data[1].uuid).toBe("two");
+      expect(Buffer.from(data[1].docker_compose_raw, "base64").toString("utf8")).toBe(composeRedacted);
+      expectNoFakeSecrets(result);
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+
+  test("redacts compose secrets in application and proxy configuration responses", async () => {
+    const { server, client } = await connected(async (url) => json(new URL(String(url)).pathname.endsWith("/proxy")
+      ? { proxy_type: "TRAEFIK", configuration: composeWithSecrets }
+      : { uuid: "app", docker_compose: composeWithSecrets, git_repository: "https://deployer:fake-git-token@git.example/repo.git" }));
+    try {
+      const application = await client.callTool({ name: "coolify_get_application_by_uuid", arguments: { uuid: "app" } });
+      expect(application.structuredContent).toMatchObject({ data: { docker_compose: composeRedacted, git_repository: "https://deployer:[REDACTED]@git.example/repo.git" } });
+      const proxy = await client.callTool({ name: "coolify_get_server_proxy", arguments: { uuid: "srv" } });
+      expect(proxy.structuredContent).toMatchObject({ data: { proxy_type: "TRAEFIK", configuration: composeRedacted } });
+      expectNoFakeSecrets([application, proxy]);
+      expect(JSON.stringify(application)).not.toContain("fake-git-token");
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
 });
