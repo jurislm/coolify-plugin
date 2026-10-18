@@ -922,4 +922,70 @@ describe("generated Coolify MCP server", () => {
       await server.close();
     }
   });
+
+  test("redacts password arguments in compose command, entrypoint, and healthcheck", async () => {
+    const compose = [
+      "services:",
+      "  cache:",
+      "    image: redis:7",
+      "    command: redis-server --requirepass fake-requirepass --port 6379 --appendonly yes",
+      "  db:",
+      "    image: mysql:8",
+      "    command: [\"mysqld\", \"--password=fake-eq-pass\", \"--user=mysql\"]",
+      "  worker:",
+      "    image: demo",
+      "    command:",
+      "      - sh",
+      "      - -c",
+      "      - \"mysql -h db -u app -p fake-short-pass && psql postgres://app:fake-cmd-url@db/app -p 5432\"",
+      "    entrypoint: [\"/app/run\", \"--api-key\", \"fake-api-key-arg\", \"--verbose\"]",
+      "    healthcheck:",
+      "      test: [\"CMD\", \"redis-cli\", \"--pass\", \"fake-health-pass\", \"ping\"]",
+      "  ref:",
+      "    image: redis:7",
+      "    command: redis-server --requirepass ${SERVICE_PASSWORD_REDIS}",
+      "",
+    ].join("\n");
+    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: compose }));
+    try {
+      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
+      for (const secret of ["fake-requirepass", "fake-eq-pass", "fake-short-pass", "fake-cmd-url", "fake-api-key-arg", "fake-health-pass"]) expect(JSON.stringify(result)).not.toContain(secret);
+      const text = (result.structuredContent as { data: { docker_compose: string } }).data.docker_compose;
+      for (const kept of [
+        "--requirepass [REDACTED] --port 6379 --appendonly yes",
+        "--password=[REDACTED]",
+        "--user=mysql",
+        "-u app -p [REDACTED] &&",
+        "app:[REDACTED]@db/app -p 5432",
+        "--api-key",
+        "--verbose",
+        "redis-cli",
+        "ping",
+        "--requirepass ${SERVICE_PASSWORD_REDIS}",
+      ]) expect(text).toContain(kept);
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+
+  test("redacts secret environment values in custom docker run options", async () => {
+    const options = "--cap-add SYS_ADMIN -e DB_PASSWORD=fake-run-pass -e \"API_TOKEN=fake-run-token\" --env='SESSION_SECRET=fake-run-secret' --env JWT_SECRET=\"fake-run-jwt\" -e NODE_ENV=production -e LOG_LEVEL=info -p 8080:80 --hostname app";
+    const { server, client } = await connected(async (url) => json(new URL(String(url)).pathname.endsWith("/applications")
+      ? [{ uuid: "app", custom_docker_run_options: options }]
+      : { uuid: "app", custom_docker_run_options: options }));
+    try {
+      for (const [name, args] of [["coolify_get_application_by_uuid", { uuid: "app" }], ["coolify_list_applications", {}]] as const) {
+        const result = await client.callTool({ name, arguments: args });
+        expect(result.isError).not.toBe(true);
+        for (const secret of ["fake-run-pass", "fake-run-token", "fake-run-secret", "fake-run-jwt"]) expect(JSON.stringify(result)).not.toContain(secret);
+        const data = (result.structuredContent as { data: { custom_docker_run_options: string } | Array<{ custom_docker_run_options: string }> }).data;
+        const text = Array.isArray(data) ? data[0].custom_docker_run_options : data.custom_docker_run_options;
+        expect(text).toBe("--cap-add SYS_ADMIN -e DB_PASSWORD=[REDACTED] -e \"API_TOKEN=[REDACTED]\" --env='SESSION_SECRET=[REDACTED]' --env JWT_SECRET=\"[REDACTED]\" -e NODE_ENV=production -e LOG_LEVEL=info -p 8080:80 --hostname app");
+      }
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
 });
