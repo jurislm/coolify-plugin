@@ -624,13 +624,15 @@ describe("generated Coolify MCP server", () => {
     }
   });
 
-  test("returns command and custom docker run options as-is", async () => {
+  test("returns command and custom docker run options as-is apart from URL credential and access-token masking", async () => {
     const options = "-e DB_PASSWORD=fake-run-pass --memory=1g";
     const raw = "services:\n  cache:\n    command: redis-server --requirepass fake-command-pass\n";
-    const { server, client } = await connected(async () => json({ uuid: "app", custom_docker_run_options: options, docker_compose_raw: raw }));
+    const sensitiveTail = ` --mirror https://deployer:fake-url-pass@git.example/repo.git?token=fake-query-token&ref=main --label ${config.token}`;
+    const maskedTail = " --mirror https://deployer:[REDACTED]@git.example/repo.git?token=[REDACTED]&ref=main --label [REDACTED]";
+    const { server, client } = await connected(async () => json({ uuid: "app", custom_docker_run_options: options + sensitiveTail, docker_compose_raw: raw + `#${sensitiveTail}\n` }));
     try {
       const result = await client.callTool({ name: "coolify_get_application_by_uuid", arguments: { uuid: "app" } });
-      expect((result.structuredContent as { data: unknown }).data).toEqual({ uuid: "app", custom_docker_run_options: options, docker_compose_raw: raw });
+      expect((result.structuredContent as { data: unknown }).data).toEqual({ uuid: "app", custom_docker_run_options: options + maskedTail, docker_compose_raw: raw + `#${maskedTail}\n` });
     } finally {
       await client.close();
       await server.close();
