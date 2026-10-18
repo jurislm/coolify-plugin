@@ -1,6 +1,6 @@
 import type { GeneratedOperation } from "./generated/operations.js";
 import type { CoolifyConfig } from "./config.js";
-import { isAlias, isScalar, parseDocument, visit } from "yaml";
+import { isAlias, isNode, isScalar, parseDocument, visit } from "yaml";
 import { CoolifyApiError, redactErrorText } from "./errors.js";
 
 export interface ToolEnvelope<T> {
@@ -24,7 +24,10 @@ const composeSecretName = /(password|passwd|secret|token|private|credential|api_
 const composeSecretSegment = /(^|[_.-])(key|pass|pwd|auth)($|[_.-])/iu;
 const interpolation = /^\$\{?[A-Za-z_][A-Za-z0-9_]*\}?$/u;
 const urlCredential = /([a-z][a-z0-9+.-]*:\/\/[^\s:/@]*):([^\s/?#]+)@/giu;
-const queryCredential = /([?&](?:[\w.-]*(?:password|passwd|pass|pwd|secret|token|api_?key|access_?key|auth|signature|sig)[\w.-]*)=)[^&#\s"']+/giu;
+const queryParameter = /([?&])([^=&#\s"']+)=([^&#\s"']+)/gu;
+const querySecretSegments = new Set(["password", "passwd", "pass", "pwd", "secret", "token", "auth", "sig", "signature", "credential", "credentials", "apikey", "key"]);
+const querySecretName = /(password|passwd|secret|token|api_?key|access_?key)/iu;
+const commentAssignment = /([\w.-]+)(\s*[=:]\s*)(["']?)([^\s"'#]+)\3/gu;
 const flagValue = /^(true|false|yes|no|on|off|enabled|disabled|none)$/iu;
 const assignment = /^([\w.-]+)=([\s\S]*)$/u;
 const base64Text = /^[A-Za-z0-9+/]+={0,2}$/u;
@@ -38,7 +41,15 @@ function isComposeSecret(name: string, value: unknown): boolean {
 function redactUrlCredentials(text: string): string {
   return text
     .replace(urlCredential, (match: string, prefix: string, password: string) => interpolation.test(password) ? match : `${prefix}:[REDACTED]@`)
-    .replace(queryCredential, (match: string, prefix: string) => match.slice(prefix.length) === "[REDACTED]" ? match : `${prefix}[REDACTED]`);
+    .replace(queryParameter, (match: string, separator: string, name: string, value: string) => value !== "[REDACTED]" && isQuerySecret(name) ? `${separator}${name}=[REDACTED]` : match);
+}
+
+function isQuerySecret(name: string): boolean {
+  return querySecretName.test(name) || name.toLowerCase().split(/[_.-]/u).some((segment) => querySecretSegments.has(segment));
+}
+
+function redactComment(comment: string): string {
+  return redactUrlCredentials(comment.replace(commentAssignment, (match: string, name: string, separator: string, _quote: string, value: string) => value !== "[REDACTED]" && isComposeSecret(name, value) ? `${name}${separator}[REDACTED]` : match));
 }
 
 function redactComposeYaml(text: string): string {
@@ -64,6 +75,20 @@ function redactComposeYaml(text: string): string {
       changed = true;
     },
   });
+  const commented: Array<{ commentBefore?: string | null; comment?: string | null }> = [document];
+  visit(document, (_key, node) => {
+    if (isNode(node)) commented.push(node);
+  });
+  for (const holder of commented) {
+    for (const field of ["commentBefore", "comment"] as const) {
+      const comment = holder[field];
+      if (typeof comment !== "string") continue;
+      const redacted = redactComment(comment);
+      if (redacted === comment) continue;
+      holder[field] = redacted;
+      changed = true;
+    }
+  }
   if (!changed) return text;
   const rendered = document.toString({ lineWidth: 0 });
   return text.endsWith("\n") ? rendered : rendered.replace(/\n$/u, "");
