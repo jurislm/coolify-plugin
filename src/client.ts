@@ -1,6 +1,6 @@
 import type { GeneratedOperation } from "./generated/operations.js";
 import type { CoolifyConfig } from "./config.js";
-import { isScalar, parseDocument, Scalar as YamlScalar, visit } from "yaml";
+import { isAlias, isScalar, parseDocument, visit } from "yaml";
 import { CoolifyApiError, redactErrorText } from "./errors.js";
 
 export interface ToolEnvelope<T> {
@@ -20,8 +20,8 @@ type Scalar = string | number | boolean | null | undefined;
 type Operation = Pick<GeneratedOperation, "method" | "path" | "parameters">;
 const sensitiveKey = /(^value$|real_?value|private_?key|api_?key|user_?key|webhook_?url|token|secret|password|authorization|cookie)/iu;
 const composeKey = /^(docker_compose(_pr)?(_raw)?|configuration)$/u;
-const composeSecretName = /(password|passwd|secret|token|private|credential|api_?key|access_?key)/iu;
-const composeSecretSegment = /(^|[_.-])(key|pass|pwd)($|[_.-])/iu;
+const composeSecretName = /(password|passwd|secret|token|private|credential|api_?key|access_?key|authorization|cookie)/iu;
+const composeSecretSegment = /(^|[_.-])(key|pass|pwd|auth)($|[_.-])/iu;
 const interpolation = /^\$\{?[A-Za-z_][A-Za-z0-9_]*\}?$/u;
 const urlCredential = /([a-z][a-z0-9+.-]*:\/\/[^\s:/@]*):([^\s/?#]+)@/giu;
 const assignment = /^([\w.-]+)=([\s\S]*)$/u;
@@ -29,7 +29,7 @@ const base64Text = /^[A-Za-z0-9+/]+={0,2}$/u;
 
 function isComposeSecret(name: string, value: unknown): boolean {
   if (!composeSecretName.test(name) && !composeSecretSegment.test(name)) return false;
-  const text = typeof value === "string" ? value : typeof value === "number" || typeof value === "boolean" ? String(value) : "";
+  const text = typeof value === "string" ? value : typeof value === "number" ? String(value) : "";
   return text.trim() !== "" && !interpolation.test(text);
 }
 
@@ -44,8 +44,11 @@ function redactComposeYaml(text: string): string {
   let changed = false;
   visit(document, {
     Pair(_key, pair) {
-      if (!isScalar(pair.key) || !isScalar(pair.value) || pair.value.value === "[REDACTED]" || !isComposeSecret(String(pair.key.value), pair.value.value)) return;
-      pair.value = new YamlScalar("[REDACTED]");
+      if (!isScalar(pair.key)) return;
+      const target = isAlias(pair.value) ? pair.value.resolve(document) : pair.value;
+      if (!isScalar(target) || target.value === "[REDACTED]" || !isComposeSecret(String(pair.key.value), target.value)) return;
+      target.value = "[REDACTED]";
+      target.type = "QUOTE_DOUBLE";
       changed = true;
     },
     Scalar(key, node) {
