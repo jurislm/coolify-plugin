@@ -728,4 +728,28 @@ describe("generated Coolify MCP server", () => {
       await server.close();
     }
   });
+
+  test("redacts secrets in flow-style and JSON compose documents", async () => {
+    const flow = [
+      "services:",
+      "  db:",
+      "    environment: { POSTGRES_PASSWORD: fake-flow-map, POSTGRES_USER: app }",
+      "  app:",
+      "    environment: [\"API_TOKEN=fake-flow-list\", \"NODE_ENV=production\"]",
+      "",
+    ].join("\n");
+    const jsonCompose = JSON.stringify({ services: { db: { environment: { DB_PASSWORD: "fake-json-pass", DB_USER: "app" } } } });
+    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: flow, docker_compose_raw: jsonCompose }));
+    try {
+      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
+      const data = (result.structuredContent as { data: Record<string, string> }).data;
+      for (const secret of ["fake-flow-map", "fake-flow-list", "fake-json-pass"]) expect(JSON.stringify(result)).not.toContain(secret);
+      for (const kept of ["POSTGRES_USER: app", "NODE_ENV=production"]) expect(data.docker_compose).toContain(kept);
+      expect(data.docker_compose_raw).toContain("DB_USER");
+      expect(data.docker_compose_raw).toContain("app");
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
 });
