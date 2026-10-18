@@ -763,4 +763,32 @@ describe("generated Coolify MCP server", () => {
       await server.close();
     }
   });
+
+  test("redacts aliased and authorization-style compose secrets", async () => {
+    const compose = [
+      "x-db-pass: &dbpass fake-anchor-pass",
+      "services:",
+      "  app:",
+      "    environment:",
+      "      DB_PASSWORD: *dbpass",
+      "      AUTHORIZATION: \"Bearer fake-bearer-value\"",
+      "      BASIC_AUTH: fake-basic-auth",
+      "      DOCKER_AUTH_CONFIG: fake-docker-auth",
+      "      SESSION_PASSWORD: &sessionpass fake-session-pass",
+      "      SESSION_COPY: *sessionpass",
+      "      AUTH_ENABLED: true",
+      "      APP_NAME: demo",
+      "",
+    ].join("\n");
+    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: compose }));
+    try {
+      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
+      const text = (result.structuredContent as { data: { docker_compose: string } }).data.docker_compose;
+      for (const secret of ["fake-anchor-pass", "fake-bearer-value", "fake-basic-auth", "fake-docker-auth", "fake-session-pass"]) expect(text).not.toContain(secret);
+      for (const kept of ["DB_PASSWORD: *dbpass", "SESSION_COPY: *sessionpass", "AUTH_ENABLED: true", "APP_NAME: demo"]) expect(text).toContain(kept);
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
 });
