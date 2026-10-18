@@ -18,14 +18,77 @@ export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promis
 type Scalar = string | number | boolean | null | undefined;
 type Operation = Pick<GeneratedOperation, "method" | "path" | "parameters">;
 const sensitiveKey = /(^value$|real_?value|private_?key|api_?key|user_?key|webhook_?url|token|secret|password|authorization|cookie)/iu;
+const composeKey = /^(docker_compose(_pr)?(_raw)?|configuration)$/u;
+const composeSecretName = /(password|passwd|secret|token|private|credential|api_?key|access_?key)/iu;
+const composeSecretSegment = /(^|[_.-])(key|pass|pwd)($|[_.-])/iu;
+const interpolation = /^\$\{?[A-Za-z_][A-Za-z0-9_]*\}?$/u;
+const urlCredential = /([a-z][a-z0-9+.-]*:\/\/[^\s:/@]*):([^\s/@]+)@/giu;
+const listAssignment = /^(\s*-\s+)(["']?)([\w.-]+)=(.*?)\2\s*$/u;
+const mapAssignment = /^(\s*(?:-\s+)?)(["']?)([\w.-]+)\2:\s+(.+?)\s*$/u;
+const blockScalar = /^[|>][-+0-9]*(\s+#.*)?$/u;
+const base64Text = /^[A-Za-z0-9+/]+={0,2}$/u;
+
+function indentOf(line: string): number { return line.length - line.trimStart().length; }
+
+function isComposeSecret(name: string, value: string): boolean {
+  const bare = value.replace(/^(["'])(.*)\1$/u, "$2");
+  return (composeSecretName.test(name) || composeSecretSegment.test(name)) && bare.trim() !== "" && !interpolation.test(bare);
+}
+
+function redactUrlCredentials(text: string): string {
+  return text.replace(urlCredential, (match: string, prefix: string, password: string) => interpolation.test(password) ? match : `${prefix}:[REDACTED]@`);
+}
+
+function redactComposeYaml(text: string): string {
+  const output: string[] = [];
+  let blockIndent: number | undefined;
+  for (const line of text.split("\n")) {
+    if (blockIndent !== undefined) {
+      if (line.trim() === "") { output.push(line); continue; }
+      if (indentOf(line) > blockIndent) continue;
+      blockIndent = undefined;
+    }
+    const list = listAssignment.exec(line);
+    if (list && isComposeSecret(list[3], list[4])) {
+      output.push(`${list[1]}${list[2]}${list[3]}=[REDACTED]${list[2]}`);
+      continue;
+    }
+    const map = mapAssignment.exec(line);
+    if (map && isComposeSecret(map[3], map[4])) {
+      if (blockScalar.test(map[4])) blockIndent = indentOf(line);
+      output.push(`${map[1]}${map[2]}${map[3]}${map[2]}: [REDACTED]`);
+      continue;
+    }
+    output.push(redactUrlCredentials(line));
+  }
+  return output.join("\n");
+}
+
+function decodeBase64Text(text: string): string | undefined {
+  if (text.length % 4 !== 0 || !base64Text.test(text)) return undefined;
+  const bytes = Buffer.from(text, "base64");
+  if (bytes.toString("base64") !== text) return undefined;
+  try {
+    const decoded = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    return /[\n:]/u.test(decoded) ? decoded : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function redactComposeText(text: string): string {
+  const decoded = decodeBase64Text(text);
+  return decoded === undefined ? redactComposeYaml(text) : Buffer.from(redactComposeYaml(decoded), "utf8").toString("base64");
+}
 
 export function redactSensitive<T>(value: T): T {
+  if (typeof value === "string") return redactUrlCredentials(value) as T;
   if (Array.isArray(value)) return value.map(redactSensitive) as T;
   if (!value || typeof value !== "object") return value;
   const binary = (value as Partial<BinaryEnvelope>).encoding === "base64" && typeof (value as Partial<BinaryEnvelope>).contentType === "string" && typeof (value as Partial<BinaryEnvelope>).value === "string";
   return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, child]) => [
     key,
-    sensitiveKey.test(key) && !(binary && key === "value") ? "[REDACTED]" : redactSensitive(child),
+    sensitiveKey.test(key) && !(binary && key === "value") ? "[REDACTED]" : composeKey.test(key) && typeof child === "string" ? redactComposeText(child) : redactSensitive(child),
   ])) as T;
 }
 
