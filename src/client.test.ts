@@ -10,6 +10,7 @@ const operation = {
   parameters: [{ location: "path", name: "uuid" }, { location: "query", name: "tag" }],
   responseKind: "json",
 };
+const envOperation = { method: "GET", path: "/applications/{uuid}/envs", parameters: [{ location: "path", name: "uuid" }] };
 
 describe("CoolifyClient", () => {
   test("preserves binary base64 bytes", async () => {
@@ -66,23 +67,24 @@ describe("CoolifyClient", () => {
     const envs = [
       { key: "DB_PASSWORD", value: "fake-env-pass", real_value: "fake-env-pass", is_shown_once: true },
       { key: "DATABASE_URL", value: "postgres://app:fake-url-pass@db:5432/app?password=fake-query-pass", real_value: "postgres://app:fake-url-pass@db:5432/app?password=fake-query-pass", is_shown_once: false },
+      { key: "API_KEY", value: "fake-no-flag-value", real_value: "fake-no-flag-value" },
     ];
     const client = new CoolifyClient(config, async () => new Response(JSON.stringify(envs), { headers: { "content-type": "application/json" } }));
-    await expect(client.request(operation, { uuid: "app" })).resolves.toMatchObject({ data: envs });
+    await expect(client.request(envOperation, { uuid: "app" })).resolves.toMatchObject({ data: envs });
   });
 
   test("redacts the access token even inside environment values", async () => {
     const client = new CoolifyClient(config, async () => new Response(JSON.stringify([
       { key: "COOLIFY_ACCESS_TOKEN", value: "secret-token", real_value: "Bearer secret-token", is_shown_once: true },
     ]), { headers: { "content-type": "application/json" } }));
-    const result = await client.request(operation, { uuid: "app" });
+    const result = await client.request(envOperation, { uuid: "app" });
     expect(result).toMatchObject({ data: [{ key: "COOLIFY_ACCESS_TOKEN", value: "[REDACTED]", real_value: "Bearer [REDACTED]" }] });
     expect(JSON.stringify(result)).not.toContain("secret-token");
   });
 
-  test("still redacts value fields outside environment variable records", async () => {
+  test("still redacts value fields outside env operations", async () => {
     const client = new CoolifyClient(config, async () => new Response(JSON.stringify({
-      value: "https://user:fake-plain-pass@host/?token=fake-plain-token", real_value: "fake-plain-real", labels: [{ key: "LABEL", value: "fake-label-value" }],
+      value: "https://user:fake-plain-pass@host/?token=fake-plain-token", real_value: "fake-plain-real", labels: [{ key: "LABEL", value: "fake-label-value", is_shown_once: false }],
     }), { headers: { "content-type": "application/json" } }));
     await expect(client.request(operation, { uuid: "app" })).resolves.toMatchObject({
       data: { value: "[REDACTED]", real_value: "[REDACTED]", labels: [{ key: "LABEL", value: "[REDACTED]" }] },
