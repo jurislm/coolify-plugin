@@ -33,7 +33,7 @@ The server SHALL additionally register `coolify_get_mcp_version`, `coolify_get_i
 
 ### Requirement: Successful and failed calls have safe structured output
 
-Every successful handler SHALL return a `ToolEnvelope`-shaped `structuredContent` and matching serialized text. Sensitive values other than environment variable values SHALL be recursively redacted. Runtime failures SHALL become explicit tool errors without exposing credentials.
+Every successful handler SHALL return a `ToolEnvelope`-shaped `structuredContent` and matching serialized text. Fields whose names mark credentials (private keys, tokens, secrets, passwords, authorization, cookies, API keys, webhook URLs) SHALL be recursively redacted, URL credentials and secret query parameters SHALL be redacted in every string, and the configured access token SHALL never appear. Environment variable values are returned as received apart from access-token redaction. `docker_compose_raw` and `custom_docker_run_options` are returned as received apart from URL credential and access-token redaction; the rendered `docker_compose` SHALL be omitted. Runtime failures SHALL become explicit tool errors without exposing credentials.
 
 #### Scenario: Safe response boundary
 
@@ -44,6 +44,11 @@ Every successful handler SHALL return a `ToolEnvelope`-shaped `structuredContent
 
 - **WHEN** an env tool receives environment variables, including ones with `is_shown_once: true`
 - **THEN** both structured and text content contain the actual `value` and `real_value`
+
+#### Scenario: Compose responses carry only the raw compose
+
+- **WHEN** a service or application list or detail tool receives `docker_compose` and `docker_compose_raw`
+- **THEN** the output omits the rendered `docker_compose` and returns `docker_compose_raw`, `command`, and `custom_docker_run_options` as received, apart from URL credential and access-token redaction
 
 ### Requirement: The runtime is local stdio only
 

@@ -1,6 +1,5 @@
 import type { GeneratedOperation } from "./generated/operations.js";
 import type { CoolifyConfig } from "./config.js";
-import { isAlias, isScalar, parseDocument, stringify, visit } from "yaml";
 import { CoolifyApiError, redactErrorText } from "./errors.js";
 
 export interface ToolEnvelope<T> {
@@ -21,23 +20,12 @@ type Operation = Pick<GeneratedOperation, "method" | "path" | "parameters">;
 const sensitiveKey = /(^value$|real_?value|private_?key|api_?key|user_?key|webhook_?url|token|secret|password|authorization|cookie)/iu;
 const envValueKey = /^(value|real_value)$/u;
 const envPath = /\/envs(\/|$)/u;
-const composeKey = /^(docker_compose(_pr)?(_raw)?|configuration)$/u;
-const composeSecretName = /(password|passwd|secret|token|private|credential|api_?key|access_?key|root_?user|authorization|cookie)/iu;
-const composeSecretSegment = /(^|[_.-])(key|pass|pwd|auth)($|[_.-])/iu;
+const renderedComposeKey = "docker_compose";
 const interpolation = /^\$\{?[A-Za-z_][A-Za-z0-9_]*\}?$/u;
 const urlCredential = /([a-z][a-z0-9+.-]{0,31}:\/\/[^\s:/@]{0,256}):([^\s/?#]{1,256})@/giu;
 const queryParameter = /([?&])([^=&#?\s"']{1,64})=([^&#\s"']+)/gu;
 const querySecretSegments = new Set(["password", "passwd", "pass", "pwd", "secret", "token", "auth", "sig", "signature", "credential", "credentials", "apikey", "key"]);
 const querySecretName = /(password|passwd|secret|token|api_?key|access_?key)/iu;
-const flagValue = /^(true|false|yes|no|on|off|enabled|disabled|none)$/iu;
-const assignment = /^([\w.-]+)=([\s\S]*)$/u;
-const base64Text = /^[A-Za-z0-9+/]+={0,2}$/u;
-
-function isComposeSecret(name: string, value: unknown): boolean {
-  if (!composeSecretName.test(name) && !composeSecretSegment.test(name)) return false;
-  const text = typeof value === "string" ? value : typeof value === "number" ? String(value) : "";
-  return text.trim() !== "" && !interpolation.test(text) && !flagValue.test(text.trim());
-}
 
 function redactUrlCredentials(text: string): string {
   return text
@@ -47,110 +35,6 @@ function redactUrlCredentials(text: string): string {
 
 function isQuerySecret(name: string): boolean {
   return querySecretName.test(name) || name.toLowerCase().split(/[_.-]/u).some((segment) => querySecretSegments.has(segment));
-}
-
-const commandKey = /^(command|entrypoint|test)$/u;
-const secretFlagName = /(requirepass|masterauth)/iu;
-const portValue = /^[\d.:[\]]+(\/(tcp|udp|sctp))?$/iu;
-const envOption = /(^|\s)(-e|--env)(=|\s+)(?:"([A-Za-z_][\w.]{0,127})=([^"\n]{0,4096})"|'([A-Za-z_][\w.]{0,127})=([^'\n]{0,4096})'|([A-Za-z_][\w.]{0,127})=("[^"\n]{0,4096}"|'[^'\n]{0,4096}'|[^\s"']*))/gu;
-const flagEquals = /(^|\s)(--?[A-Za-z][\w-]{0,63})=("[^"\n]{0,4096}"|'[^'\n]{0,4096}'|[^\s"']+)/gu;
-const flagSpace = /(^|\s)(--?[A-Za-z][\w-]{0,63})(\s+)("[^"\n]{0,4096}"|'[^'\n]{0,4096}'|[^\s"'-][^\s"']*)/gu;
-
-function unquote(value: string): string {
-  return value.replace(/^(["'])([\s\S]*)\1$/u, "$2");
-}
-
-function quoteOf(value: string): string {
-  return value.startsWith("\"") || value.startsWith("'") ? value[0] : "";
-}
-
-function isSecretFlag(flag: string): boolean {
-  if (flag === "-p") return true;
-  if (!flag.startsWith("--")) return false;
-  const name = flag.slice(2).replace(/-/gu, "_");
-  return composeSecretName.test(name) || composeSecretSegment.test(name) || secretFlagName.test(name);
-}
-
-function isSecretFlagValue(flag: string, value: string): boolean {
-  const bare = unquote(value);
-  if (bare === "" || bare === "[REDACTED]" || interpolation.test(bare) || flagValue.test(bare)) return false;
-  return flag !== "-p" || !portValue.test(bare);
-}
-
-function redactCommandLine(text: string): string {
-  return text
-    .replace(envOption, (match: string, lead: string, flag: string, separator: string, doubleKey?: string, _doubleValue?: string, singleKey?: string, _singleValue?: string, key?: string, value?: string) => {
-      if (doubleKey !== undefined) return isComposeSecret(doubleKey, _doubleValue) ? `${lead}${flag}${separator}"${doubleKey}=[REDACTED]"` : match;
-      if (singleKey !== undefined) return isComposeSecret(singleKey, _singleValue) ? `${lead}${flag}${separator}'${singleKey}=[REDACTED]'` : match;
-      if (key === undefined || value === undefined) return match;
-      const quote = quoteOf(value);
-      return isComposeSecret(key, unquote(value)) ? `${lead}${flag}${separator}${key}=${quote}[REDACTED]${quote}` : match;
-    })
-    .replace(flagEquals, (match: string, lead: string, flag: string, value: string) => isSecretFlag(flag) && isSecretFlagValue(flag, value) ? `${lead}${flag}=${quoteOf(value)}[REDACTED]${quoteOf(value)}` : match)
-    .replace(flagSpace, (match: string, lead: string, flag: string, space: string, value: string) => isSecretFlag(flag) && isSecretFlagValue(flag, value) ? `${lead}${flag}${space}${quoteOf(value)}[REDACTED]${quoteOf(value)}` : match);
-}
-
-function redactCommand(value: unknown): unknown {
-  if (typeof value === "string") return redactCommandLine(value);
-  if (!Array.isArray(value)) return value;
-  return value.map((token: unknown, index) => {
-    if (typeof token !== "string") return token;
-    const flag: unknown = value[index - 1];
-    return typeof flag === "string" && !flag.includes("=") && isSecretFlag(flag) && isSecretFlagValue(flag, token) ? "[REDACTED]" : redactCommandLine(token);
-  });
-}
-
-const composeAliasLimit = 100;
-
-function redactComposeValue(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(redactComposeValue);
-  if (value && typeof value === "object") {
-    return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, child]) => [key, isComposeSecret(key, child) ? "[REDACTED]" : redactComposeValue(commandKey.test(key) ? redactCommand(child) : child)]));
-  }
-  if (typeof value !== "string") return value;
-  const match = assignment.exec(value);
-  return match && isComposeSecret(match[1], match[2]) ? `${match[1]}=[REDACTED]` : redactUrlCredentials(value);
-}
-
-function redactComposeYaml(text: string): string {
-  if (text.trim() === "" || text === "[REDACTED]") return text;
-  const document = parseDocument(text, { schema: "failsafe", merge: true });
-  if (document.errors.length > 0) return "[REDACTED]";
-  let parsed: unknown;
-  let rendered: string;
-  try {
-    const secrets: Array<{ value: unknown }> = [];
-    visit(document, {
-      Pair(_key, pair) {
-        const key = isAlias(pair.key) ? pair.key.resolve(document) : pair.key;
-        const value = isAlias(pair.value) ? pair.value.resolve(document) : pair.value;
-        if (isScalar(key) && isScalar(value) && isComposeSecret(String(key.value), value.value)) secrets.push(value);
-      },
-    });
-    for (const node of secrets) node.value = "[REDACTED]";
-    parsed = document.toJS({ maxAliasCount: composeAliasLimit });
-    rendered = stringify(redactComposeValue(parsed), { lineWidth: 0 });
-  } catch {
-    return "[REDACTED]";
-  }
-  return text.endsWith("\n") ? rendered : rendered.replace(/\n$/u, "");
-}
-
-function decodeBase64Text(text: string): string | undefined {
-  if (text.length % 4 !== 0 || !base64Text.test(text)) return undefined;
-  const bytes = Buffer.from(text, "base64");
-  if (bytes.toString("base64") !== text) return undefined;
-  try {
-    const decoded = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-    return /[\n:]/u.test(decoded) ? decoded : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-function redactComposeText(text: string): string {
-  const decoded = decodeBase64Text(text);
-  return decoded === undefined ? redactComposeYaml(text) : Buffer.from(redactComposeYaml(decoded), "utf8").toString("base64");
 }
 
 function withoutTokens(text: string, tokens: Array<string | undefined>): string {
@@ -166,15 +50,13 @@ export function redactSensitive<T>(value: T, tokens: Array<string | undefined> =
   if (Array.isArray(value)) return (value as unknown[]).map((item) => redactSensitive(item, tokens, envResponse)) as T;
   if (!value || typeof value !== "object") return value;
   const binary = (value as Partial<BinaryEnvelope>).encoding === "base64" && typeof (value as Partial<BinaryEnvelope>).contentType === "string" && typeof (value as Partial<BinaryEnvelope>).value === "string";
-  return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, child]) => [key, redactField(key, child, tokens, envResponse, binary)])) as T;
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>).filter(([key]) => key !== renderedComposeKey).map(([key, child]) => [key, redactField(key, child, tokens, envResponse, binary)])) as T;
 }
 
 function redactField(key: string, child: unknown, tokens: Array<string | undefined>, envResponse: boolean, binary: boolean): unknown {
   if (binary && key === "value") return child;
   if (envResponse && envValueKey.test(key)) return typeof child === "string" ? withoutTokens(child, tokens) : child;
   if (sensitiveKey.test(key)) return "[REDACTED]";
-  if (composeKey.test(key) && typeof child === "string") return withoutTokens(redactComposeText(child), tokens);
-  if (key === "custom_docker_run_options" && typeof child === "string") return withoutTokens(redactUrlCredentials(redactCommandLine(child)), tokens);
   return redactSensitive(child, tokens, envResponse);
 }
 
