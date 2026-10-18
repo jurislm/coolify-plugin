@@ -838,4 +838,46 @@ describe("generated Coolify MCP server", () => {
       await server.close();
     }
   });
+
+  test("redacts secrets behind aliased keys", async () => {
+    const compose = [
+      "x-key: &dbkey DB_PASSWORD",
+      "services:",
+      "  app:",
+      "    environment:",
+      "      *dbkey : fake-alias-key-pass",
+      "      APP_NAME: demo",
+      "",
+    ].join("\n");
+    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: compose }));
+    try {
+      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
+      expect(JSON.stringify(result)).not.toContain("fake-alias-key-pass");
+      expect((result.structuredContent as { data: { docker_compose: string } }).data.docker_compose).toContain("APP_NAME: demo");
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+
+  test("drops comments whose credential values contain whitespace", async () => {
+    const compose = [
+      "# DB_PASSWORD=\"fake old production password\"",
+      "services:",
+      "  app:",
+      "    environment:",
+      "      # AUTHORIZATION: Bearer fake-comment-bearer",
+      "      APP_NAME: demo",
+      "",
+    ].join("\n");
+    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: compose }));
+    try {
+      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
+      for (const secret of ["fake old production password", "fake-comment-bearer"]) expect(JSON.stringify(result)).not.toContain(secret);
+      expect((result.structuredContent as { data: { docker_compose: string } }).data.docker_compose).toContain("APP_NAME: demo");
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
 });
