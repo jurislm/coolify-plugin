@@ -988,4 +988,18 @@ describe("generated Coolify MCP server", () => {
       await server.close();
     }
   });
+
+  test("keeps command and run option redaction linear on unterminated quotes", async () => {
+    const options = "-e \"A=".repeat(20000) + " --password \"x".repeat(20000);
+    const { server, client } = await connected(async () => json({ uuid: "app", custom_docker_run_options: options, docker_compose: `services:\n  a:\n    command: ${JSON.stringify(options)}\n` }));
+    try {
+      const started = performance.now();
+      const result = await client.callTool({ name: "coolify_get_application_by_uuid", arguments: { uuid: "app" } });
+      expect(result.isError).not.toBe(true);
+      expect(performance.now() - started).toBeLessThan(2000);
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
 });
