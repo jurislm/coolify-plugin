@@ -41,16 +41,23 @@ function redactComposeYaml(text: string): string {
   if (text.trim() === "") return text;
   const document = parseDocument(text);
   if (document.errors.length > 0) return "[REDACTED]";
+  let changed = false;
   visit(document, {
     Pair(_key, pair) {
-      if (isScalar(pair.key) && isScalar(pair.value) && isComposeSecret(String(pair.key.value), pair.value.value)) pair.value = new YamlScalar("[REDACTED]");
+      if (!isScalar(pair.key) || !isScalar(pair.value) || pair.value.value === "[REDACTED]" || !isComposeSecret(String(pair.key.value), pair.value.value)) return;
+      pair.value = new YamlScalar("[REDACTED]");
+      changed = true;
     },
     Scalar(key, node) {
       if (key === "key" || typeof node.value !== "string") return;
       const match = assignment.exec(node.value);
-      node.value = match && isComposeSecret(match[1], match[2]) ? `${match[1]}=[REDACTED]` : redactUrlCredentials(node.value);
+      const redacted = match && isComposeSecret(match[1], match[2]) ? `${match[1]}=[REDACTED]` : redactUrlCredentials(node.value);
+      if (redacted === node.value) return;
+      node.value = redacted;
+      changed = true;
     },
   });
+  if (!changed) return text;
   const rendered = document.toString({ lineWidth: 0 });
   return text.endsWith("\n") ? rendered : rendered.replace(/\n$/u, "");
 }
