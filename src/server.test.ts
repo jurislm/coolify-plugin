@@ -179,16 +179,30 @@ describe("generated Coolify MCP server", () => {
     await server.close();
   });
 
-  test("redacts successful tool output before structured and text content", async () => {
-    const server = createServer(config, async () => new Response(JSON.stringify([{ key: "DB_URL", value: "postgres://secret", private_key: "pem" }]), { headers: { "content-type": "application/json" } }));
-    const client = new Client({ name: "test", version: "0.0.0" });
-    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
-    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
-    const result = await client.callTool({ name: "coolify_list_envs_by_application_uuid", arguments: { uuid: "app" } });
-    expect(JSON.stringify(result.structuredContent)).not.toContain("postgres://secret");
-    expect(JSON.stringify(result.content)).not.toContain("postgres://secret");
-    await client.close();
-    await server.close();
+  test("env tools return real values in structured and text content", async () => {
+    const envs = [{ key: "DB_PASSWORD", value: "fake-env-pass", real_value: "fake-env-pass", is_shown_once: true }];
+    const { server, client } = await connected(async () => json(envs));
+    try {
+      const result = await client.callTool({ name: "coolify_list_envs_by_application_uuid", arguments: { uuid: "app" } });
+      expect(result.structuredContent).toMatchObject({ data: [{ key: "DB_PASSWORD", value: "fake-env-pass", real_value: "fake-env-pass", is_shown_once: true }] });
+      expect(JSON.stringify(result.content)).toContain("fake-env-pass");
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+
+  test("env tool failures never expose the access token", async () => {
+    const { server, client } = await connected(async (_url, init) => { throw new Error(`upstream rejected ${new Headers(init?.headers).get("authorization")} and ${config.token}`); });
+    try {
+      const result = await client.callTool({ name: "coolify_list_envs_by_application_uuid", arguments: { uuid: "app" } });
+      expect(result.isError).toBe(true);
+      expect(JSON.stringify(result)).not.toContain(`Bearer ${config.token}`);
+      expect(JSON.stringify(result)).not.toContain(`and ${config.token}`);
+    } finally {
+      await client.close();
+      await server.close();
+    }
   });
 
   test("accepts array responses from list_databases", async () => {

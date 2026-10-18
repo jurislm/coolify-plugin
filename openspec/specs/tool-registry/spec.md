@@ -33,12 +33,17 @@ The server SHALL additionally register `coolify_get_mcp_version`, `coolify_get_i
 
 ### Requirement: Successful and failed calls have safe structured output
 
-Every successful handler SHALL return a `ToolEnvelope`-shaped `structuredContent` and matching serialized text. Sensitive values SHALL be recursively redacted. Runtime failures SHALL become explicit tool errors without exposing credentials.
+Every successful handler SHALL return a `ToolEnvelope`-shaped `structuredContent` and matching serialized text. Sensitive values other than environment variable values SHALL be recursively redacted. Runtime failures SHALL become explicit tool errors without exposing credentials.
 
 #### Scenario: Safe response boundary
 
 - **WHEN** a generated or wrapper handler receives a successful response containing a secret field
 - **THEN** both structured and text content contain `[REDACTED]` instead of the secret value
+
+#### Scenario: Environment values are returned verbatim
+
+- **WHEN** an env tool receives environment variables, including ones with `is_shown_once: true`
+- **THEN** both structured and text content contain the actual `value` and `real_value`
 
 ### Requirement: The runtime is local stdio only
 

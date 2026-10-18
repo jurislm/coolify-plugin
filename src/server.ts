@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { CoolifyClient, redactSensitive } from "./client.js";
+import { CoolifyClient, isEnvOperation, redactSensitive } from "./client.js";
 import { formatToolError } from "./errors.js";
 import { registerCapabilities } from "./capabilities.js";
 import type { FetchLike } from "./client.js";
@@ -14,7 +14,7 @@ export function createServer(config: CoolifyConfig, fetchImpl?: FetchLike): McpS
   const client = new CoolifyClient(config, fetchImpl);
   const server = new McpServer(
     { name: "coolify-plugin", version: pluginVersion },
-    { instructions: "Use read tools to identify exact Coolify resources before mutations. Never expose tokens or secret values." },
+    { instructions: "Use read tools to identify exact Coolify resources before mutations. Never expose the Coolify access token. Env tools return actual environment variable values; report them only when the user asks." },
   );
   for (const operation of operations) {
     server.registerTool(operation.name, {
@@ -27,7 +27,7 @@ export function createServer(config: CoolifyConfig, fetchImpl?: FetchLike): McpS
       try {
         const envelope = await client.request(operation, input as Record<string, unknown>);
         const data = operation.responseSchema.parse(envelope.data);
-        const structuredContent = redactSensitive({ data, status: envelope.status, request: envelope.request });
+        const structuredContent = redactSensitive({ data, status: envelope.status, request: envelope.request }, [config.token], isEnvOperation(operation.path));
         return { structuredContent, content: [{ type: "text" as const, text: JSON.stringify(structuredContent) }] };
       } catch (error) {
         const details = formatToolError(error, [config.token]);
