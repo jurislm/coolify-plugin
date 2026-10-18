@@ -814,4 +814,28 @@ describe("generated Coolify MCP server", () => {
       await server.close();
     }
   });
+
+  test("redacts commented-out compose credentials and keeps ordinary query parameters", async () => {
+    const compose = [
+      "# DB_PASSWORD=fake-retired-pass",
+      "services:",
+      "  app:",
+      "    image: demo",
+      "    environment:",
+      "      # API_TOKEN: fake-commented-token",
+      "      DOCS_URL: https://docs.example/search?author=alice&assignment=blue&accessToken=fake-camel-token",
+      "      LOG_LEVEL: info # was LEGACY_SECRET=fake-trailing-secret",
+      "",
+    ].join("\n");
+    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: compose }));
+    try {
+      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
+      for (const secret of ["fake-retired-pass", "fake-commented-token", "fake-camel-token", "fake-trailing-secret"]) expect(JSON.stringify(result)).not.toContain(secret);
+      const text = (result.structuredContent as { data: { docker_compose: string } }).data.docker_compose;
+      for (const kept of ["DB_PASSWORD=[REDACTED]", "API_TOKEN: [REDACTED]", "author=alice&assignment=blue&accessToken=[REDACTED]", "LOG_LEVEL: info"]) expect(text).toContain(kept);
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
 });
