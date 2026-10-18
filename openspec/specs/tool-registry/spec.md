@@ -45,6 +45,11 @@ Every successful handler SHALL return a `ToolEnvelope`-shaped `structuredContent
 - **WHEN** an env tool receives environment variables, including ones with `is_shown_once: true`
 - **THEN** both structured and text content contain the actual `value` and `real_value`
 
+#### Scenario: Compose responses carry only the raw compose
+
+- **WHEN** a service or application list or detail tool receives `docker_compose` and `docker_compose_raw`
+- **THEN** the output omits the rendered `docker_compose` and returns `docker_compose_raw`, `command`, and `custom_docker_run_options` as received, apart from URL credential and access-token redaction
+
 ### Requirement: The runtime is local stdio only
 
 The plugin SHALL launch only the `mcp.json` stdio command. It SHALL not add a remote MCP URL, OAuth transport, vault, or hosted server.
