@@ -1002,4 +1002,43 @@ describe("generated Coolify MCP server", () => {
       await server.close();
     }
   });
+
+  test("redacts MinIO root users and access keys in a Milvus-like compose while keeping ordinary users", async () => {
+    const compose = [
+      "services:",
+      "  minio:",
+      "    image: minio/minio",
+      "    environment:",
+      "      MINIO_ROOT_USER: fake-minio-root-user",
+      "      MINIO_ROOT_PASSWORD: fake-minio-root-pass",
+      "      MINIO_ACCESS_KEY_ID: fake-minio-access-id",
+      "      MINIO_SECRET_ACCESS_KEY: fake-minio-secret-key",
+      "  milvus:",
+      "    image: milvusdb/milvus",
+      "    environment:",
+      "      - MILVUS_MINIO_ROOT_USER=fake-milvus-root-user",
+      "      - MILVUS_MINIO_ROOT_PASSWORD=fake-milvus-root-pass",
+      "      - MINIO_ADDRESS=minio:9000",
+      "  db:",
+      "    image: postgres:16",
+      "    environment:",
+      "      POSTGRES_USER: postgres",
+      "      POSTGRES_DB: app",
+      "  ci:",
+      "    image: woodpeckerci/woodpecker-server",
+      "    environment:",
+      "      - WOODPECKER_GITHUB_CLIENT=fake-oauth-client-id",
+      "",
+    ].join("\n");
+    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose_raw: compose }));
+    try {
+      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
+      for (const secret of ["fake-minio-root-user", "fake-minio-root-pass", "fake-minio-access-id", "fake-minio-secret-key", "fake-milvus-root-user", "fake-milvus-root-pass"]) expect(JSON.stringify(result)).not.toContain(secret);
+      const text = (result.structuredContent as { data: { docker_compose_raw: string } }).data.docker_compose_raw;
+      for (const kept of ["MINIO_ADDRESS=minio:9000", "POSTGRES_USER: postgres", "POSTGRES_DB: app", "WOODPECKER_GITHUB_CLIENT=fake-oauth-client-id", "MILVUS_MINIO_ROOT_USER=[REDACTED]", "MINIO_ROOT_USER: \"[REDACTED]\""]) expect(text).toContain(kept);
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
 });
