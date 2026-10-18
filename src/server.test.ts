@@ -679,4 +679,53 @@ describe("generated Coolify MCP server", () => {
       await server.close();
     }
   });
+
+  test("redacts multi-line, commented, and nested compose secrets without dropping siblings", async () => {
+    const compose = [
+      "x-keys:",
+      "  - private_key: |",
+      "      fake-block-line",
+      "    name: keep-me",
+      "services:",
+      "  db:",
+      "    environment:",
+      "      - \"DB_PASSWORD=fake-commented-pass\" # database password",
+      "      - 'API_TOKEN=fake-single-quoted' # token",
+      "      - POSTGRES_DB=app",
+      "  app:",
+      "    environment:",
+      "      JWT_SECRET: \"fake-first",
+      "        fake-second\"",
+      "      OTHER_SECRET: fake-plain-first",
+      "        fake-plain-second",
+      "      MIRROR_URL: https://user:fake-p@ss@mirror.example/path@v1",
+      "      LOG_LEVEL: info",
+    ].join("\n");
+    const redacted = [
+      "x-keys:",
+      "  - private_key: [REDACTED]",
+      "    name: keep-me",
+      "services:",
+      "  db:",
+      "    environment:",
+      "      - \"DB_PASSWORD=[REDACTED]\"",
+      "      - 'API_TOKEN=[REDACTED]'",
+      "      - POSTGRES_DB=app",
+      "  app:",
+      "    environment:",
+      "      JWT_SECRET: [REDACTED]",
+      "      OTHER_SECRET: [REDACTED]",
+      "      MIRROR_URL: https://user:[REDACTED]@mirror.example/path@v1",
+      "      LOG_LEVEL: info",
+    ].join("\n");
+    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: compose }));
+    try {
+      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
+      expect(result.structuredContent).toMatchObject({ data: { docker_compose: redacted } });
+      for (const secret of ["fake-block-line", "fake-commented-pass", "fake-single-quoted", "fake-first", "fake-second", "fake-plain-first", "fake-plain-second", "fake-p@ss"]) expect(JSON.stringify(result)).not.toContain(secret);
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
 });
