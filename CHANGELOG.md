@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [4.0.29](https://github.com/jurislm/coolify-plugin/compare/v4.0.28...v4.0.29) (2026-10-18)
+
+
+### Bug Fixes
+
+* 遮蔽 compose command 與 docker run options 內的 secret（JUR-803） ([#82](https://github.com/jurislm/coolify-plugin/issues/82)) ([d69b301](https://github.com/jurislm/coolify-plugin/commit/d69b301a5ba5030183638236479bf3838e833d85))
+
 ## [4.0.28](https://github.com/jurislm/coolify-plugin/compare/v4.0.27...v4.0.28) (2026-10-18)
 
 
