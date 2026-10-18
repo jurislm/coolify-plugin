@@ -24,17 +24,21 @@ const composeSecretName = /(password|passwd|secret|token|private|credential|api_
 const composeSecretSegment = /(^|[_.-])(key|pass|pwd|auth)($|[_.-])/iu;
 const interpolation = /^\$\{?[A-Za-z_][A-Za-z0-9_]*\}?$/u;
 const urlCredential = /([a-z][a-z0-9+.-]*:\/\/[^\s:/@]*):([^\s/?#]+)@/giu;
+const queryCredential = /([?&](?:[\w.-]*(?:password|passwd|pass|pwd|secret|token|api_?key|access_?key|auth|signature|sig)[\w.-]*)=)[^&#\s"']+/giu;
+const flagValue = /^(true|false|yes|no|on|off|enabled|disabled|none)$/iu;
 const assignment = /^([\w.-]+)=([\s\S]*)$/u;
 const base64Text = /^[A-Za-z0-9+/]+={0,2}$/u;
 
 function isComposeSecret(name: string, value: unknown): boolean {
   if (!composeSecretName.test(name) && !composeSecretSegment.test(name)) return false;
   const text = typeof value === "string" ? value : typeof value === "number" ? String(value) : "";
-  return text.trim() !== "" && !interpolation.test(text);
+  return text.trim() !== "" && !interpolation.test(text) && !flagValue.test(text.trim());
 }
 
 function redactUrlCredentials(text: string): string {
-  return text.replace(urlCredential, (match: string, prefix: string, password: string) => interpolation.test(password) ? match : `${prefix}:[REDACTED]@`);
+  return text
+    .replace(urlCredential, (match: string, prefix: string, password: string) => interpolation.test(password) ? match : `${prefix}:[REDACTED]@`)
+    .replace(queryCredential, (match: string, prefix: string) => match.slice(prefix.length) === "[REDACTED]" ? match : `${prefix}[REDACTED]`);
 }
 
 function redactComposeYaml(text: string): string {
