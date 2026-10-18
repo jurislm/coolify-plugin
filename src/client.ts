@@ -19,7 +19,7 @@ export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promis
 type Scalar = string | number | boolean | null | undefined;
 type Operation = Pick<GeneratedOperation, "method" | "path" | "parameters">;
 const sensitiveKey = /(^value$|real_?value|private_?key|api_?key|user_?key|webhook_?url|token|secret|password|authorization|cookie)/iu;
-const envValueKey = /^(value|real_?value)$/u;
+const envValueKey = /^(value|real_value)$/u;
 const envPath = /\/envs(\/|$)/u;
 const composeKey = /^(docker_compose(_pr)?(_raw)?|configuration)$/u;
 const composeSecretName = /(password|passwd|secret|token|private|credential|api_?key|access_?key|root_?user|authorization|cookie)/iu;
@@ -166,10 +166,16 @@ export function redactSensitive<T>(value: T, tokens: Array<string | undefined> =
   if (Array.isArray(value)) return (value as unknown[]).map((item) => redactSensitive(item, tokens, envResponse)) as T;
   if (!value || typeof value !== "object") return value;
   const binary = (value as Partial<BinaryEnvelope>).encoding === "base64" && typeof (value as Partial<BinaryEnvelope>).contentType === "string" && typeof (value as Partial<BinaryEnvelope>).value === "string";
-  return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, child]) => [
-    key,
-    envResponse && envValueKey.test(key) && typeof child === "string" ? withoutTokens(child, tokens) : sensitiveKey.test(key) && !(binary && key === "value") ? "[REDACTED]" : composeKey.test(key) && typeof child === "string" ? withoutTokens(redactComposeText(child), tokens) : key === "custom_docker_run_options" && typeof child === "string" ? withoutTokens(redactUrlCredentials(redactCommandLine(child)), tokens) : redactSensitive(child, tokens, envResponse),
-  ])) as T;
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, child]) => [key, redactField(key, child, tokens, envResponse, binary)])) as T;
+}
+
+function redactField(key: string, child: unknown, tokens: Array<string | undefined>, envResponse: boolean, binary: boolean): unknown {
+  if (binary && key === "value") return child;
+  if (envResponse && envValueKey.test(key)) return typeof child === "string" ? withoutTokens(child, tokens) : child;
+  if (sensitiveKey.test(key)) return "[REDACTED]";
+  if (composeKey.test(key) && typeof child === "string") return withoutTokens(redactComposeText(child), tokens);
+  if (key === "custom_docker_run_options" && typeof child === "string") return withoutTokens(redactUrlCredentials(redactCommandLine(child)), tokens);
+  return redactSensitive(child, tokens, envResponse);
 }
 
 function pathValue(value: unknown, name: string): string {

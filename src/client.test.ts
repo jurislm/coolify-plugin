@@ -19,6 +19,11 @@ describe("CoolifyClient", () => {
       data: { encoding: "base64", contentType: "application/octet-stream", value: "QQ==" }, status: 200, request: { method: "GET", path: "/applications/app" },
     });
   });
+  test("keeps binary base64 bytes opaque to token redaction", async () => {
+    const client = new CoolifyClient({ ...config, token: "QQ" }, async () => new Response(new Uint8Array([65]), { headers: { "content-type": "application/octet-stream" } }));
+    await expect(client.request(operation, { uuid: "app" })).resolves.toMatchObject({ data: { encoding: "base64", value: "QQ==" } });
+  });
+
   test("allows public health without a credential while protecting other endpoints", async () => {
     const requests: string[] = [];
     const client = new CoolifyClient({ baseUrl: config.baseUrl, timeoutMs: 30_000 }, async (url, init) => {
@@ -68,6 +73,7 @@ describe("CoolifyClient", () => {
       { key: "DB_PASSWORD", value: "fake-env-pass", real_value: "fake-env-pass", is_shown_once: true },
       { key: "DATABASE_URL", value: "postgres://app:fake-url-pass@db:5432/app?password=fake-query-pass", real_value: "postgres://app:fake-url-pass@db:5432/app?password=fake-query-pass", is_shown_once: false },
       { key: "API_KEY", value: "fake-no-flag-value", real_value: "fake-no-flag-value" },
+      { key: "UNSET", value: null, real_value: null, is_shown_once: false },
     ];
     const client = new CoolifyClient(config, async () => new Response(JSON.stringify(envs), { headers: { "content-type": "application/json" } }));
     await expect(client.request(envOperation, { uuid: "app" })).resolves.toMatchObject({ data: envs });
@@ -84,10 +90,10 @@ describe("CoolifyClient", () => {
 
   test("still redacts value fields outside env operations", async () => {
     const client = new CoolifyClient(config, async () => new Response(JSON.stringify({
-      value: "https://user:fake-plain-pass@host/?token=fake-plain-token", real_value: "fake-plain-real", labels: [{ key: "LABEL", value: "fake-label-value", is_shown_once: false }],
+      value: "https://user:fake-plain-pass@host/?token=fake-plain-token", realvalue: "fake-plain-realvalue", real_value: "fake-plain-real", labels: [{ key: "LABEL", value: "fake-label-value", is_shown_once: false }],
     }), { headers: { "content-type": "application/json" } }));
     await expect(client.request(operation, { uuid: "app" })).resolves.toMatchObject({
-      data: { value: "[REDACTED]", real_value: "[REDACTED]", labels: [{ key: "LABEL", value: "[REDACTED]" }] },
+      data: { value: "[REDACTED]", realvalue: "[REDACTED]", real_value: "[REDACTED]", labels: [{ key: "LABEL", value: "[REDACTED]" }] },
     });
   });
 
