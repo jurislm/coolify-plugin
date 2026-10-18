@@ -71,6 +71,15 @@ describe("CoolifyClient", () => {
     await expect(client.request(operation, { uuid: "app" })).resolves.toMatchObject({ data: envs });
   });
 
+  test("redacts the access token even inside environment values", async () => {
+    const client = new CoolifyClient(config, async () => new Response(JSON.stringify([
+      { key: "COOLIFY_ACCESS_TOKEN", value: "secret-token", real_value: "Bearer secret-token", is_shown_once: true },
+    ]), { headers: { "content-type": "application/json" } }));
+    const result = await client.request(operation, { uuid: "app" });
+    expect(result).toMatchObject({ data: [{ key: "COOLIFY_ACCESS_TOKEN", value: "[REDACTED]", real_value: "Bearer [REDACTED]" }] });
+    expect(JSON.stringify(result)).not.toContain("secret-token");
+  });
+
   test("still redacts value fields outside environment variable records", async () => {
     const client = new CoolifyClient(config, async () => new Response(JSON.stringify({
       value: "https://user:fake-plain-pass@host/?token=fake-plain-token", real_value: "fake-plain-real", labels: [{ key: "LABEL", value: "fake-label-value" }],

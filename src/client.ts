@@ -152,15 +152,19 @@ function redactComposeText(text: string): string {
   return decoded === undefined ? redactComposeYaml(text) : Buffer.from(redactComposeYaml(decoded), "utf8").toString("base64");
 }
 
-export function redactSensitive<T>(value: T): T {
-  if (typeof value === "string") return redactUrlCredentials(value) as T;
-  if (Array.isArray(value)) return value.map(redactSensitive) as T;
+function withoutTokens(text: string, tokens: Array<string | undefined>): string {
+  return tokens.reduce<string>((redacted, token) => token ? redacted.replaceAll(token, "[REDACTED]") : redacted, text);
+}
+
+export function redactSensitive<T>(value: T, tokens: Array<string | undefined> = []): T {
+  if (typeof value === "string") return withoutTokens(redactUrlCredentials(value), tokens) as T;
+  if (Array.isArray(value)) return (value as unknown[]).map((item) => redactSensitive(item, tokens)) as T;
   if (!value || typeof value !== "object") return value;
   const binary = (value as Partial<BinaryEnvelope>).encoding === "base64" && typeof (value as Partial<BinaryEnvelope>).contentType === "string" && typeof (value as Partial<BinaryEnvelope>).value === "string";
   const environmentVariable = typeof (value as { key?: unknown }).key === "string" && "is_shown_once" in value;
   return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, child]) => [
     key,
-    environmentVariable && envValueKey.test(key) && typeof child === "string" ? child : sensitiveKey.test(key) && !(binary && key === "value") ? "[REDACTED]" : composeKey.test(key) && typeof child === "string" ? redactComposeText(child) : key === "custom_docker_run_options" && typeof child === "string" ? redactUrlCredentials(redactCommandLine(child)) : redactSensitive(child),
+    environmentVariable && envValueKey.test(key) && typeof child === "string" ? withoutTokens(child, tokens) : sensitiveKey.test(key) && !(binary && key === "value") ? "[REDACTED]" : composeKey.test(key) && typeof child === "string" ? withoutTokens(redactComposeText(child), tokens) : key === "custom_docker_run_options" && typeof child === "string" ? withoutTokens(redactUrlCredentials(redactCommandLine(child)), tokens) : redactSensitive(child, tokens),
   ])) as T;
 }
 
@@ -241,7 +245,7 @@ export class CoolifyClient {
     } catch {
       throw new Error("Coolify API returned an unreadable response body");
     }
-    return redactSensitive({ data, status: response.status, request: { method: operation.method, path } });
+    return redactSensitive({ data, status: response.status, request: { method: operation.method, path } }, [token]);
   }
 }
 
