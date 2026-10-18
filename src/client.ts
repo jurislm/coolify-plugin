@@ -18,7 +18,8 @@ export interface BinaryEnvelope {
 export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 type Scalar = string | number | boolean | null | undefined;
 type Operation = Pick<GeneratedOperation, "method" | "path" | "parameters">;
-const sensitiveKey = /(^value$|real_?value|private_?key|api_?key|user_?key|webhook_?url|token|secret|password|authorization|cookie)/iu;
+const sensitiveKey = /(private_?key|api_?key|user_?key|webhook_?url|token|secret|password|authorization|cookie)/iu;
+const envValueKey = /^(value|real_?value)$/u;
 const composeKey = /^(docker_compose(_pr)?(_raw)?|configuration)$/u;
 const composeSecretName = /(password|passwd|secret|token|private|credential|api_?key|access_?key|root_?user|authorization|cookie)/iu;
 const composeSecretSegment = /(^|[_.-])(key|pass|pwd|auth)($|[_.-])/iu;
@@ -155,10 +156,9 @@ export function redactSensitive<T>(value: T): T {
   if (typeof value === "string") return redactUrlCredentials(value) as T;
   if (Array.isArray(value)) return value.map(redactSensitive) as T;
   if (!value || typeof value !== "object") return value;
-  const binary = (value as Partial<BinaryEnvelope>).encoding === "base64" && typeof (value as Partial<BinaryEnvelope>).contentType === "string" && typeof (value as Partial<BinaryEnvelope>).value === "string";
   return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, child]) => [
     key,
-    sensitiveKey.test(key) && !(binary && key === "value") ? "[REDACTED]" : composeKey.test(key) && typeof child === "string" ? redactComposeText(child) : key === "custom_docker_run_options" && typeof child === "string" ? redactUrlCredentials(redactCommandLine(child)) : redactSensitive(child),
+    envValueKey.test(key) && typeof child === "string" ? child : sensitiveKey.test(key) ? "[REDACTED]" : composeKey.test(key) && typeof child === "string" ? redactComposeText(child) : key === "custom_docker_run_options" && typeof child === "string" ? redactUrlCredentials(redactCommandLine(child)) : redactSensitive(child),
   ])) as T;
 }
 

@@ -25,7 +25,8 @@ context: |
   - Validate generated operation inputs before fetch and reject unsupported wrapper fields at the MCP boundary.
   - Encode path parameters with encodeURIComponent(String(value)) and append only defined query parameters.
   - Preserve explicit false values and never retry provider mutations.
-  - Recursively redact environment values, private keys, tokens, secrets, passwords, authorization data, and cookies before structuredContent and text output.
+  - Return environment variable value and real_value fields verbatim, including is_shown_once variables.
+  - Recursively redact private keys, tokens, secrets, passwords, authorization data, and cookies before structuredContent and text output.
   - Keep wrapper behavior explicit for diagnostics, infrastructure overview, issue scans, batch operations, and Docker network alias remediation.
 
   Workflow and release:
