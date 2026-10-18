@@ -22,10 +22,9 @@ const composeKey = /^(docker_compose(_pr)?(_raw)?|configuration)$/u;
 const composeSecretName = /(password|passwd|secret|token|private|credential|api_?key|access_?key)/iu;
 const composeSecretSegment = /(^|[_.-])(key|pass|pwd)($|[_.-])/iu;
 const interpolation = /^\$\{?[A-Za-z_][A-Za-z0-9_]*\}?$/u;
-const urlCredential = /([a-z][a-z0-9+.-]*:\/\/[^\s:/@]*):([^\s/@]+)@/giu;
-const listAssignment = /^(\s*-\s+)(["']?)([\w.-]+)=(.*?)\2\s*$/u;
+const urlCredential = /([a-z][a-z0-9+.-]*:\/\/[^\s:/@]*):([^\s/?#]+)@/giu;
+const listAssignment = /^(\s*-\s+)(["']?)([\w.-]+)=(.*?)\2(\s+#.*)?\s*$/u;
 const mapAssignment = /^(\s*(?:-\s+)?)(["']?)([\w.-]+)\2:\s+(.+?)\s*$/u;
-const blockScalar = /^[|>][-+0-9]*(\s+#.*)?$/u;
 const base64Text = /^[A-Za-z0-9+/]+={0,2}$/u;
 
 function indentOf(line: string): number { return line.length - line.trimStart().length; }
@@ -50,12 +49,13 @@ function redactComposeYaml(text: string): string {
     }
     const list = listAssignment.exec(line);
     if (list && isComposeSecret(list[3], list[4])) {
+      blockIndent = indentOf(line);
       output.push(`${list[1]}${list[2]}${list[3]}=[REDACTED]${list[2]}`);
       continue;
     }
     const map = mapAssignment.exec(line);
     if (map && isComposeSecret(map[3], map[4])) {
-      if (blockScalar.test(map[4])) blockIndent = indentOf(line);
+      blockIndent = map[1].length;
       output.push(`${map[1]}${map[2]}${map[3]}${map[2]}: [REDACTED]`);
       continue;
     }
