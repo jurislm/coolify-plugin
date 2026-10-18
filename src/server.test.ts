@@ -791,4 +791,27 @@ describe("generated Coolify MCP server", () => {
       await server.close();
     }
   });
+
+  test("redacts URL query credentials and keeps flag-like auth settings", async () => {
+    const compose = [
+      "services:",
+      "  app:",
+      "    environment:",
+      "      DATABASE_URL: \"postgresql://db/app?user=app&password=fake-query-pass&sslmode=require\"",
+      "      WEBHOOK: https://hooks.example/notify?token=fake-query-token#frag",
+      "      AUTH_ENABLED: \"true\"",
+      "      AUTH_MODE: \"off\"",
+      "",
+    ].join("\n");
+    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: compose, git_repository: "https://git.example/repo.git?access_token=fake-git-query" }));
+    try {
+      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
+      for (const secret of ["fake-query-pass", "fake-query-token", "fake-git-query"]) expect(JSON.stringify(result)).not.toContain(secret);
+      const text = (result.structuredContent as { data: { docker_compose: string } }).data.docker_compose;
+      for (const kept of ["user=app&password=[REDACTED]&sslmode=require", "?token=[REDACTED]#frag", "AUTH_ENABLED: \"true\"", "AUTH_MODE: \"off\""]) expect(text).toContain(kept);
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
 });
