@@ -630,7 +630,7 @@ describe("generated Coolify MCP server", () => {
     const { server, client } = await connected(async () => json({ uuid: "app", custom_docker_run_options: options, docker_compose_raw: raw }));
     try {
       const result = await client.callTool({ name: "coolify_get_application_by_uuid", arguments: { uuid: "app" } });
-      expect(result.structuredContent).toMatchObject({ data: { custom_docker_run_options: options, docker_compose_raw: raw } });
+      expect((result.structuredContent as { data: unknown }).data).toEqual({ uuid: "app", custom_docker_run_options: options, docker_compose_raw: raw });
     } finally {
       await client.close();
       await server.close();
