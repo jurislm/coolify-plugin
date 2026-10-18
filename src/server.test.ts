@@ -600,456 +600,53 @@ describe("generated Coolify MCP server", () => {
     await server.close();
   });
 
-  const composeWithSecrets = [
-    "services:",
-    "  db:",
-    "    image: postgres:16",
-    "    environment:",
-    "      - POSTGRES_PASSWORD=fake-pass-123",
-    "      - POSTGRES_USER=app",
-    "      - \"API_TOKEN=fake-token-456\"",
-    "      - ADMIN_PASSWORD=${SERVICE_PASSWORD_ADMIN}",
-    "  app:",
-    "    environment:",
-    "      DATABASE_URL: postgres://app:fake-url-pass@db:5432/app",
-    "      JWT_SECRET: fake-jwt-789",
-    "      STRIPE_API_KEY: \"fake-stripe-000\"",
-    "      PRIVATE_KEY: |",
-    "        fake-pem-line-1",
-    "        fake-pem-line-2",
-    "      DB_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}",
-    "      NODE_ENV: production",
-    "      PORT: \"3000\"",
-    "",
-  ].join("\n");
-  const composeRedacted = [
-    "services:",
-    "  db:",
-    "    image: postgres:16",
-    "    environment:",
-    "      - POSTGRES_PASSWORD=[REDACTED]",
-    "      - POSTGRES_USER=app",
-    "      - API_TOKEN=[REDACTED]",
-    "      - ADMIN_PASSWORD=${SERVICE_PASSWORD_ADMIN}",
-    "  app:",
-    "    environment:",
-    "      DATABASE_URL: postgres://app:[REDACTED]@db:5432/app",
-    "      JWT_SECRET: \"[REDACTED]\"",
-    "      STRIPE_API_KEY: \"[REDACTED]\"",
-    "      PRIVATE_KEY: \"[REDACTED]\"",
-    "      DB_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}",
-    "      NODE_ENV: production",
-    "      PORT: \"3000\"",
-    "",
-  ].join("\n");
-  const fakeSecrets = ["fake-pass-123", "fake-token-456", "fake-url-pass", "fake-jwt-789", "fake-stripe-000", "fake-pem-line"];
-  const expectNoFakeSecrets = (result: unknown) => {
-    for (const secret of fakeSecrets) expect(JSON.stringify(result)).not.toContain(secret);
-  };
+  const renderedCompose = "services:\n  minio:\n    environment:\n      MINIO_ROOT_PASSWORD: fake-rendered-pass\n";
+  const rawCompose = "services:\n  minio:\n    environment:\n      MINIO_ROOT_PASSWORD: ${SERVICE_PASSWORD_MINIO}\n      MINIO_ROOT_USER: fake-raw-user\n    command: server /data --console-address :9001\n";
+  const composeResource = { uuid: "resource", docker_compose: renderedCompose, docker_compose_raw: rawCompose };
 
-  test("redacts secrets inside service docker compose content from get service", async () => {
-    const { server, client } = await connected(async () => json({ uuid: "svc", name: "stack", docker_compose: composeWithSecrets, docker_compose_raw: composeWithSecrets }));
+  test.each([
+    { name: "service list", tool: "coolify_list_services", arguments: {}, response: [composeResource], record: (data: unknown) => (data as unknown[])[0] },
+    { name: "service get", tool: "coolify_get_service_by_uuid", arguments: { uuid: "resource" }, response: composeResource, record: (data: unknown) => data },
+    { name: "application list", tool: "coolify_list_applications", arguments: {}, response: [composeResource], record: (data: unknown) => (data as unknown[])[0] },
+    { name: "application get", tool: "coolify_get_application_by_uuid", arguments: { uuid: "resource" }, response: composeResource, record: (data: unknown) => data },
+  ])("$name returns docker_compose_raw as-is without the rendered docker_compose", async ({ tool, arguments: toolArguments, response, record }) => {
+    const { server, client } = await connected(async () => json(response));
     try {
-      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
+      const result = await client.callTool({ name: tool, arguments: toolArguments });
       expect(result.isError).not.toBe(true);
-      expect(result.structuredContent).toMatchObject({ data: { uuid: "svc", name: "stack", docker_compose: composeRedacted, docker_compose_raw: composeRedacted } });
-      expectNoFakeSecrets(result);
+      const resource = record((result.structuredContent as { data: unknown }).data) as Record<string, unknown>;
+      expect(resource.docker_compose_raw).toBe(rawCompose);
+      expect(resource).not.toHaveProperty("docker_compose");
+      expect(JSON.stringify(result)).not.toContain("fake-rendered-pass");
     } finally {
       await client.close();
       await server.close();
     }
   });
 
-  test("redacts secrets inside docker compose content from list services", async () => {
-    const encoded = Buffer.from(composeWithSecrets, "utf8").toString("base64");
-    const { server, client } = await connected(async () => json([{ uuid: "one", docker_compose: composeWithSecrets }, { uuid: "two", docker_compose_raw: encoded }]));
+  test("returns command and custom docker run options as-is", async () => {
+    const options = "-e DB_PASSWORD=fake-run-pass --memory=1g";
+    const raw = "services:\n  cache:\n    command: redis-server --requirepass fake-command-pass\n";
+    const { server, client } = await connected(async () => json({ uuid: "app", custom_docker_run_options: options, docker_compose_raw: raw }));
     try {
-      const result = await client.callTool({ name: "coolify_list_services", arguments: {} });
-      expect(result.isError).not.toBe(true);
-      const data = (result.structuredContent as { data: Array<Record<string, string>> }).data;
-      expect(data[0]).toEqual({ uuid: "one", docker_compose: composeRedacted });
-      expect(data[1].uuid).toBe("two");
-      expect(Buffer.from(data[1].docker_compose_raw, "base64").toString("utf8")).toBe(composeRedacted);
-      expectNoFakeSecrets(result);
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
-
-  test("redacts compose secrets in application and proxy configuration responses", async () => {
-    const { server, client } = await connected(async (url) => json(new URL(String(url)).pathname.endsWith("/proxy")
-      ? { proxy_type: "TRAEFIK", configuration: composeWithSecrets }
-      : { uuid: "app", docker_compose: composeWithSecrets, git_repository: "https://deployer:fake-git-token@git.example/repo.git" }));
-    try {
-      const application = await client.callTool({ name: "coolify_get_application_by_uuid", arguments: { uuid: "app" } });
-      expect(application.structuredContent).toMatchObject({ data: { docker_compose: composeRedacted, git_repository: "https://deployer:[REDACTED]@git.example/repo.git" } });
-      const proxy = await client.callTool({ name: "coolify_get_server_proxy", arguments: { uuid: "srv" } });
-      expect(proxy.structuredContent).toMatchObject({ data: { proxy_type: "TRAEFIK", configuration: composeRedacted } });
-      expectNoFakeSecrets([application, proxy]);
-      expect(JSON.stringify(application)).not.toContain("fake-git-token");
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
-
-  test("redacts multi-line, commented, and nested compose secrets without dropping siblings", async () => {
-    const compose = [
-      "x-keys:",
-      "  - private_key: |",
-      "      fake-block-line",
-      "    name: keep-me",
-      "services:",
-      "  db:",
-      "    environment:",
-      "      - \"DB_PASSWORD=fake-commented-pass\" # database password",
-      "      - 'API_TOKEN=fake-single-quoted' # token",
-      "      - POSTGRES_DB=app",
-      "  app:",
-      "    environment:",
-      "      JWT_SECRET: \"fake-first",
-      "        fake-second\"",
-      "      OTHER_SECRET: fake-plain-first",
-      "        fake-plain-second",
-      "      MIRROR_URL: https://user:fake-p@ss@mirror.example/path@v1",
-      "      LOG_LEVEL: info",
-    ].join("\n");
-    const redacted = [
-      "x-keys:",
-      "  - private_key: \"[REDACTED]\"",
-      "    name: keep-me",
-      "services:",
-      "  db:",
-      "    environment:",
-      "      - DB_PASSWORD=[REDACTED]",
-      "      - API_TOKEN=[REDACTED]",
-      "      - POSTGRES_DB=app",
-      "  app:",
-      "    environment:",
-      "      JWT_SECRET: \"[REDACTED]\"",
-      "      OTHER_SECRET: \"[REDACTED]\"",
-      "      MIRROR_URL: https://user:[REDACTED]@mirror.example/path@v1",
-      "      LOG_LEVEL: info",
-    ].join("\n");
-    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: compose }));
-    try {
-      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
-      expect(result.structuredContent).toMatchObject({ data: { docker_compose: redacted } });
-      for (const secret of ["fake-block-line", "fake-commented-pass", "fake-single-quoted", "fake-first", "fake-second", "fake-plain-first", "fake-plain-second", "fake-p@ss"]) expect(JSON.stringify(result)).not.toContain(secret);
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
-
-  test("redacts secrets in flow-style and JSON compose documents", async () => {
-    const flow = [
-      "services:",
-      "  db:",
-      "    environment: { POSTGRES_PASSWORD: fake-flow-map, POSTGRES_USER: app }",
-      "  app:",
-      "    environment: [\"API_TOKEN=fake-flow-list\", \"NODE_ENV=production\"]",
-      "",
-    ].join("\n");
-    const jsonCompose = JSON.stringify({ services: { db: { environment: { DB_PASSWORD: "fake-json-pass", DB_USER: "app" } } } });
-    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: flow, docker_compose_raw: jsonCompose }));
-    try {
-      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
-      const data = (result.structuredContent as { data: Record<string, string> }).data;
-      for (const secret of ["fake-flow-map", "fake-flow-list", "fake-json-pass"]) expect(JSON.stringify(result)).not.toContain(secret);
-      for (const kept of ["POSTGRES_USER: app", "NODE_ENV=production"]) expect(data.docker_compose).toContain(kept);
-      expect(data.docker_compose_raw).toContain("DB_USER");
-      expect(data.docker_compose_raw).toContain("app");
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
-
-  test("fails closed when compose content cannot be parsed", async () => {
-    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: "services: [unclosed\n  DB_PASSWORD: fake-broken-pass" }));
-    try {
-      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
-      expect(result.structuredContent).toMatchObject({ data: { uuid: "svc", docker_compose: "[REDACTED]" } });
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
-
-  test("redacts aliased and authorization-style compose secrets", async () => {
-    const compose = [
-      "x-db-pass: &dbpass fake-anchor-pass",
-      "services:",
-      "  app:",
-      "    environment:",
-      "      DB_PASSWORD: *dbpass",
-      "      AUTHORIZATION: \"Bearer fake-bearer-value\"",
-      "      BASIC_AUTH: fake-basic-auth",
-      "      DOCKER_AUTH_CONFIG: fake-docker-auth",
-      "      SESSION_PASSWORD: &sessionpass fake-session-pass",
-      "      SESSION_COPY: *sessionpass",
-      "      AUTH_ENABLED: true",
-      "      APP_NAME: demo",
-      "",
-    ].join("\n");
-    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: compose }));
-    try {
-      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
-      const text = (result.structuredContent as { data: { docker_compose: string } }).data.docker_compose;
-      for (const secret of ["fake-anchor-pass", "fake-bearer-value", "fake-basic-auth", "fake-docker-auth", "fake-session-pass"]) expect(text).not.toContain(secret);
-      for (const kept of ["AUTH_ENABLED: \"true\"", "APP_NAME: demo"]) expect(text).toContain(kept);
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
-
-  test("redacts URL query credentials and keeps flag-like auth settings", async () => {
-    const compose = [
-      "services:",
-      "  app:",
-      "    environment:",
-      "      DATABASE_URL: \"postgresql://db/app?user=app&password=fake-query-pass&sslmode=require\"",
-      "      WEBHOOK: https://hooks.example/notify?token=fake-query-token#frag",
-      "      AUTH_ENABLED: \"true\"",
-      "      AUTH_MODE: \"off\"",
-      "",
-    ].join("\n");
-    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: compose, git_repository: "https://git.example/repo.git?access_token=fake-git-query" }));
-    try {
-      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
-      for (const secret of ["fake-query-pass", "fake-query-token", "fake-git-query"]) expect(JSON.stringify(result)).not.toContain(secret);
-      const text = (result.structuredContent as { data: { docker_compose: string } }).data.docker_compose;
-      for (const kept of ["user=app&password=[REDACTED]&sslmode=require", "?token=[REDACTED]#frag", "AUTH_ENABLED: \"true\"", "AUTH_MODE: off"]) expect(text).toContain(kept);
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
-
-  test("redacts commented-out compose credentials and keeps ordinary query parameters", async () => {
-    const compose = [
-      "# DB_PASSWORD=fake-retired-pass",
-      "services:",
-      "  app:",
-      "    image: demo",
-      "    environment:",
-      "      # API_TOKEN: fake-commented-token",
-      "      DOCS_URL: https://docs.example/search?author=alice&assignment=blue&accessToken=fake-camel-token",
-      "      LOG_LEVEL: info # was LEGACY_SECRET=fake-trailing-secret",
-      "",
-    ].join("\n");
-    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: compose }));
-    try {
-      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
-      for (const secret of ["fake-retired-pass", "fake-commented-token", "fake-camel-token", "fake-trailing-secret"]) expect(JSON.stringify(result)).not.toContain(secret);
-      const text = (result.structuredContent as { data: { docker_compose: string } }).data.docker_compose;
-      for (const kept of ["author=alice&assignment=blue&accessToken=[REDACTED]", "LOG_LEVEL: info"]) expect(text).toContain(kept);
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
-
-  test("redacts secrets behind aliased keys", async () => {
-    const compose = [
-      "x-key: &dbkey DB_PASSWORD",
-      "services:",
-      "  app:",
-      "    environment:",
-      "      *dbkey : fake-alias-key-pass",
-      "      APP_NAME: demo",
-      "",
-    ].join("\n");
-    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: compose }));
-    try {
-      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
-      expect(JSON.stringify(result)).not.toContain("fake-alias-key-pass");
-      expect((result.structuredContent as { data: { docker_compose: string } }).data.docker_compose).toContain("APP_NAME: demo");
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
-
-  test("drops comments whose credential values contain whitespace", async () => {
-    const compose = [
-      "# DB_PASSWORD=\"fake old production password\"",
-      "services:",
-      "  app:",
-      "    environment:",
-      "      # AUTHORIZATION: Bearer fake-comment-bearer",
-      "      APP_NAME: demo",
-      "",
-    ].join("\n");
-    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: compose }));
-    try {
-      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
-      for (const secret of ["fake old production password", "fake-comment-bearer"]) expect(JSON.stringify(result)).not.toContain(secret);
-      expect((result.structuredContent as { data: { docker_compose: string } }).data.docker_compose).toContain("APP_NAME: demo");
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
-
-  test("fails closed on alias expansion bombs", async () => {
-    const compose = [
-      "a: &a [x, x, x, x, x, x, x, x, x]",
-      "b: &b [*a, *a, *a, *a, *a, *a, *a, *a, *a]",
-      "c: &c [*b, *b, *b, *b, *b, *b, *b, *b, *b]",
-      "d: [*c, *c, *c, *c, *c, *c, *c, *c, *c]",
-    ].join("\n");
-    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: compose }));
-    try {
-      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
-      expect(result.structuredContent).toMatchObject({ data: { uuid: "svc", docker_compose: "[REDACTED]" } });
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
-
-  test("redacts long non-matching strings in linear time", async () => {
-    const long = { uuid: "svc", description: "a".repeat(65_536), name: "?".repeat(65_536), docker_compose: `x: ${"a".repeat(65_536)}://` };
-    const { server, client } = await connected(async () => json(long));
-    try {
-      const started = performance.now();
-      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
-      expect(result.isError).not.toBe(true);
-      expect(performance.now() - started).toBeLessThan(1_000);
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
-
-  test("fails closed on recursive compose aliases", async () => {
-    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: "x-loop: &loop [*loop]\nservices: {}\n" }));
-    try {
-      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
-      expect(result.structuredContent).toMatchObject({ data: { uuid: "svc", docker_compose: "[REDACTED]" } });
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
-
-  test("redacts password arguments in compose command, entrypoint, and healthcheck", async () => {
-    const compose = [
-      "services:",
-      "  cache:",
-      "    image: redis:7",
-      "    command: redis-server --requirepass fake-requirepass --port 6379 --appendonly yes",
-      "  db:",
-      "    image: mysql:8",
-      "    command: [\"mysqld\", \"--password=fake-eq-pass\", \"--user=mysql\"]",
-      "  worker:",
-      "    image: demo",
-      "    command:",
-      "      - sh",
-      "      - -c",
-      "      - \"mysql -h db -u app -p fake-short-pass && psql postgres://app:fake-cmd-url@db/app -p 5432\"",
-      "    entrypoint: [\"/app/run\", \"--api-key\", \"fake-api-key-arg\", \"--verbose\"]",
-      "    healthcheck:",
-      "      test: [\"CMD\", \"redis-cli\", \"--pass\", \"fake-health-pass\", \"ping\"]",
-      "  ref:",
-      "    image: redis:7",
-      "    command: redis-server --requirepass ${SERVICE_PASSWORD_REDIS}",
-      "",
-    ].join("\n");
-    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: compose }));
-    try {
-      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
-      for (const secret of ["fake-requirepass", "fake-eq-pass", "fake-short-pass", "fake-cmd-url", "fake-api-key-arg", "fake-health-pass"]) expect(JSON.stringify(result)).not.toContain(secret);
-      const text = (result.structuredContent as { data: { docker_compose: string } }).data.docker_compose;
-      for (const kept of [
-        "--requirepass [REDACTED] --port 6379 --appendonly yes",
-        "--password=[REDACTED]",
-        "--user=mysql",
-        "-u app -p [REDACTED] &&",
-        "app:[REDACTED]@db/app -p 5432",
-        "--api-key",
-        "--verbose",
-        "redis-cli",
-        "ping",
-        "--requirepass ${SERVICE_PASSWORD_REDIS}",
-      ]) expect(text).toContain(kept);
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
-
-  test("redacts secret environment values in custom docker run options", async () => {
-    const options = "--cap-add SYS_ADMIN -e DB_PASSWORD=fake-run-pass -e \"API_TOKEN=fake-run-token\" --env='SESSION_SECRET=fake-run-secret' --env JWT_SECRET=\"fake-run-jwt\" -e NODE_ENV=production -e LOG_LEVEL=info -p 8080:80 --hostname app";
-    const { server, client } = await connected(async (url) => json(new URL(String(url)).pathname.endsWith("/applications")
-      ? [{ uuid: "app", custom_docker_run_options: options }]
-      : { uuid: "app", custom_docker_run_options: options }));
-    try {
-      for (const [name, args] of [["coolify_get_application_by_uuid", { uuid: "app" }], ["coolify_list_applications", {}]] as const) {
-        const result = await client.callTool({ name, arguments: args });
-        expect(result.isError).not.toBe(true);
-        for (const secret of ["fake-run-pass", "fake-run-token", "fake-run-secret", "fake-run-jwt"]) expect(JSON.stringify(result)).not.toContain(secret);
-        const data = (result.structuredContent as { data: { custom_docker_run_options: string } | Array<{ custom_docker_run_options: string }> }).data;
-        const text = Array.isArray(data) ? data[0].custom_docker_run_options : data.custom_docker_run_options;
-        expect(text).toBe("--cap-add SYS_ADMIN -e DB_PASSWORD=[REDACTED] -e \"API_TOKEN=[REDACTED]\" --env='SESSION_SECRET=[REDACTED]' --env JWT_SECRET=\"[REDACTED]\" -e NODE_ENV=production -e LOG_LEVEL=info -p 8080:80 --hostname app");
-      }
-    } finally {
-      await client.close();
-      await server.close();
-    }
-  });
-
-  test("keeps command and run option redaction linear on unterminated quotes", async () => {
-    const options = "-e \"A=".repeat(20000) + " --password \"x".repeat(20000);
-    const { server, client } = await connected(async () => json({ uuid: "app", custom_docker_run_options: options, docker_compose: `services:\n  a:\n    command: ${JSON.stringify(options)}\n` }));
-    try {
-      const started = performance.now();
       const result = await client.callTool({ name: "coolify_get_application_by_uuid", arguments: { uuid: "app" } });
-      expect(result.isError).not.toBe(true);
-      expect(performance.now() - started).toBeLessThan(2000);
+      expect(result.structuredContent).toMatchObject({ data: { custom_docker_run_options: options, docker_compose_raw: raw } });
     } finally {
       await client.close();
       await server.close();
     }
   });
 
-  test("redacts MinIO root users and access keys in a Milvus-like compose while keeping ordinary users", async () => {
-    const compose = [
-      "services:",
-      "  minio:",
-      "    image: minio/minio",
-      "    environment:",
-      "      MINIO_ROOT_USER: fake-minio-root-user",
-      "      MINIO_ROOT_PASSWORD: fake-minio-root-pass",
-      "      MINIO_ACCESS_KEY_ID: fake-minio-access-id",
-      "      MINIO_SECRET_ACCESS_KEY: fake-minio-secret-key",
-      "  milvus:",
-      "    image: milvusdb/milvus",
-      "    environment:",
-      "      - MILVUS_MINIO_ROOT_USER=fake-milvus-root-user",
-      "      - MILVUS_MINIO_ROOT_PASSWORD=fake-milvus-root-pass",
-      "      - MINIO_ADDRESS=minio:9000",
-      "  db:",
-      "    image: postgres:16",
-      "    environment:",
-      "      POSTGRES_USER: postgres",
-      "      POSTGRES_DB: app",
-      "  ci:",
-      "    image: woodpeckerci/woodpecker-server",
-      "    environment:",
-      "      - WOODPECKER_GITHUB_CLIENT=fake-oauth-client-id",
-      "",
-    ].join("\n");
-    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose_raw: compose }));
+  test("keeps URL credential and query masking in logs and deployments", async () => {
+    const log = "cloning https://deployer:fake-log-pass@git.example/repo.git?token=fake-log-token&ref=main";
+    const masked = "cloning https://deployer:[REDACTED]@git.example/repo.git?token=[REDACTED]&ref=main";
+    const { server, client } = await connected(async () => json({ logs: log }));
     try {
-      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
-      for (const secret of ["fake-minio-root-user", "fake-minio-root-pass", "fake-minio-access-id", "fake-minio-secret-key", "fake-milvus-root-user", "fake-milvus-root-pass"]) expect(JSON.stringify(result)).not.toContain(secret);
-      const text = (result.structuredContent as { data: { docker_compose_raw: string } }).data.docker_compose_raw;
-      for (const kept of ["MINIO_ADDRESS=minio:9000", "POSTGRES_USER: postgres", "POSTGRES_DB: app", "WOODPECKER_GITHUB_CLIENT=fake-oauth-client-id", "MILVUS_MINIO_ROOT_USER=[REDACTED]", "MINIO_ROOT_USER: \"[REDACTED]\""]) expect(text).toContain(kept);
+      const logs = await client.callTool({ name: "coolify_get_application_logs_by_uuid", arguments: { uuid: "app" } });
+      const deployment = await client.callTool({ name: "coolify_get_deployment_by_uuid", arguments: { uuid: "deployment" } });
+      expect(logs.structuredContent).toMatchObject({ data: { logs: masked } });
+      expect(deployment.structuredContent).toMatchObject({ data: { logs: masked } });
+      for (const secret of ["fake-log-pass", "fake-log-token"]) expect(JSON.stringify([logs, deployment])).not.toContain(secret);
     } finally {
       await client.close();
       await server.close();
