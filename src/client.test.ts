@@ -62,13 +62,30 @@ describe("CoolifyClient", () => {
     expect(error.message).not.toContain("secret-token");
   });
 
-  test("redacts successful nested environment and private-key values", async () => {
+  test("returns environment values verbatim, including is_shown_once values", async () => {
+    const envs = [
+      { key: "DB_PASSWORD", value: "fake-env-pass", real_value: "fake-env-pass", is_shown_once: true },
+      { key: "DATABASE_URL", value: "postgres://app:fake-url-pass@db:5432/app?password=fake-query-pass", real_value: "postgres://app:fake-url-pass@db:5432/app?password=fake-query-pass", is_shown_once: false },
+    ];
+    const client = new CoolifyClient(config, async () => new Response(JSON.stringify(envs), { headers: { "content-type": "application/json" } }));
+    await expect(client.request(operation, { uuid: "app" })).resolves.toMatchObject({ data: envs });
+  });
+
+  test("still redacts credential fields and URL credentials outside environment values", async () => {
     const client = new CoolifyClient(config, async () => new Response(JSON.stringify({
-      value: "env-secret", nested: { real_value: "actual", private_key: "pem", token: "token", discord_webhook_url: "url", resend_api_key: "key" }, keys: [{ client_secret: "secret" }],
+      nested: { private_key: "fake-pem", token: "fake-token", authorization: "Bearer fake-bearer", cookie: "session=fake-cookie", discord_webhook_url: "fake-url", resend_api_key: "fake-key", password: "fake-pass" },
+      keys: [{ client_secret: "fake-secret" }],
+      git_repository: "https://deployer:fake-git-pass@git.example/repo.git?access_token=fake-git-query",
     }), { headers: { "content-type": "application/json" } }));
-    await expect(client.request(operation, { uuid: "app" })).resolves.toMatchObject({
-      data: { value: "[REDACTED]", nested: { real_value: "[REDACTED]", private_key: "[REDACTED]", token: "[REDACTED]", discord_webhook_url: "[REDACTED]", resend_api_key: "[REDACTED]" }, keys: [{ client_secret: "[REDACTED]" }] },
+    const result = await client.request(operation, { uuid: "app" });
+    expect(result).toMatchObject({
+      data: {
+        nested: { private_key: "[REDACTED]", token: "[REDACTED]", authorization: "[REDACTED]", cookie: "[REDACTED]", discord_webhook_url: "[REDACTED]", resend_api_key: "[REDACTED]", password: "[REDACTED]" },
+        keys: [{ client_secret: "[REDACTED]" }],
+        git_repository: "https://deployer:[REDACTED]@git.example/repo.git?access_token=[REDACTED]",
+      },
     });
+    for (const secret of ["fake-pem", "fake-token", "fake-bearer", "fake-cookie", "fake-url", "fake-key", "fake-pass", "fake-secret", "fake-git-pass", "fake-git-query"]) expect(JSON.stringify(result)).not.toContain(secret);
   });
 
   test("encodes plain Dockerfile content for Coolify", async () => {
