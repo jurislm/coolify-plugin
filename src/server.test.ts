@@ -897,4 +897,29 @@ describe("generated Coolify MCP server", () => {
       await server.close();
     }
   });
+
+  test("redacts long non-matching strings in linear time", async () => {
+    const long = { uuid: "svc", description: "a".repeat(65_536), name: "?".repeat(65_536), docker_compose: `x: ${"a".repeat(65_536)}://` };
+    const { server, client } = await connected(async () => json(long));
+    try {
+      const started = performance.now();
+      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
+      expect(result.isError).not.toBe(true);
+      expect(performance.now() - started).toBeLessThan(1_000);
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+
+  test("fails closed on recursive compose aliases", async () => {
+    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: "x-loop: &loop [*loop]\nservices: {}\n" }));
+    try {
+      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
+      expect(result.structuredContent).toMatchObject({ data: { uuid: "svc", docker_compose: "[REDACTED]" } });
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
 });
