@@ -71,6 +71,15 @@ describe("CoolifyClient", () => {
     await expect(client.request(operation, { uuid: "app" })).resolves.toMatchObject({ data: envs });
   });
 
+  test("still redacts value fields outside environment variable records", async () => {
+    const client = new CoolifyClient(config, async () => new Response(JSON.stringify({
+      value: "https://user:fake-plain-pass@host/?token=fake-plain-token", real_value: "fake-plain-real", labels: [{ key: "LABEL", value: "fake-label-value" }],
+    }), { headers: { "content-type": "application/json" } }));
+    await expect(client.request(operation, { uuid: "app" })).resolves.toMatchObject({
+      data: { value: "[REDACTED]", real_value: "[REDACTED]", labels: [{ key: "LABEL", value: "[REDACTED]" }] },
+    });
+  });
+
   test("still redacts credential fields and URL credentials outside environment values", async () => {
     const client = new CoolifyClient(config, async () => new Response(JSON.stringify({
       nested: { private_key: "fake-pem", token: "fake-token", authorization: "Bearer fake-bearer", cookie: "session=fake-cookie", discord_webhook_url: "fake-url", resend_api_key: "fake-key", password: "fake-pass" },
