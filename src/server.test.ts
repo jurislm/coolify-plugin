@@ -620,9 +620,9 @@ describe("generated Coolify MCP server", () => {
     "  app:",
     "    environment:",
     "      DATABASE_URL: postgres://app:[REDACTED]@db:5432/app",
-    "      JWT_SECRET: [REDACTED]",
-    "      STRIPE_API_KEY: [REDACTED]",
-    "      PRIVATE_KEY: [REDACTED]",
+    "      JWT_SECRET: \"[REDACTED]\"",
+    "      STRIPE_API_KEY: \"[REDACTED]\"",
+    "      PRIVATE_KEY: \"[REDACTED]\"",
     "      DB_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}",
     "      NODE_ENV: production",
     "      PORT: \"3000\"",
@@ -703,18 +703,18 @@ describe("generated Coolify MCP server", () => {
     ].join("\n");
     const redacted = [
       "x-keys:",
-      "  - private_key: [REDACTED]",
+      "  - private_key: \"[REDACTED]\"",
       "    name: keep-me",
       "services:",
       "  db:",
       "    environment:",
-      "      - \"DB_PASSWORD=[REDACTED]\"",
-      "      - 'API_TOKEN=[REDACTED]'",
+      "      - \"DB_PASSWORD=[REDACTED]\" # database password",
+      "      - 'API_TOKEN=[REDACTED]' # token",
       "      - POSTGRES_DB=app",
       "  app:",
       "    environment:",
-      "      JWT_SECRET: [REDACTED]",
-      "      OTHER_SECRET: [REDACTED]",
+      "      JWT_SECRET: \"[REDACTED]\"",
+      "      OTHER_SECRET: \"[REDACTED]\"",
       "      MIRROR_URL: https://user:[REDACTED]@mirror.example/path@v1",
       "      LOG_LEVEL: info",
     ].join("\n");
@@ -747,6 +747,17 @@ describe("generated Coolify MCP server", () => {
       for (const kept of ["POSTGRES_USER: app", "NODE_ENV=production"]) expect(data.docker_compose).toContain(kept);
       expect(data.docker_compose_raw).toContain("DB_USER");
       expect(data.docker_compose_raw).toContain("app");
+    } finally {
+      await client.close();
+      await server.close();
+    }
+  });
+
+  test("fails closed when compose content cannot be parsed", async () => {
+    const { server, client } = await connected(async () => json({ uuid: "svc", docker_compose: "services: [unclosed\n  DB_PASSWORD: fake-broken-pass" }));
+    try {
+      const result = await client.callTool({ name: "coolify_get_service_by_uuid", arguments: { uuid: "svc" } });
+      expect(result.structuredContent).toMatchObject({ data: { uuid: "svc", docker_compose: "[REDACTED]" } });
     } finally {
       await client.close();
       await server.close();
