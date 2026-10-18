@@ -1,6 +1,6 @@
 import type { GeneratedOperation } from "./generated/operations.js";
 import type { CoolifyConfig } from "./config.js";
-import { isAlias, isNode, isScalar, parseDocument, visit } from "yaml";
+import { isAlias, isScalar, parseDocument, stringify, visit } from "yaml";
 import { CoolifyApiError, redactErrorText } from "./errors.js";
 
 export interface ToolEnvelope<T> {
@@ -27,7 +27,6 @@ const urlCredential = /([a-z][a-z0-9+.-]*:\/\/[^\s:/@]*):([^\s/?#]+)@/giu;
 const queryParameter = /([?&])([^=&#\s"']+)=([^&#\s"']+)/gu;
 const querySecretSegments = new Set(["password", "passwd", "pass", "pwd", "secret", "token", "auth", "sig", "signature", "credential", "credentials", "apikey", "key"]);
 const querySecretName = /(password|passwd|secret|token|api_?key|access_?key)/iu;
-const commentAssignment = /([\w.-]+)(\s*[=:]\s*)(["']?)([^\s"'#]+)\3/gu;
 const flagValue = /^(true|false|yes|no|on|off|enabled|disabled|none)$/iu;
 const assignment = /^([\w.-]+)=([\s\S]*)$/u;
 const base64Text = /^[A-Za-z0-9+/]+={0,2}$/u;
@@ -48,49 +47,38 @@ function isQuerySecret(name: string): boolean {
   return querySecretName.test(name) || name.toLowerCase().split(/[_.-]/u).some((segment) => querySecretSegments.has(segment));
 }
 
-function redactComment(comment: string): string {
-  return redactUrlCredentials(comment.replace(commentAssignment, (match: string, name: string, separator: string, _quote: string, value: string) => value !== "[REDACTED]" && isComposeSecret(name, value) ? `${name}${separator}[REDACTED]` : match));
+const composeAliasLimit = 100;
+
+function redactComposeValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactComposeValue);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([key, child]) => [key, isComposeSecret(key, child) ? "[REDACTED]" : redactComposeValue(child)]));
+  }
+  if (typeof value !== "string") return value;
+  const match = assignment.exec(value);
+  return match && isComposeSecret(match[1], match[2]) ? `${match[1]}=[REDACTED]` : redactUrlCredentials(value);
 }
 
 function redactComposeYaml(text: string): string {
-  if (text.trim() === "") return text;
-  const document = parseDocument(text);
+  if (text.trim() === "" || text === "[REDACTED]") return text;
+  const document = parseDocument(text, { schema: "failsafe", merge: true });
   if (document.errors.length > 0) return "[REDACTED]";
-  let changed = false;
-  visit(document, {
-    Pair(_key, pair) {
-      if (!isScalar(pair.key)) return;
-      const target = isAlias(pair.value) ? pair.value.resolve(document) : pair.value;
-      if (!isScalar(target) || target.value === "[REDACTED]" || !isComposeSecret(String(pair.key.value), target.value)) return;
-      target.value = "[REDACTED]";
-      target.type = "QUOTE_DOUBLE";
-      changed = true;
-    },
-    Scalar(key, node) {
-      if (key === "key" || typeof node.value !== "string") return;
-      const match = assignment.exec(node.value);
-      const redacted = match && isComposeSecret(match[1], match[2]) ? `${match[1]}=[REDACTED]` : redactUrlCredentials(node.value);
-      if (redacted === node.value) return;
-      node.value = redacted;
-      changed = true;
-    },
-  });
-  const commented: Array<{ commentBefore?: string | null; comment?: string | null }> = [document];
-  visit(document, (_key, node) => {
-    if (isNode(node)) commented.push(node);
-  });
-  for (const holder of commented) {
-    for (const field of ["commentBefore", "comment"] as const) {
-      const comment = holder[field];
-      if (typeof comment !== "string") continue;
-      const redacted = redactComment(comment);
-      if (redacted === comment) continue;
-      holder[field] = redacted;
-      changed = true;
-    }
+  let parsed: unknown;
+  try {
+    const secrets: Array<{ value: unknown }> = [];
+    visit(document, {
+      Pair(_key, pair) {
+        const key = isAlias(pair.key) ? pair.key.resolve(document) : pair.key;
+        const value = isAlias(pair.value) ? pair.value.resolve(document) : pair.value;
+        if (isScalar(key) && isScalar(value) && isComposeSecret(String(key.value), value.value)) secrets.push(value);
+      },
+    });
+    for (const node of secrets) node.value = "[REDACTED]";
+    parsed = document.toJS({ maxAliasCount: composeAliasLimit });
+  } catch {
+    return "[REDACTED]";
   }
-  if (!changed) return text;
-  const rendered = document.toString({ lineWidth: 0 });
+  const rendered = stringify(redactComposeValue(parsed), { lineWidth: 0 });
   return text.endsWith("\n") ? rendered : rendered.replace(/\n$/u, "");
 }
 
