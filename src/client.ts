@@ -23,8 +23,8 @@ const composeKey = /^(docker_compose(_pr)?(_raw)?|configuration)$/u;
 const composeSecretName = /(password|passwd|secret|token|private|credential|api_?key|access_?key|authorization|cookie)/iu;
 const composeSecretSegment = /(^|[_.-])(key|pass|pwd|auth)($|[_.-])/iu;
 const interpolation = /^\$\{?[A-Za-z_][A-Za-z0-9_]*\}?$/u;
-const urlCredential = /([a-z][a-z0-9+.-]*:\/\/[^\s:/@]*):([^\s/?#]+)@/giu;
-const queryParameter = /([?&])([^=&#\s"']+)=([^&#\s"']+)/gu;
+const urlCredential = /([a-z][a-z0-9+.-]{0,31}:\/\/[^\s:/@]{0,256}):([^\s/?#]{1,256})@/giu;
+const queryParameter = /([?&])([^=&#?\s"']{1,64})=([^&#\s"']+)/gu;
 const querySecretSegments = new Set(["password", "passwd", "pass", "pwd", "secret", "token", "auth", "sig", "signature", "credential", "credentials", "apikey", "key"]);
 const querySecretName = /(password|passwd|secret|token|api_?key|access_?key)/iu;
 const flagValue = /^(true|false|yes|no|on|off|enabled|disabled|none)$/iu;
@@ -64,6 +64,7 @@ function redactComposeYaml(text: string): string {
   const document = parseDocument(text, { schema: "failsafe", merge: true });
   if (document.errors.length > 0) return "[REDACTED]";
   let parsed: unknown;
+  let rendered: string;
   try {
     const secrets: Array<{ value: unknown }> = [];
     visit(document, {
@@ -75,10 +76,10 @@ function redactComposeYaml(text: string): string {
     });
     for (const node of secrets) node.value = "[REDACTED]";
     parsed = document.toJS({ maxAliasCount: composeAliasLimit });
+    rendered = stringify(redactComposeValue(parsed), { lineWidth: 0 });
   } catch {
     return "[REDACTED]";
   }
-  const rendered = stringify(redactComposeValue(parsed), { lineWidth: 0 });
   return text.endsWith("\n") ? rendered : rendered.replace(/\n$/u, "");
 }
 
