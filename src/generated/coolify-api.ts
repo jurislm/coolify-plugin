@@ -4527,8 +4527,8 @@ export interface components {
             is_shared?: boolean;
             is_shown_once?: boolean;
             key?: string;
-            value?: string;
-            real_value?: string;
+            value?: string | null;
+            real_value?: string | null;
             comment?: string | null;
             version?: string;
             created_at?: string;
@@ -6774,8 +6774,8 @@ export interface operations {
                 "application/json": {
                     /** @description The key of the environment variable. */
                     key: string;
-                    /** @description The value of the environment variable. */
-                    value: string;
+                    /** @description 環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。 */
+                    value?: string;
                     /** @description The flag to indicate if the environment variable is used in preview deployments. */
                     is_preview?: boolean;
                     /** @description The flag to indicate if the environment variable is a literal, nothing espaced. */
@@ -6784,6 +6784,8 @@ export interface operations {
                     is_multiline?: boolean;
                     /** @description The flag to indicate if the environment variable's value is shown on the UI. */
                     is_shown_once?: boolean;
+                    /** @description 環境變數是否在 build time 可用。省略則保留既有旗標。僅 application env PATCH 支援（Coolify v4.6.0 ApplicationsController）。 */
+                    is_buildtime?: boolean;
                 };
             };
         };
@@ -6818,8 +6820,8 @@ export interface operations {
                 "application/json": {
                     data: {
                         /** @description The key of the environment variable. */
-                        key?: string;
-                        /** @description The value of the environment variable. */
+                        key: string;
+                        /** @description 環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。 */
                         value?: string;
                         /** @description The flag to indicate if the environment variable is used in preview deployments. */
                         is_preview?: boolean;
@@ -6829,6 +6831,8 @@ export interface operations {
                         is_multiline?: boolean;
                         /** @description The flag to indicate if the environment variable's value is shown on the UI. */
                         is_shown_once?: boolean;
+                        /** @description 環境變數是否在 build time 可用。省略則保留既有旗標。僅 application env PATCH 支援（Coolify v4.6.0 ApplicationsController）。 */
+                        is_buildtime?: boolean;
                     }[];
                 };
             };
@@ -9384,8 +9388,8 @@ export interface operations {
                 "application/json": {
                     /** @description The key of the environment variable. */
                     key: string;
-                    /** @description The value of the environment variable. */
-                    value: string;
+                    /** @description 環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。 */
+                    value?: string;
                     /** @description The flag to indicate if the environment variable is a literal, nothing espaced. */
                     is_literal?: boolean;
                     /** @description The flag to indicate if the environment variable is multiline. */
@@ -9427,8 +9431,8 @@ export interface operations {
                 "application/json": {
                     data: {
                         /** @description The key of the environment variable. */
-                        key?: string;
-                        /** @description The value of the environment variable. */
+                        key: string;
+                        /** @description 環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。 */
                         value?: string;
                         /** @description The flag to indicate if the environment variable is a literal, nothing espaced. */
                         is_literal?: boolean;
@@ -15229,8 +15233,8 @@ export interface operations {
                 "application/json": {
                     /** @description The key of the environment variable. */
                     key: string;
-                    /** @description The value of the environment variable. */
-                    value: string;
+                    /** @description 環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。 */
+                    value?: string;
                     /** @description The flag to indicate if the environment variable is used in preview deployments. */
                     is_preview?: boolean;
                     /** @description The flag to indicate if the environment variable is a literal, nothing espaced. */
@@ -15274,8 +15278,8 @@ export interface operations {
                 "application/json": {
                     data: {
                         /** @description The key of the environment variable. */
-                        key?: string;
-                        /** @description The value of the environment variable. */
+                        key: string;
+                        /** @description 環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。 */
                         value?: string;
                         /** @description The flag to indicate if the environment variable is used in preview deployments. */
                         is_preview?: boolean;

@@ -1,7 +1,7 @@
 {
   "sourceUrl": "https://raw.githubusercontent.com/coollabsio/coolify/v4.3.23/openapi.json",
-  "fetchedAt": "2026-09-25T11:20:11.773Z",
-  "sha256": "934bb0ecd71db0b596df44d141152e0d4052a2604cbb302519276ba9558a0b38",
+  "fetchedAt": "2026-11-07T05:08:36.209Z",
+  "sha256": "dd4406541a925cb9e1b1d202c7e838b467cc954f68344d278a2035f9d68a3280",
   "upstreamSha256": "964360ffb3d4c026252aa4657d6561190f59ac4256395bf0645bf6a4f171ec88",
   "openapiVersion": "3.1.0",
   "infoVersion": "0.1",
@@ -30,6 +30,10 @@
     "Docker image build packs and cloud-init/resource clone responses match live Coolify payloads",
     "Application tag removal and database backup updates match live message responses",
     "Application ports_exposes can be null for new Git applications",
-    "Private key update uses the routed UUID path rather than the upstream annotation path"
+    "Private key update uses the routed UUID path rather than the upstream annotation path",
+    "環境變數 PATCH 接受選填 value；在 Coolify >= 4.5.1 省略 value 會保留既有值",
+    "application env PATCH／bulk 接受 is_buildtime（Coolify v4.6.0 ApplicationsController）；database／service 不暴露該欄",
+    "env PATCH／bulk 項目要求 key（對齊 Coolify create_bulk_envs 的 environmentVariableKeyRules）",
+    "環境變數以空字串清空後，value 與 real_value 可為 null"
   ]
 }

@@ -1,0 +1,112 @@
+{
+  "coolify_version": "4.6.0",
+  "upstream_fix": "https://github.com/coollabsio/coolify/pull/12240",
+  "docs": "https://coolify.io/docs/api/endpoints/applications/update-env-by-application-uuid",
+  "cases": [
+    {
+      "name": "single_omit_value_set_is_buildtime_false",
+      "request": {
+        "method": "PATCH",
+        "path": "/applications/{uuid}/envs",
+        "body": {
+          "key": "SLINKY_JUR1023_SINGLE",
+          "is_buildtime": false
+        },
+        "body_keys": ["is_buildtime", "key"]
+      },
+      "response_status": 201,
+      "response": {
+        "key": "SLINKY_JUR1023_SINGLE",
+        "value": "fake-single-value-keep-me",
+        "is_buildtime": false,
+        "is_runtime": true,
+        "is_literal": false,
+        "is_multiline": false,
+        "is_preview": false,
+        "is_shown_once": false
+      },
+      "assertions": {
+        "request_omits_value": true,
+        "value_preserved": true,
+        "is_buildtime": false
+      }
+    },
+    {
+      "name": "bulk_omit_value_set_is_buildtime_false",
+      "request": {
+        "method": "PATCH",
+        "path": "/applications/{uuid}/envs/bulk",
+        "body": {
+          "data": [
+            {
+              "key": "SLINKY_JUR1023_BULK",
+              "is_buildtime": false
+            }
+          ]
+        },
+        "item_keys": ["is_buildtime", "key"]
+      },
+      "response_status": 201,
+      "response": [
+        {
+          "key": "SLINKY_JUR1023_BULK",
+          "value": "fake-bulk-value-keep-me",
+          "is_buildtime": false,
+          "is_runtime": true,
+          "is_literal": false,
+          "is_multiline": false,
+          "is_preview": false,
+          "is_shown_once": false
+        }
+      ],
+      "assertions": {
+        "request_omits_value": true,
+        "value_preserved": true,
+        "is_buildtime": false
+      }
+    },
+    {
+      "name": "single_explicit_empty_string_clears_to_null",
+      "request": {
+        "method": "PATCH",
+        "path": "/applications/{uuid}/envs",
+        "body": {
+          "key": "SLINKY_JUR1023_SINGLE",
+          "value": ""
+        },
+        "body_keys": ["key", "value"]
+      },
+      "response_status": 201,
+      "response": {
+        "key": "SLINKY_JUR1023_SINGLE",
+        "value": null,
+        "is_buildtime": false
+      },
+      "assertions": {
+        "request_includes_empty_string_value": true,
+        "readback_value_is_null": true
+      }
+    },
+    {
+      "name": "single_explicit_value_update_no_regression",
+      "request": {
+        "method": "PATCH",
+        "path": "/applications/{uuid}/envs",
+        "body": {
+          "key": "SLINKY_JUR1023_SINGLE",
+          "value": "fake-single-value-updated"
+        },
+        "body_keys": ["key", "value"]
+      },
+      "response_status": 201,
+      "response": {
+        "key": "SLINKY_JUR1023_SINGLE",
+        "value": "fake-single-value-updated",
+        "is_buildtime": false
+      },
+      "assertions": {
+        "value_updated": true
+      }
+    }
+  ]
+}

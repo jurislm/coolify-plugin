@@ -3778,8 +3778,7 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "key",
-                                    "value"
+                                    "key"
                                 ],
                                 "properties": {
                                     "key": {
@@ -3788,7 +3787,7 @@
                                     },
                                     "value": {
                                         "type": "string",
-                                        "description": "The value of the environment variable."
+                                        "description": "環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。"
                                     },
                                     "is_preview": {
                                         "type": "boolean",
@@ -3805,6 +3804,10 @@
                                     "is_shown_once": {
                                         "type": "boolean",
                                         "description": "The flag to indicate if the environment variable's value is shown on the UI."
+                                    },
+                                    "is_buildtime": {
+                                        "type": "boolean",
+                                        "description": "環境變數是否在 build time 可用。省略則保留既有旗標。僅 application env PATCH 支援（Coolify v4.6.0 ApplicationsController）。"
                                     }
                                 },
                                 "type": "object"
@@ -3879,7 +3882,7 @@
                                                 },
                                                 "value": {
                                                     "type": "string",
-                                                    "description": "The value of the environment variable."
+                                                    "description": "環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。"
                                                 },
                                                 "is_preview": {
                                                     "type": "boolean",
@@ -3896,9 +3899,16 @@
                                                 "is_shown_once": {
                                                     "type": "boolean",
                                                     "description": "The flag to indicate if the environment variable's value is shown on the UI."
+                                                },
+                                                "is_buildtime": {
+                                                    "type": "boolean",
+                                                    "description": "環境變數是否在 build time 可用。省略則保留既有旗標。僅 application env PATCH 支援（Coolify v4.6.0 ApplicationsController）。"
                                                 }
                                             },
-                                            "type": "object"
+                                            "type": "object",
+                                            "required": [
+                                                "key"
+                                            ]
                                         }
                                     }
                                 },
@@ -8852,8 +8862,7 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "key",
-                                    "value"
+                                    "key"
                                 ],
                                 "properties": {
                                     "key": {
@@ -8862,7 +8871,7 @@
                                     },
                                     "value": {
                                         "type": "string",
-                                        "description": "The value of the environment variable."
+                                        "description": "環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。"
                                     },
                                     "is_literal": {
                                         "type": "boolean",
@@ -8952,7 +8961,7 @@
                                                 },
                                                 "value": {
                                                     "type": "string",
-                                                    "description": "The value of the environment variable."
+                                                    "description": "環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。"
                                                 },
                                                 "is_literal": {
                                                     "type": "boolean",
@@ -8967,7 +8976,10 @@
                                                     "description": "The flag to indicate if the environment variable's value is shown on the UI."
                                                 }
                                             },
-                                            "type": "object"
+                                            "type": "object",
+                                            "required": [
+                                                "key"
+                                            ]
                                         }
                                     }
                                 },
@@ -19651,8 +19663,7 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "key",
-                                    "value"
+                                    "key"
                                 ],
                                 "properties": {
                                     "key": {
@@ -19661,7 +19672,7 @@
                                     },
                                     "value": {
                                         "type": "string",
-                                        "description": "The value of the environment variable."
+                                        "description": "環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。"
                                     },
                                     "is_preview": {
                                         "type": "boolean",
@@ -19755,7 +19766,7 @@
                                                 },
                                                 "value": {
                                                     "type": "string",
-                                                    "description": "The value of the environment variable."
+                                                    "description": "環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。"
                                                 },
                                                 "is_preview": {
                                                     "type": "boolean",
@@ -19774,7 +19785,10 @@
                                                     "description": "The flag to indicate if the environment variable's value is shown on the UI."
                                                 }
                                             },
-                                            "type": "object"
+                                            "type": "object",
+                                            "required": [
+                                                "key"
+                                            ]
                                         }
                                     }
                                 },
@@ -24401,10 +24415,12 @@
                         "type": "string"
                     },
                     "value": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "real_value": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "comment": {
                         "type": "string",
