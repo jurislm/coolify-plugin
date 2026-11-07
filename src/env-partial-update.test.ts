@@ -62,7 +62,7 @@ describe("環境變數局部更新契約", () => {
     expect(withValue?.success).toBe(true);
   });
 
-  test("批次更新可只送 is_buildtime、省略 value", () => {
+  test("批次更新可只送 is_buildtime、省略 value，且缺 key 時拒絕", () => {
     expect(bulk).toBeDefined();
     const omitValue = bulk?.inputSchema.safeParse({
       uuid: "app",
@@ -75,6 +75,28 @@ describe("環境變數局部更新契約", () => {
       body: { data: [{ key: "SLINKY_JUR1023_BULK", value: "" }] },
     });
     expect(emptyString?.success).toBe(true);
+
+    const missingKey = bulk?.inputSchema.safeParse({
+      uuid: "app",
+      body: { data: [{ is_buildtime: false }] },
+    });
+    expect(missingKey?.success).toBe(false);
+
+    for (const name of [
+      "coolify_update_envs_by_database_uuid",
+      "coolify_update_envs_by_service_uuid",
+    ]) {
+      const operation = operations.find((item) => item.name === name);
+      expect(operation).toBeDefined();
+      expect(operation?.inputSchema.safeParse({
+        uuid: "resource",
+        body: { data: [{ is_literal: false }] },
+      }).success).toBe(false);
+      expect(operation?.inputSchema.safeParse({
+        uuid: "resource",
+        body: { data: [{ key: "SLINKY_JUR1023_BULK" }] },
+      }).success).toBe(true);
+    }
   });
 
   test("database／service env 契約不暴露 Coolify 未支援的 is_buildtime", () => {
@@ -93,8 +115,11 @@ describe("環境變數局部更新契約", () => {
 
   test("客戶端 JSON body 在省略欄位時不含 value，送空字串時則保留 value 鍵", async () => {
     expect(single).toBeDefined();
+    expect(bulk).toBeDefined();
     const bodies: unknown[] = [];
+    let outboundCount = 0;
     const client = new CoolifyClient(config, async (_url, init) => {
+      outboundCount += 1;
       bodies.push(JSON.parse(String(init?.body)));
       return new Response(JSON.stringify(fixture.cases[0].response), {
         status: 201,
@@ -115,6 +140,19 @@ describe("環境變數局部更新契約", () => {
     });
     expect(bodies[1]).toEqual({ key: "SLINKY_JUR1023_SINGLE", value: "" });
     expect(Object.prototype.hasOwnProperty.call(bodies[1], "value")).toBe(true);
+
+    await client.request(bulk!, {
+      uuid: "app",
+      body: { data: [{ key: "SLINKY_JUR1023_BULK", is_buildtime: false }] },
+    });
+    expect(bodies[2]).toEqual({ data: [{ key: "SLINKY_JUR1023_BULK", is_buildtime: false }] });
+    expect(Object.prototype.hasOwnProperty.call((bodies[2] as { data: Array<Record<string, unknown>> }).data[0], "value")).toBe(false);
+
+    expect(bulk?.inputSchema.safeParse({
+      uuid: "app",
+      body: { data: [{ is_buildtime: false }] },
+    }).success).toBe(false);
+    expect(outboundCount).toBe(3);
   });
 
   test("錄製的 Coolify 4.6.0 fixture 區分省略、空字串與明確更新", () => {

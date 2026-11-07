@@ -3807,7 +3807,7 @@
                                     },
                                     "is_buildtime": {
                                         "type": "boolean",
-                                        "description": "環境變數是否在 build time 可用。省略則保留既有旗標。僅 application env PATCH 支援（Coolify v4.6.0 ApplicationsController）；database／service 控制器未接受此欄。"
+                                        "description": "環境變數是否在 build time 可用。省略則保留既有旗標。僅 application env PATCH 支援（Coolify v4.6.0 ApplicationsController）。"
                                     }
                                 },
                                 "type": "object"
@@ -3902,10 +3902,13 @@
                                                 },
                                                 "is_buildtime": {
                                                     "type": "boolean",
-                                                    "description": "環境變數是否在 build time 可用。省略則保留既有旗標。僅 application env PATCH 支援（Coolify v4.6.0 ApplicationsController）；database／service 控制器未接受此欄。"
+                                                    "description": "環境變數是否在 build time 可用。省略則保留既有旗標。僅 application env PATCH 支援（Coolify v4.6.0 ApplicationsController）。"
                                                 }
                                             },
-                                            "type": "object"
+                                            "type": "object",
+                                            "required": [
+                                                "key"
+                                            ]
                                         }
                                     }
                                 },
@@ -8973,7 +8976,10 @@
                                                     "description": "The flag to indicate if the environment variable's value is shown on the UI."
                                                 }
                                             },
-                                            "type": "object"
+                                            "type": "object",
+                                            "required": [
+                                                "key"
+                                            ]
                                         }
                                     }
                                 },
@@ -19779,7 +19785,10 @@
                                                     "description": "The flag to indicate if the environment variable's value is shown on the UI."
                                                 }
                                             },
-                                            "type": "object"
+                                            "type": "object",
+                                            "required": [
+                                                "key"
+                                            ]
                                         }
                                     }
                                 },
