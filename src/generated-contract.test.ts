@@ -177,24 +177,35 @@ test("allows either environment identifier when creating a resource", () => {
   expect(database.inputSchema.safeParse({ body: { ...input.body, environment_uuid: "environment" } }).success).toBe(true);
 });
 
-test("環境變數更新允許省略 value 並設定 is_buildtime", () => {
-  for (const name of [
-    "coolify_update_env_by_application_uuid",
-    "coolify_update_env_by_database_uuid",
-    "coolify_update_env_by_service_uuid",
-  ]) {
+test("僅 application env 更新暴露 is_buildtime；database／service 不虛構該欄", () => {
+  const bodyShape = (name: string) => {
     const operation = operations.find((item) => item.name === name);
-    expect(operation?.inputSchema.safeParse({ uuid: "resource", body: { key: "QA", is_buildtime: false } }).success).toBe(true);
+    const body = (operation?.inputSchema as { shape?: { body?: { shape?: Record<string, unknown> } } })?.shape?.body;
+    return body?.shape ?? {};
+  };
+  const bulkItemShape = (name: string) => {
+    const operation = operations.find((item) => item.name === name);
+    const data = (operation?.inputSchema as { shape?: { body?: { shape?: { data?: { element?: { shape?: Record<string, unknown> } } } } } })?.shape?.body?.shape?.data;
+    return data?.element?.shape ?? {};
+  };
+
+  expect("is_buildtime" in bodyShape("coolify_update_env_by_application_uuid")).toBe(true);
+  expect("is_buildtime" in bulkItemShape("coolify_update_envs_by_application_uuid")).toBe(true);
+  expect(operations.find((item) => item.name === "coolify_update_env_by_application_uuid")?.inputSchema.safeParse({
+    uuid: "resource",
+    body: { key: "QA", is_buildtime: false },
+  }).success).toBe(true);
+
+  for (const name of ["coolify_update_env_by_database_uuid", "coolify_update_env_by_service_uuid"]) {
+    expect("is_buildtime" in bodyShape(name)).toBe(false);
+    const operation = operations.find((item) => item.name === name);
     expect(operation?.inputSchema.safeParse({ uuid: "resource", body: { key: "QA", value: "" } }).success).toBe(true);
-    expect(operation?.inputSchema.safeParse({ uuid: "resource", body: { is_buildtime: false } }).success).toBe(false);
+    expect(operation?.inputSchema.safeParse({ uuid: "resource", body: { key: "QA" } }).success).toBe(true);
   }
-  for (const name of [
-    "coolify_update_envs_by_application_uuid",
-    "coolify_update_envs_by_database_uuid",
-    "coolify_update_envs_by_service_uuid",
-  ]) {
+  for (const name of ["coolify_update_envs_by_database_uuid", "coolify_update_envs_by_service_uuid"]) {
+    expect("is_buildtime" in bulkItemShape(name)).toBe(false);
     const operation = operations.find((item) => item.name === name);
-    expect(operation?.inputSchema.safeParse({ uuid: "resource", body: { data: [{ key: "QA", is_buildtime: false }] } }).success).toBe(true);
+    expect(operation?.inputSchema.safeParse({ uuid: "resource", body: { data: [{ key: "QA" }] } }).success).toBe(true);
   }
 });
 

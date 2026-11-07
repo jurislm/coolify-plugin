@@ -3807,7 +3807,7 @@
                                     },
                                     "is_buildtime": {
                                         "type": "boolean",
-                                        "description": "環境變數是否在 build time 可用。省略則保留既有旗標。"
+                                        "description": "環境變數是否在 build time 可用。省略則保留既有旗標。僅 application env PATCH 支援（Coolify v4.6.0 ApplicationsController）；database／service 控制器未接受此欄。"
                                     }
                                 },
                                 "type": "object"
@@ -3902,7 +3902,7 @@
                                                 },
                                                 "is_buildtime": {
                                                     "type": "boolean",
-                                                    "description": "環境變數是否在 build time 可用。省略則保留既有旗標。"
+                                                    "description": "環境變數是否在 build time 可用。省略則保留既有旗標。僅 application env PATCH 支援（Coolify v4.6.0 ApplicationsController）；database／service 控制器未接受此欄。"
                                                 }
                                             },
                                             "type": "object"
@@ -4210,7 +4210,7 @@
                     "Applications"
                 ],
                 "summary": "Move",
-                "description": "Move application to another project/environment. This is a purely organizational change \u2014 running containers are not affected. Note: after moving, the application will pick up shared environment variables from the new environment on the next deployment.",
+                "description": "Move application to another project/environment. This is a purely organizational change — running containers are not affected. Note: after moving, the application will pick up shared environment variables from the new environment on the next deployment.",
                 "operationId": "move-application-by-uuid",
                 "parameters": [
                     {
@@ -8376,7 +8376,7 @@
                     "Databases"
                 ],
                 "summary": "Move",
-                "description": "Move database to another project/environment. This is a purely organizational change \u2014 running containers are not affected. Note: after moving, the database will pick up shared environment variables from the new environment on the next deployment.",
+                "description": "Move database to another project/environment. This is a purely organizational change — running containers are not affected. Note: after moving, the database will pick up shared environment variables from the new environment on the next deployment.",
                 "operationId": "move-database-by-uuid",
                 "parameters": [
                     {
@@ -8881,10 +8881,6 @@
                                     "is_shown_once": {
                                         "type": "boolean",
                                         "description": "The flag to indicate if the environment variable's value is shown on the UI."
-                                    },
-                                    "is_buildtime": {
-                                        "type": "boolean",
-                                        "description": "環境變數是否在 build time 可用。省略則保留既有旗標。"
                                     }
                                 },
                                 "type": "object"
@@ -8975,10 +8971,6 @@
                                                 "is_shown_once": {
                                                     "type": "boolean",
                                                     "description": "The flag to indicate if the environment variable's value is shown on the UI."
-                                                },
-                                                "is_buildtime": {
-                                                    "type": "boolean",
-                                                    "description": "環境變數是否在 build time 可用。省略則保留既有旗標。"
                                                 }
                                             },
                                             "type": "object"
@@ -19691,10 +19683,6 @@
                                     "is_shown_once": {
                                         "type": "boolean",
                                         "description": "The flag to indicate if the environment variable's value is shown on the UI."
-                                    },
-                                    "is_buildtime": {
-                                        "type": "boolean",
-                                        "description": "環境變數是否在 build time 可用。省略則保留既有旗標。"
                                     }
                                 },
                                 "type": "object"
@@ -19789,10 +19777,6 @@
                                                 "is_shown_once": {
                                                     "type": "boolean",
                                                     "description": "The flag to indicate if the environment variable's value is shown on the UI."
-                                                },
-                                                "is_buildtime": {
-                                                    "type": "boolean",
-                                                    "description": "環境變數是否在 build time 可用。省略則保留既有旗標。"
                                                 }
                                             },
                                             "type": "object"
@@ -19906,7 +19890,7 @@
                     "Services"
                 ],
                 "summary": "Move",
-                "description": "Move service to another project/environment. This is a purely organizational change \u2014 running containers are not affected. Note: after moving, the service will pick up shared environment variables from the new environment on the next deployment.",
+                "description": "Move service to another project/environment. This is a purely organizational change — running containers are not affected. Note: after moving, the service will pick up shared environment variables from the new environment on the next deployment.",
                 "operationId": "move-service-by-uuid",
                 "parameters": [
                     {

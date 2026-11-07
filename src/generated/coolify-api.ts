@@ -6784,7 +6784,7 @@ export interface operations {
                     is_multiline?: boolean;
                     /** @description The flag to indicate if the environment variable's value is shown on the UI. */
                     is_shown_once?: boolean;
-                    /** @description 環境變數是否在 build time 可用。省略則保留既有旗標。 */
+                    /** @description 環境變數是否在 build time 可用。省略則保留既有旗標。僅 application env PATCH 支援（Coolify v4.6.0 ApplicationsController）；database／service 控制器未接受此欄。 */
                     is_buildtime?: boolean;
                 };
             };
@@ -6831,7 +6831,7 @@ export interface operations {
                         is_multiline?: boolean;
                         /** @description The flag to indicate if the environment variable's value is shown on the UI. */
                         is_shown_once?: boolean;
-                        /** @description 環境變數是否在 build time 可用。省略則保留既有旗標。 */
+                        /** @description 環境變數是否在 build time 可用。省略則保留既有旗標。僅 application env PATCH 支援（Coolify v4.6.0 ApplicationsController）；database／service 控制器未接受此欄。 */
                         is_buildtime?: boolean;
                     }[];
                 };
@@ -9396,8 +9396,6 @@ export interface operations {
                     is_multiline?: boolean;
                     /** @description The flag to indicate if the environment variable's value is shown on the UI. */
                     is_shown_once?: boolean;
-                    /** @description 環境變數是否在 build time 可用。省略則保留既有旗標。 */
-                    is_buildtime?: boolean;
                 };
             };
         };
@@ -9442,8 +9440,6 @@ export interface operations {
                         is_multiline?: boolean;
                         /** @description The flag to indicate if the environment variable's value is shown on the UI. */
                         is_shown_once?: boolean;
-                        /** @description 環境變數是否在 build time 可用。省略則保留既有旗標。 */
-                        is_buildtime?: boolean;
                     }[];
                 };
             };
@@ -15247,8 +15243,6 @@ export interface operations {
                     is_multiline?: boolean;
                     /** @description The flag to indicate if the environment variable's value is shown on the UI. */
                     is_shown_once?: boolean;
-                    /** @description 環境變數是否在 build time 可用。省略則保留既有旗標。 */
-                    is_buildtime?: boolean;
                 };
             };
         };
@@ -15295,8 +15289,6 @@ export interface operations {
                         is_multiline?: boolean;
                         /** @description The flag to indicate if the environment variable's value is shown on the UI. */
                         is_shown_once?: boolean;
-                        /** @description 環境變數是否在 build time 可用。省略則保留既有旗標。 */
-                        is_buildtime?: boolean;
                     }[];
                 };
             };

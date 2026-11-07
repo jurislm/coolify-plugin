@@ -77,6 +77,20 @@ describe("環境變數局部更新契約", () => {
     expect(emptyString?.success).toBe(true);
   });
 
+  test("database／service env 契約不暴露 Coolify 未支援的 is_buildtime", () => {
+    for (const name of [
+      "coolify_update_env_by_database_uuid",
+      "coolify_update_env_by_service_uuid",
+      "coolify_update_envs_by_database_uuid",
+      "coolify_update_envs_by_service_uuid",
+    ]) {
+      const operation = operations.find((item) => item.name === name);
+      expect(operation).toBeDefined();
+      const serialized = JSON.stringify(operation?.inputSchema);
+      expect(serialized.includes("is_buildtime")).toBe(false);
+    }
+  });
+
   test("客戶端 JSON body 在省略欄位時不含 value，送空字串時則保留 value 鍵", async () => {
     expect(single).toBeDefined();
     const bodies: unknown[] = [];

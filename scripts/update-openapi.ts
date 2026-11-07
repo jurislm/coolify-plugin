@@ -236,18 +236,18 @@ schemas.Service.properties.status = { type: "string" };
 schemas.EnvironmentVariable.properties.value.nullable = true;
 schemas.EnvironmentVariable.properties.real_value.nullable = true;
 const envValueDescription = "環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。";
-const envBuildtimeProperty = { type: "boolean", description: "環境變數是否在 build time 可用。省略則保留既有旗標。" };
+const envBuildtimeProperty = { type: "boolean", description: "環境變數是否在 build time 可用。省略則保留既有旗標。僅 application env PATCH 支援（Coolify v4.6.0 ApplicationsController）；database／service 控制器未接受此欄。" };
 for (const path of ["/applications/{uuid}/envs", "/databases/{uuid}/envs", "/services/{uuid}/envs"]) {
   const schema = paths[path].patch.requestBody.content["application/json"].schema;
   schema.required = ["key"];
   schema.properties.value.description = envValueDescription;
-  schema.properties.is_buildtime = envBuildtimeProperty;
 }
 for (const path of ["/applications/{uuid}/envs/bulk", "/databases/{uuid}/envs/bulk", "/services/{uuid}/envs/bulk"]) {
   const item = paths[path].patch.requestBody.content["application/json"].schema.properties.data.items;
   item.properties.value.description = envValueDescription;
-  item.properties.is_buildtime = envBuildtimeProperty;
 }
+paths["/applications/{uuid}/envs"].patch.requestBody.content["application/json"].schema.properties.is_buildtime = envBuildtimeProperty;
+paths["/applications/{uuid}/envs/bulk"].patch.requestBody.content["application/json"].schema.properties.data.items.properties.is_buildtime = envBuildtimeProperty;
 const persisted = `${JSON.stringify(spec, null, 4)}\n`;
 const hash = new Bun.CryptoHasher("sha256");
 hash.update(persisted);
@@ -294,7 +294,8 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Application tag removal and database backup updates match live message responses",
     "Application ports_exposes can be null for new Git applications",
     "Private key update uses the routed UUID path rather than the upstream annotation path",
-    "環境變數 PATCH 接受選填 value 與 is_buildtime；在 Coolify >= 4.5.1 省略 value 會保留既有值",
+    "環境變數 PATCH 接受選填 value；在 Coolify >= 4.5.1 省略 value 會保留既有值",
+    "application env PATCH／bulk 接受 is_buildtime（Coolify v4.6.0 ApplicationsController）；database／service 不暴露該欄",
     "環境變數以空字串清空後，value 與 real_value 可為 null",
   ],
 }, null, 2)}\n`);
