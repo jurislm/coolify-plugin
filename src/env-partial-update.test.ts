@@ -3,12 +3,14 @@ import { CoolifyClient } from "./client.js";
 import type { CoolifyConfig } from "./config.js";
 import { operations } from "./generated/operations.js";
 
+type EnvRecord = { value?: string | null; is_buildtime?: boolean; key?: string };
 const fixture = await Bun.file(new URL("./fixtures/jur-1023-env-partial-update.json", import.meta.url)).json() as {
   coolify_version: string;
   cases: Array<{
+    name: string;
     response_status: number;
     request: { body: Record<string, unknown> };
-    response: { value?: string | null; is_buildtime?: boolean };
+    response: EnvRecord | EnvRecord[];
     assertions: {
       request_omits_value?: boolean;
       value_preserved?: boolean;
@@ -27,6 +29,10 @@ const config: CoolifyConfig = {
 
 const single = operations.find((item) => item.name === "coolify_update_env_by_application_uuid");
 const bulk = operations.find((item) => item.name === "coolify_update_envs_by_application_uuid");
+
+function primary(response: EnvRecord | EnvRecord[]): EnvRecord {
+  return Array.isArray(response) ? response[0]! : response;
+}
 
 describe("env partial update contract", () => {
   test("single update accepts is_buildtime without value and rejects missing key", () => {
@@ -101,6 +107,13 @@ describe("env partial update contract", () => {
     expect(fixture.coolify_version).toBe("4.6.0");
     for (const item of fixture.cases) {
       expect(item.response_status).toBe(201);
+      const response = primary(item.response);
+      if (item.name.startsWith("bulk_")) {
+        expect(Array.isArray(item.response)).toBe(true);
+        expect(bulk?.responseSchema.safeParse(item.response).success).toBe(true);
+      } else {
+        expect(single?.responseSchema.safeParse(item.response).success).toBe(true);
+      }
       if (item.assertions.request_omits_value) {
         expect(Object.prototype.hasOwnProperty.call(item.request.body, "value")).toBe(false);
         if ("data" in item.request.body) {
@@ -109,15 +122,15 @@ describe("env partial update contract", () => {
           }
         }
         expect(item.assertions.value_preserved).toBe(true);
-        expect(item.response.is_buildtime).toBe(false);
+        expect(response.is_buildtime).toBe(false);
       }
       if (item.assertions.request_includes_empty_string_value) {
         expect(item.request.body).toMatchObject({ value: "" });
         expect(item.assertions.readback_value_is_null).toBe(true);
-        expect(item.response.value).toBeNull();
+        expect(response.value).toBeNull();
       }
       if (item.assertions.value_updated) {
-        expect(item.response.value).toBe("fake-single-value-updated");
+        expect(response.value).toBe("fake-single-value-updated");
       }
     }
   });

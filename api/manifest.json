@@ -1,7 +1,7 @@
 {
   "sourceUrl": "https://raw.githubusercontent.com/coollabsio/coolify/v4.3.23/openapi.json",
   "fetchedAt": "2026-09-25T11:20:11.773Z",
-  "sha256": "67e92561b7afd703863acc4e37e25d4afe89cd11ef3de9be5ad847a36494c041",
+  "sha256": "98717007b69948a713674fea21ec3034ac1d53e57b77d768fd57de3c82478f59",
   "upstreamSha256": "964360ffb3d4c026252aa4657d6561190f59ac4256395bf0645bf6a4f171ec88",
   "openapiVersion": "3.1.0",
   "infoVersion": "0.1",
@@ -31,6 +31,7 @@
     "Application tag removal and database backup updates match live message responses",
     "Application ports_exposes can be null for new Git applications",
     "Private key update uses the routed UUID path rather than the upstream annotation path",
-    "Environment variable PATCH accepts optional value and is_buildtime; omitting value preserves the stored value on Coolify >= 4.5.1"
+    "Environment variable PATCH accepts optional value and is_buildtime; omitting value preserves the stored value on Coolify >= 4.5.1",
+    "Environment variable value and real_value can be null after an empty-string clear"
   ]
 }

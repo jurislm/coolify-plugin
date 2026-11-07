@@ -233,6 +233,8 @@ paths["/databases/{uuid}"].patch.responses["200"].content = { "application/json"
 paths["/databases/{uuid}/backups"].get.responses["200"].content["application/json"].schema = { type: "array", items: databaseResponse };
 Object.assign(schemas.Server.properties, { is_reachable: { type: "boolean" }, is_usable: { type: "boolean" } });
 schemas.Service.properties.status = { type: "string" };
+schemas.EnvironmentVariable.properties.value.nullable = true;
+schemas.EnvironmentVariable.properties.real_value.nullable = true;
 const envValueDescription = "The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted.";
 const envBuildtimeProperty = { type: "boolean", description: "Whether the environment variable is available at build time. Omit to leave the stored flag unchanged." };
 for (const path of ["/applications/{uuid}/envs", "/databases/{uuid}/envs", "/services/{uuid}/envs"]) {
@@ -293,6 +295,7 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Application ports_exposes can be null for new Git applications",
     "Private key update uses the routed UUID path rather than the upstream annotation path",
     "Environment variable PATCH accepts optional value and is_buildtime; omitting value preserves the stored value on Coolify >= 4.5.1",
+    "Environment variable value and real_value can be null after an empty-string clear",
   ],
 }, null, 2)}\n`);
 

@@ -4527,8 +4527,8 @@ export interface components {
             is_shared?: boolean;
             is_shown_once?: boolean;
             key?: string;
-            value?: string;
-            real_value?: string;
+            value?: string | null;
+            real_value?: string | null;
             comment?: string | null;
             version?: string;
             created_at?: string;

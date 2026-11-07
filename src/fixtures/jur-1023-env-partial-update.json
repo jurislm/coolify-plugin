@@ -1,5 +1,4 @@
 {
-  "source": "Recorded against coolify.jurislm.com Coolify 4.6.0 on disposable app slinky-jur-1023-env-partial-app. Values are synthetic QA strings, not production secrets.",
   "coolify_version": "4.6.0",
   "upstream_fix": "https://github.com/coollabsio/coolify/pull/12240",
   "docs": "https://coolify.io/docs/api/endpoints/applications/update-env-by-application-uuid",
@@ -48,16 +47,18 @@
         "item_keys": ["is_buildtime", "key"]
       },
       "response_status": 201,
-      "response": {
-        "key": "SLINKY_JUR1023_BULK",
-        "value": "fake-bulk-value-keep-me",
-        "is_buildtime": false,
-        "is_runtime": true,
-        "is_literal": false,
-        "is_multiline": false,
-        "is_preview": false,
-        "is_shown_once": false
-      },
+      "response": [
+        {
+          "key": "SLINKY_JUR1023_BULK",
+          "value": "fake-bulk-value-keep-me",
+          "is_buildtime": false,
+          "is_runtime": true,
+          "is_literal": false,
+          "is_multiline": false,
+          "is_preview": false,
+          "is_shown_once": false
+        }
+      ],
       "assertions": {
         "request_omits_value": true,
         "value_preserved": true,

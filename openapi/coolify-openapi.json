@@ -4210,7 +4210,7 @@
                     "Applications"
                 ],
                 "summary": "Move",
-                "description": "Move application to another project/environment. This is a purely organizational change — running containers are not affected. Note: after moving, the application will pick up shared environment variables from the new environment on the next deployment.",
+                "description": "Move application to another project/environment. This is a purely organizational change \u2014 running containers are not affected. Note: after moving, the application will pick up shared environment variables from the new environment on the next deployment.",
                 "operationId": "move-application-by-uuid",
                 "parameters": [
                     {
@@ -8376,7 +8376,7 @@
                     "Databases"
                 ],
                 "summary": "Move",
-                "description": "Move database to another project/environment. This is a purely organizational change — running containers are not affected. Note: after moving, the database will pick up shared environment variables from the new environment on the next deployment.",
+                "description": "Move database to another project/environment. This is a purely organizational change \u2014 running containers are not affected. Note: after moving, the database will pick up shared environment variables from the new environment on the next deployment.",
                 "operationId": "move-database-by-uuid",
                 "parameters": [
                     {
@@ -19906,7 +19906,7 @@
                     "Services"
                 ],
                 "summary": "Move",
-                "description": "Move service to another project/environment. This is a purely organizational change — running containers are not affected. Note: after moving, the service will pick up shared environment variables from the new environment on the next deployment.",
+                "description": "Move service to another project/environment. This is a purely organizational change \u2014 running containers are not affected. Note: after moving, the service will pick up shared environment variables from the new environment on the next deployment.",
                 "operationId": "move-service-by-uuid",
                 "parameters": [
                     {
@@ -24422,10 +24422,12 @@
                         "type": "string"
                     },
                     "value": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "real_value": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "comment": {
                         "type": "string",
