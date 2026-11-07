@@ -1,5 +1,6 @@
 # Git worktrees
 .worktrees/
+.worktree/
 
 # Claude Code local state
 .claude/
