@@ -3787,7 +3787,7 @@
                                     },
                                     "value": {
                                         "type": "string",
-                                        "description": "The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted."
+                                        "description": "環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。"
                                     },
                                     "is_preview": {
                                         "type": "boolean",
@@ -3807,7 +3807,7 @@
                                     },
                                     "is_buildtime": {
                                         "type": "boolean",
-                                        "description": "Whether the environment variable is available at build time. Omit to leave the stored flag unchanged."
+                                        "description": "環境變數是否在 build time 可用。省略則保留既有旗標。"
                                     }
                                 },
                                 "type": "object"
@@ -3882,7 +3882,7 @@
                                                 },
                                                 "value": {
                                                     "type": "string",
-                                                    "description": "The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted."
+                                                    "description": "環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。"
                                                 },
                                                 "is_preview": {
                                                     "type": "boolean",
@@ -3902,7 +3902,7 @@
                                                 },
                                                 "is_buildtime": {
                                                     "type": "boolean",
-                                                    "description": "Whether the environment variable is available at build time. Omit to leave the stored flag unchanged."
+                                                    "description": "環境變數是否在 build time 可用。省略則保留既有旗標。"
                                                 }
                                             },
                                             "type": "object"
@@ -8868,7 +8868,7 @@
                                     },
                                     "value": {
                                         "type": "string",
-                                        "description": "The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted."
+                                        "description": "環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。"
                                     },
                                     "is_literal": {
                                         "type": "boolean",
@@ -8884,7 +8884,7 @@
                                     },
                                     "is_buildtime": {
                                         "type": "boolean",
-                                        "description": "Whether the environment variable is available at build time. Omit to leave the stored flag unchanged."
+                                        "description": "環境變數是否在 build time 可用。省略則保留既有旗標。"
                                     }
                                 },
                                 "type": "object"
@@ -8962,7 +8962,7 @@
                                                 },
                                                 "value": {
                                                     "type": "string",
-                                                    "description": "The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted."
+                                                    "description": "環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。"
                                                 },
                                                 "is_literal": {
                                                     "type": "boolean",
@@ -8978,7 +8978,7 @@
                                                 },
                                                 "is_buildtime": {
                                                     "type": "boolean",
-                                                    "description": "Whether the environment variable is available at build time. Omit to leave the stored flag unchanged."
+                                                    "description": "環境變數是否在 build time 可用。省略則保留既有旗標。"
                                                 }
                                             },
                                             "type": "object"
@@ -19674,7 +19674,7 @@
                                     },
                                     "value": {
                                         "type": "string",
-                                        "description": "The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted."
+                                        "description": "環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。"
                                     },
                                     "is_preview": {
                                         "type": "boolean",
@@ -19694,7 +19694,7 @@
                                     },
                                     "is_buildtime": {
                                         "type": "boolean",
-                                        "description": "Whether the environment variable is available at build time. Omit to leave the stored flag unchanged."
+                                        "description": "環境變數是否在 build time 可用。省略則保留既有旗標。"
                                     }
                                 },
                                 "type": "object"
@@ -19772,7 +19772,7 @@
                                                 },
                                                 "value": {
                                                     "type": "string",
-                                                    "description": "The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted."
+                                                    "description": "環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。"
                                                 },
                                                 "is_preview": {
                                                     "type": "boolean",
@@ -19792,7 +19792,7 @@
                                                 },
                                                 "is_buildtime": {
                                                     "type": "boolean",
-                                                    "description": "Whether the environment variable is available at build time. Omit to leave the stored flag unchanged."
+                                                    "description": "環境變數是否在 build time 可用。省略則保留既有旗標。"
                                                 }
                                             },
                                             "type": "object"

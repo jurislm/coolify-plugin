@@ -235,8 +235,8 @@ Object.assign(schemas.Server.properties, { is_reachable: { type: "boolean" }, is
 schemas.Service.properties.status = { type: "string" };
 schemas.EnvironmentVariable.properties.value.nullable = true;
 schemas.EnvironmentVariable.properties.real_value.nullable = true;
-const envValueDescription = "The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted.";
-const envBuildtimeProperty = { type: "boolean", description: "Whether the environment variable is available at build time. Omit to leave the stored flag unchanged." };
+const envValueDescription = "環境變數的值。在 Coolify >= 4.5.1（#12240）省略此欄可保留既有值；送空字串會清空。Coolify 4.5.1 之前若省略此欄會清除既有值。";
+const envBuildtimeProperty = { type: "boolean", description: "環境變數是否在 build time 可用。省略則保留既有旗標。" };
 for (const path of ["/applications/{uuid}/envs", "/databases/{uuid}/envs", "/services/{uuid}/envs"]) {
   const schema = paths[path].patch.requestBody.content["application/json"].schema;
   schema.required = ["key"];
@@ -294,8 +294,8 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Application tag removal and database backup updates match live message responses",
     "Application ports_exposes can be null for new Git applications",
     "Private key update uses the routed UUID path rather than the upstream annotation path",
-    "Environment variable PATCH accepts optional value and is_buildtime; omitting value preserves the stored value on Coolify >= 4.5.1",
-    "Environment variable value and real_value can be null after an empty-string clear",
+    "環境變數 PATCH 接受選填 value 與 is_buildtime；在 Coolify >= 4.5.1 省略 value 會保留既有值",
+    "環境變數以空字串清空後，value 與 real_value 可為 null",
   ],
 }, null, 2)}\n`);
 

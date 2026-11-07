@@ -177,7 +177,7 @@ test("allows either environment identifier when creating a resource", () => {
   expect(database.inputSchema.safeParse({ body: { ...input.body, environment_uuid: "environment" } }).success).toBe(true);
 });
 
-test("environment variable updates allow omitting value while setting is_buildtime", () => {
+test("環境變數更新允許省略 value 並設定 is_buildtime", () => {
   for (const name of [
     "coolify_update_env_by_application_uuid",
     "coolify_update_env_by_database_uuid",

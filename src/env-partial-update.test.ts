@@ -34,8 +34,8 @@ function primary(response: EnvRecord | EnvRecord[]): EnvRecord {
   return Array.isArray(response) ? response[0]! : response;
 }
 
-describe("env partial update contract", () => {
-  test("single update accepts is_buildtime without value and rejects missing key", () => {
+describe("環境變數局部更新契約", () => {
+  test("單筆更新可只送 is_buildtime、省略 value，且缺 key 時拒絕", () => {
     expect(single).toBeDefined();
     const omitValue = single?.inputSchema.safeParse({
       uuid: "app",
@@ -62,7 +62,7 @@ describe("env partial update contract", () => {
     expect(withValue?.success).toBe(true);
   });
 
-  test("bulk update accepts is_buildtime without value", () => {
+  test("批次更新可只送 is_buildtime、省略 value", () => {
     expect(bulk).toBeDefined();
     const omitValue = bulk?.inputSchema.safeParse({
       uuid: "app",
@@ -77,7 +77,7 @@ describe("env partial update contract", () => {
     expect(emptyString?.success).toBe(true);
   });
 
-  test("client JSON body omits value when the field is absent and keeps empty string when sent", async () => {
+  test("客戶端 JSON body 在省略欄位時不含 value，送空字串時則保留 value 鍵", async () => {
     expect(single).toBeDefined();
     const bodies: unknown[] = [];
     const client = new CoolifyClient(config, async (_url, init) => {
@@ -103,7 +103,7 @@ describe("env partial update contract", () => {
     expect(Object.prototype.hasOwnProperty.call(bodies[1], "value")).toBe(true);
   });
 
-  test("recorded Coolify 4.6.0 fixtures keep omit/empty/update distinctions", () => {
+  test("錄製的 Coolify 4.6.0 fixture 區分省略、空字串與明確更新", () => {
     expect(fixture.coolify_version).toBe("4.6.0");
     for (const item of fixture.cases) {
       expect(item.response_status).toBe(201);
