@@ -6774,8 +6774,8 @@ export interface operations {
                 "application/json": {
                     /** @description The key of the environment variable. */
                     key: string;
-                    /** @description The value of the environment variable. */
-                    value: string;
+                    /** @description The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted. */
+                    value?: string;
                     /** @description The flag to indicate if the environment variable is used in preview deployments. */
                     is_preview?: boolean;
                     /** @description The flag to indicate if the environment variable is a literal, nothing espaced. */
@@ -6784,6 +6784,8 @@ export interface operations {
                     is_multiline?: boolean;
                     /** @description The flag to indicate if the environment variable's value is shown on the UI. */
                     is_shown_once?: boolean;
+                    /** @description Whether the environment variable is available at build time. Omit to leave the stored flag unchanged. */
+                    is_buildtime?: boolean;
                 };
             };
         };
@@ -6819,7 +6821,7 @@ export interface operations {
                     data: {
                         /** @description The key of the environment variable. */
                         key?: string;
-                        /** @description The value of the environment variable. */
+                        /** @description The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted. */
                         value?: string;
                         /** @description The flag to indicate if the environment variable is used in preview deployments. */
                         is_preview?: boolean;
@@ -6829,6 +6831,8 @@ export interface operations {
                         is_multiline?: boolean;
                         /** @description The flag to indicate if the environment variable's value is shown on the UI. */
                         is_shown_once?: boolean;
+                        /** @description Whether the environment variable is available at build time. Omit to leave the stored flag unchanged. */
+                        is_buildtime?: boolean;
                     }[];
                 };
             };
@@ -9384,14 +9388,16 @@ export interface operations {
                 "application/json": {
                     /** @description The key of the environment variable. */
                     key: string;
-                    /** @description The value of the environment variable. */
-                    value: string;
+                    /** @description The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted. */
+                    value?: string;
                     /** @description The flag to indicate if the environment variable is a literal, nothing espaced. */
                     is_literal?: boolean;
                     /** @description The flag to indicate if the environment variable is multiline. */
                     is_multiline?: boolean;
                     /** @description The flag to indicate if the environment variable's value is shown on the UI. */
                     is_shown_once?: boolean;
+                    /** @description Whether the environment variable is available at build time. Omit to leave the stored flag unchanged. */
+                    is_buildtime?: boolean;
                 };
             };
         };
@@ -9428,7 +9434,7 @@ export interface operations {
                     data: {
                         /** @description The key of the environment variable. */
                         key?: string;
-                        /** @description The value of the environment variable. */
+                        /** @description The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted. */
                         value?: string;
                         /** @description The flag to indicate if the environment variable is a literal, nothing espaced. */
                         is_literal?: boolean;
@@ -9436,6 +9442,8 @@ export interface operations {
                         is_multiline?: boolean;
                         /** @description The flag to indicate if the environment variable's value is shown on the UI. */
                         is_shown_once?: boolean;
+                        /** @description Whether the environment variable is available at build time. Omit to leave the stored flag unchanged. */
+                        is_buildtime?: boolean;
                     }[];
                 };
             };
@@ -15229,8 +15237,8 @@ export interface operations {
                 "application/json": {
                     /** @description The key of the environment variable. */
                     key: string;
-                    /** @description The value of the environment variable. */
-                    value: string;
+                    /** @description The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted. */
+                    value?: string;
                     /** @description The flag to indicate if the environment variable is used in preview deployments. */
                     is_preview?: boolean;
                     /** @description The flag to indicate if the environment variable is a literal, nothing espaced. */
@@ -15239,6 +15247,8 @@ export interface operations {
                     is_multiline?: boolean;
                     /** @description The flag to indicate if the environment variable's value is shown on the UI. */
                     is_shown_once?: boolean;
+                    /** @description Whether the environment variable is available at build time. Omit to leave the stored flag unchanged. */
+                    is_buildtime?: boolean;
                 };
             };
         };
@@ -15275,7 +15285,7 @@ export interface operations {
                     data: {
                         /** @description The key of the environment variable. */
                         key?: string;
-                        /** @description The value of the environment variable. */
+                        /** @description The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted. */
                         value?: string;
                         /** @description The flag to indicate if the environment variable is used in preview deployments. */
                         is_preview?: boolean;
@@ -15285,6 +15295,8 @@ export interface operations {
                         is_multiline?: boolean;
                         /** @description The flag to indicate if the environment variable's value is shown on the UI. */
                         is_shown_once?: boolean;
+                        /** @description Whether the environment variable is available at build time. Omit to leave the stored flag unchanged. */
+                        is_buildtime?: boolean;
                     }[];
                 };
             };

@@ -177,6 +177,27 @@ test("allows either environment identifier when creating a resource", () => {
   expect(database.inputSchema.safeParse({ body: { ...input.body, environment_uuid: "environment" } }).success).toBe(true);
 });
 
+test("environment variable updates allow omitting value while setting is_buildtime", () => {
+  for (const name of [
+    "coolify_update_env_by_application_uuid",
+    "coolify_update_env_by_database_uuid",
+    "coolify_update_env_by_service_uuid",
+  ]) {
+    const operation = operations.find((item) => item.name === name);
+    expect(operation?.inputSchema.safeParse({ uuid: "resource", body: { key: "QA", is_buildtime: false } }).success).toBe(true);
+    expect(operation?.inputSchema.safeParse({ uuid: "resource", body: { key: "QA", value: "" } }).success).toBe(true);
+    expect(operation?.inputSchema.safeParse({ uuid: "resource", body: { is_buildtime: false } }).success).toBe(false);
+  }
+  for (const name of [
+    "coolify_update_envs_by_application_uuid",
+    "coolify_update_envs_by_database_uuid",
+    "coolify_update_envs_by_service_uuid",
+  ]) {
+    const operation = operations.find((item) => item.name === name);
+    expect(operation?.inputSchema.safeParse({ uuid: "resource", body: { data: [{ key: "QA", is_buildtime: false }] } }).success).toBe(true);
+  }
+});
+
 test("accepts observed Coolify 4.3.23 read responses", () => {
   const response = (name: string, data: unknown) => operations.find((item) => item.name === name)?.responseSchema.safeParse(data).success;
   expect(response("coolify_get_application_by_uuid", { settings: { use_build_secrets: "false" } })).toBe(true);

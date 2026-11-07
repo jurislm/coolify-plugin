@@ -233,6 +233,19 @@ paths["/databases/{uuid}"].patch.responses["200"].content = { "application/json"
 paths["/databases/{uuid}/backups"].get.responses["200"].content["application/json"].schema = { type: "array", items: databaseResponse };
 Object.assign(schemas.Server.properties, { is_reachable: { type: "boolean" }, is_usable: { type: "boolean" } });
 schemas.Service.properties.status = { type: "string" };
+const envValueDescription = "The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted.";
+const envBuildtimeProperty = { type: "boolean", description: "Whether the environment variable is available at build time. Omit to leave the stored flag unchanged." };
+for (const path of ["/applications/{uuid}/envs", "/databases/{uuid}/envs", "/services/{uuid}/envs"]) {
+  const schema = paths[path].patch.requestBody.content["application/json"].schema;
+  schema.required = ["key"];
+  schema.properties.value.description = envValueDescription;
+  schema.properties.is_buildtime = envBuildtimeProperty;
+}
+for (const path of ["/applications/{uuid}/envs/bulk", "/databases/{uuid}/envs/bulk", "/services/{uuid}/envs/bulk"]) {
+  const item = paths[path].patch.requestBody.content["application/json"].schema.properties.data.items;
+  item.properties.value.description = envValueDescription;
+  item.properties.is_buildtime = envBuildtimeProperty;
+}
 const persisted = `${JSON.stringify(spec, null, 4)}\n`;
 const hash = new Bun.CryptoHasher("sha256");
 hash.update(persisted);
@@ -279,6 +292,7 @@ await Bun.write(manifestPath, `${JSON.stringify({
     "Application tag removal and database backup updates match live message responses",
     "Application ports_exposes can be null for new Git applications",
     "Private key update uses the routed UUID path rather than the upstream annotation path",
+    "Environment variable PATCH accepts optional value and is_buildtime; omitting value preserves the stored value on Coolify >= 4.5.1",
   ],
 }, null, 2)}\n`);
 

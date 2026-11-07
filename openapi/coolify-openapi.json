@@ -3778,8 +3778,7 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "key",
-                                    "value"
+                                    "key"
                                 ],
                                 "properties": {
                                     "key": {
@@ -3788,7 +3787,7 @@
                                     },
                                     "value": {
                                         "type": "string",
-                                        "description": "The value of the environment variable."
+                                        "description": "The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted."
                                     },
                                     "is_preview": {
                                         "type": "boolean",
@@ -3805,6 +3804,10 @@
                                     "is_shown_once": {
                                         "type": "boolean",
                                         "description": "The flag to indicate if the environment variable's value is shown on the UI."
+                                    },
+                                    "is_buildtime": {
+                                        "type": "boolean",
+                                        "description": "Whether the environment variable is available at build time. Omit to leave the stored flag unchanged."
                                     }
                                 },
                                 "type": "object"
@@ -3879,7 +3882,7 @@
                                                 },
                                                 "value": {
                                                     "type": "string",
-                                                    "description": "The value of the environment variable."
+                                                    "description": "The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted."
                                                 },
                                                 "is_preview": {
                                                     "type": "boolean",
@@ -3896,6 +3899,10 @@
                                                 "is_shown_once": {
                                                     "type": "boolean",
                                                     "description": "The flag to indicate if the environment variable's value is shown on the UI."
+                                                },
+                                                "is_buildtime": {
+                                                    "type": "boolean",
+                                                    "description": "Whether the environment variable is available at build time. Omit to leave the stored flag unchanged."
                                                 }
                                             },
                                             "type": "object"
@@ -8852,8 +8859,7 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "key",
-                                    "value"
+                                    "key"
                                 ],
                                 "properties": {
                                     "key": {
@@ -8862,7 +8868,7 @@
                                     },
                                     "value": {
                                         "type": "string",
-                                        "description": "The value of the environment variable."
+                                        "description": "The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted."
                                     },
                                     "is_literal": {
                                         "type": "boolean",
@@ -8875,6 +8881,10 @@
                                     "is_shown_once": {
                                         "type": "boolean",
                                         "description": "The flag to indicate if the environment variable's value is shown on the UI."
+                                    },
+                                    "is_buildtime": {
+                                        "type": "boolean",
+                                        "description": "Whether the environment variable is available at build time. Omit to leave the stored flag unchanged."
                                     }
                                 },
                                 "type": "object"
@@ -8952,7 +8962,7 @@
                                                 },
                                                 "value": {
                                                     "type": "string",
-                                                    "description": "The value of the environment variable."
+                                                    "description": "The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted."
                                                 },
                                                 "is_literal": {
                                                     "type": "boolean",
@@ -8965,6 +8975,10 @@
                                                 "is_shown_once": {
                                                     "type": "boolean",
                                                     "description": "The flag to indicate if the environment variable's value is shown on the UI."
+                                                },
+                                                "is_buildtime": {
+                                                    "type": "boolean",
+                                                    "description": "Whether the environment variable is available at build time. Omit to leave the stored flag unchanged."
                                                 }
                                             },
                                             "type": "object"
@@ -19651,8 +19665,7 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "key",
-                                    "value"
+                                    "key"
                                 ],
                                 "properties": {
                                     "key": {
@@ -19661,7 +19674,7 @@
                                     },
                                     "value": {
                                         "type": "string",
-                                        "description": "The value of the environment variable."
+                                        "description": "The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted."
                                     },
                                     "is_preview": {
                                         "type": "boolean",
@@ -19678,6 +19691,10 @@
                                     "is_shown_once": {
                                         "type": "boolean",
                                         "description": "The flag to indicate if the environment variable's value is shown on the UI."
+                                    },
+                                    "is_buildtime": {
+                                        "type": "boolean",
+                                        "description": "Whether the environment variable is available at build time. Omit to leave the stored flag unchanged."
                                     }
                                 },
                                 "type": "object"
@@ -19755,7 +19772,7 @@
                                                 },
                                                 "value": {
                                                     "type": "string",
-                                                    "description": "The value of the environment variable."
+                                                    "description": "The value of the environment variable. Omit to leave the stored value unchanged on Coolify >= 4.5.1 (#12240). Sending an empty string clears the value. Coolify versions before 4.5.1 wipe the stored value when this field is omitted."
                                                 },
                                                 "is_preview": {
                                                     "type": "boolean",
@@ -19772,6 +19789,10 @@
                                                 "is_shown_once": {
                                                     "type": "boolean",
                                                     "description": "The flag to indicate if the environment variable's value is shown on the UI."
+                                                },
+                                                "is_buildtime": {
+                                                    "type": "boolean",
+                                                    "description": "Whether the environment variable is available at build time. Omit to leave the stored flag unchanged."
                                                 }
                                             },
                                             "type": "object"
