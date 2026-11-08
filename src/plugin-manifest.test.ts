@@ -63,3 +63,14 @@ test("native MCP must keep the portable server identity and launch target", asyn
   expect(result.code).not.toBe(0);
   expect(result.error).toContain("registrations");
 });
+
+test("MCP registrations must launch the package.json name at @latest", async () => {
+  const result = await validate((manifests) => {
+    for (const file of ["mcp.json", ".mcp.json", "plugins/cursor/mcp.json", ".mcp.json.example"]) {
+      const args = server(manifests[file]).args as string[];
+      server(manifests[file]).args = args.map((arg) => (arg === "@jurislm/coolify-plugin@latest" ? "@other/coolify-plugin@latest" : arg));
+    }
+  });
+  expect(result.code).not.toBe(0);
+  expect(result.error).toMatch(/package\.json name|bun x stdio registration|bun x registration/);
+});

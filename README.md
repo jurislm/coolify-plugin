@@ -10,6 +10,25 @@ Follow the shared [JurisLM Plugin Architecture v1](https://github.com/jurislm/wo
 
 This repository provides a local Codex and Cursor plugin. It runs a stdio MCP server against a user-configured Coolify instance. OpenAI public Plugin Directory submission is outside this scope; public HTTPS, OAuth, and listing requirements are not acceptance criteria for this local plugin.
 
+## Platform distribution
+
+| Surface | What it is | Official applicability |
+| --- | --- | --- |
+| Shared MCP stdio | `bun x @jurislm/coolify-plugin@latest` process | [MCP transports (2025-11-25)](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports): stdout carries MCP messages only |
+| Portable / npm | `plugin.json`, `mcp.json`, package `files` | Agent Plugins portable package; published to npm |
+| Codex | `.agents/plugins/marketplace.json`, `.codex-plugin/`, `.mcp.json` | Codex marketplace install from the Git repo root |
+| Cursor | `.cursor-plugin/marketplace.json` → `plugins/cursor/` | [Cursor Plugins](https://cursor.com/docs/plugins.md): `.cursor-plugin/plugin.json` requires `name` only; `version` is optional |
+| Grok Bot | No dedicated coolify manifest in this repo | [Grok Bot teams](https://docs.x.ai/grok-bot/teams-and-enterprises) / [security](https://docs.x.ai/grok-bot/security): connectors inherit the team's Cursor MCP policy. A Grok Bot–specific plugin schema was not found and is not claimed here |
+
+Keep these acceptance layers separate:
+
+1. **Install** — Git marketplace or local plugin load on the host (Codex / Cursor). Not proven by offline stdio alone.
+2. **Publish** — npm package contents and Release Please version bumps for `package.json` / portable / Codex manifests.
+3. **Load** — host starts the MCP registration (`bun x …@latest` or an opt-in launcher).
+4. **Version / behavior** — `coolify_get_mcp_version` and `initialize.serverInfo` report the resolved package version; authenticated Coolify reads are a further step.
+
+npm packs the portable and Codex artifacts. Cursor marketplace files under `plugins/cursor/` and `.cursor-plugin/` stay Git-only; `package:check` rejects them if they appear in the tarball. Cursor Configure may leave `variables.required` empty so offline initialize and tool discovery can run without a token.
+
 ## Configure
 
 The plugin reads the same global environment variables used by the Coolify setup:
