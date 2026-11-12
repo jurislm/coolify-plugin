@@ -18,7 +18,7 @@ This repository provides a local Codex and Cursor plugin. It runs a stdio MCP se
 | 可攜套件／npm | `plugin.json`、`mcp.json`、package `files` | Agent Plugins 可攜套件格式，發布到 npm |
 | Codex | `.agents/plugins/marketplace.json`、`.codex-plugin/`、`.mcp.json` | 從 Git repo 根目錄以 Codex marketplace 安裝 |
 | Cursor | `.cursor-plugin/marketplace.json` 指向 `plugins/cursor/` | [Cursor Plugins](https://cursor.com/docs/plugins.md)：`.cursor-plugin/plugin.json` 只要求 `name`，`version` 可省略 |
-| Grok Bot | 本 repo 沒有 Grok Bot 專用的 Coolify manifest | [Grok Bot teams](https://docs.x.ai/grok-bot/teams-and-enterprises)／[security](https://docs.x.ai/grok-bot/security)：connector 沿用團隊的 Cursor MCP 政策。目前找不到 Grok Bot 專用的外掛 schema，本 repo 不宣稱符合 |
+| Grok Bot | 本 repo 沒有 Grok Bot 專用的 Coolify manifest | [Grok Bot teams：Connector policy](https://docs.x.ai/grok-bot/teams-and-enterprises)：Grok Bot 沿用團隊在 Team Marketplace（Plugins & MCPs 頁）設定的 Cursor connector 政策，沒有另一份 Grok Bot connector 清單。[Grok Bot security](https://docs.x.ai/grok-bot/security)：Grok Bot 網路政策的「Apply to MCP servers」開關，和 Team Settings 裡管 Cursor 編輯器的 MCP Configuration 是分開的，改一個不會改另一個。目前找不到 Grok Bot 專用的外掛 schema，本 repo 不宣稱符合 |
 
 驗收分成四層，彼此不能互相代替：
 
