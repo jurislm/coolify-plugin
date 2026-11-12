@@ -16,6 +16,11 @@ const launchPackage = `${packageName}@latest`;
 const officialWebsite = "https://jurislm.github.io/coolify-plugin/";
 const repositoryUrl = "https://github.com/jurislm/coolify-plugin";
 if (packageName !== "@jurislm/coolify-plugin") throw new Error("package.json name must remain @jurislm/coolify-plugin");
+const launchRegistrationFiles = ["mcp.json", ".mcp.json", ".mcp.json.example", "plugins/cursor/mcp.json"] as const;
+for (const file of launchRegistrationFiles) {
+  const entry = (parsed[file].mcpServers as Json).coolify as Json;
+  if (entry.command !== "bun" || !isDeepStrictEqual(entry.args, ["x", launchPackage])) throw new Error(`${file} must launch exactly: bun x ${launchPackage}`);
+}
 const portableKeys = ["$schema", "name", "version", "description", "author", "homepage", "repository", "license", "keywords", "extensions"];
 const unexpectedPortableKeys = Object.keys(parsed["plugin.json"]).filter((key) => !portableKeys.includes(key));
 if (unexpectedPortableKeys.length > 0) throw new Error(`plugin.json contains non-portable fields: ${unexpectedPortableKeys.join(", ")}`);
@@ -43,18 +48,16 @@ const server = (parsed[".mcp.json"].mcpServers as Json).coolify as Json;
 const portableMcpServer = ((parsed["mcp.json"].mcpServers as Json).coolify as Json);
 const launchesWithBunX = (entry: Json) => entry.command === "bun" && (entry.args as string[])[0] === "x" && !(entry.args as string[]).includes("-y");
 if (!launchesWithBunX(server)) throw new Error(".mcp.json must launch with bun x (the bunx shim is not portable)");
-if (server.type !== "stdio" || "cwd" in server || "url" in server || "serverUrl" in server || !(server.args as string[]).includes(launchPackage)) throw new Error(".mcp.json must match the bun x stdio registration");
+if (server.type !== "stdio" || "cwd" in server || "url" in server || "serverUrl" in server ) throw new Error(".mcp.json must match the bun x stdio registration");
 if (!isDeepStrictEqual(server.env_vars, ["COOLIFY_CLOUD_BASE_URL", "COOLIFY_CLOUD_ACCESS_TOKEN", "CURSOR_COOLIFY_BASE_URL", "CURSOR_COOLIFY_ACCESS_TOKEN", "COOLIFY_BASE_URL", "COOLIFY_ACCESS_TOKEN"])) throw new Error("Codex MCP must forward the six supported Coolify connection variables");
 const portableServers = parsed["mcp.json"].mcpServers as Record<string, Json>;
 for (const portableServer of Object.values(portableServers)) {
   if ("env" in portableServer || /\$\{(?!PLUGIN_ROOT\}|PLUGIN_DATA\})[^}]+\}/u.test(JSON.stringify(portableServer))) throw new Error("mcp.json: credentials must come from the host environment");
 }
-if (!(portableMcpServer.args as string[]).includes(launchPackage)) throw new Error("mcp.json must launch the package.json name at @latest");
 const nativeServers = Object.fromEntries(Object.entries(parsed[".mcp.json"].mcpServers as Record<string, Json>).map(([name, nativeServer]) => [name, Object.fromEntries(Object.entries(nativeServer).filter(([key]) => key !== "env_vars"))]));
 if (!isDeepStrictEqual(nativeServers, portableServers)) throw new Error("Codex and portable MCP registrations must agree on server identity, transport and launch target");
 const exampleServer = (parsed[".mcp.json.example"].mcpServers as Json).coolify as Json;
 if (!launchesWithBunX(exampleServer)) throw new Error(".mcp.json.example must launch with bun x (the bunx shim is not portable)");
-if (!(exampleServer.args as string[]).includes(launchPackage)) throw new Error(".mcp.json.example must match the bun x registration");
 const exampleEnv = exampleServer.env as Json;
 if (!("COOLIFY_BASE_URL" in exampleEnv) || !("COOLIFY_ACCESS_TOKEN" in exampleEnv) || "COOLIFY_URL" in exampleEnv || "COOLIFY_TOKEN" in exampleEnv) throw new Error(".mcp.json.example must use the global Coolify environment variable names");
 const cursorPlugin = parsed["plugins/cursor/.cursor-plugin/plugin.json"];

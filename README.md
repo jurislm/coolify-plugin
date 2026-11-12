@@ -10,24 +10,24 @@ Follow the shared [JurisLM Plugin Architecture v1](https://github.com/jurislm/wo
 
 This repository provides a local Codex and Cursor plugin. It runs a stdio MCP server against a user-configured Coolify instance. OpenAI public Plugin Directory submission is outside this scope; public HTTPS, OAuth, and listing requirements are not acceptance criteria for this local plugin.
 
-## Platform distribution
+## 平台分發
 
-| Surface | What it is | Official applicability |
+| 介面 | 內容 | 官方依據 |
 | --- | --- | --- |
-| Shared MCP stdio | `bun x @jurislm/coolify-plugin@latest` process | [MCP transports (2025-11-25)](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports): stdout carries MCP messages only |
-| Portable / npm | `plugin.json`, `mcp.json`, package `files` | Agent Plugins portable package; published to npm |
-| Codex | `.agents/plugins/marketplace.json`, `.codex-plugin/`, `.mcp.json` | Codex marketplace install from the Git repo root |
-| Cursor | `.cursor-plugin/marketplace.json` → `plugins/cursor/` | [Cursor Plugins](https://cursor.com/docs/plugins.md): `.cursor-plugin/plugin.json` requires `name` only; `version` is optional |
-| Grok Bot | No dedicated coolify manifest in this repo | [Grok Bot teams](https://docs.x.ai/grok-bot/teams-and-enterprises) / [security](https://docs.x.ai/grok-bot/security): connectors inherit the team's Cursor MCP policy. A Grok Bot–specific plugin schema was not found and is not claimed here |
+| 共用 MCP stdio | `bun x @jurislm/coolify-plugin@latest` 行程 | [MCP transports（2025-11-25）](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)：stdout 只能輸出 MCP 訊息 |
+| 可攜套件／npm | `plugin.json`、`mcp.json`、package `files` | Agent Plugins 可攜套件格式，發布到 npm |
+| Codex | `.agents/plugins/marketplace.json`、`.codex-plugin/`、`.mcp.json` | 從 Git repo 根目錄以 Codex marketplace 安裝 |
+| Cursor | `.cursor-plugin/marketplace.json` 指向 `plugins/cursor/` | [Cursor Plugins](https://cursor.com/docs/plugins.md)：`.cursor-plugin/plugin.json` 只要求 `name`，`version` 可省略 |
+| Grok Bot | 本 repo 沒有 Grok Bot 專用的 Coolify manifest | [Grok Bot teams](https://docs.x.ai/grok-bot/teams-and-enterprises)／[security](https://docs.x.ai/grok-bot/security)：connector 沿用團隊的 Cursor MCP 政策。目前找不到 Grok Bot 專用的外掛 schema，本 repo 不宣稱符合 |
 
-Keep these acceptance layers separate:
+驗收分成四層，彼此不能互相代替：
 
-1. **Install** — Git marketplace or local plugin load on the host (Codex / Cursor). Not proven by offline stdio alone.
-2. **Publish** — npm package contents and Release Please version bumps for `package.json` / portable / Codex manifests.
-3. **Load** — host starts the MCP registration (`bun x …@latest` or an opt-in launcher).
-4. **Version / behavior** — `coolify_get_mcp_version` and `initialize.serverInfo` report the resolved package version; authenticated Coolify reads are a further step.
+1. **安裝**：在宿主（Codex／Cursor）用 Git marketplace 或本機載入外掛。只跑離線 stdio 不能證明這一層。
+2. **發布**：npm 套件內容，以及 Release Please 對 `package.json`、可攜 manifest、Codex manifest 的版本更新。
+3. **載入**：宿主啟動 MCP 註冊（`bun x …@latest` 或選用的啟動器）。
+4. **版本與行為**：`coolify_get_mcp_version` 和 `initialize.serverInfo` 回報實際解析到的套件版本；需要權杖的 Coolify 讀取是再下一步。
 
-npm packs the portable and Codex artifacts. Cursor marketplace files under `plugins/cursor/` and `.cursor-plugin/` stay Git-only; `package:check` rejects them if they appear in the tarball. Cursor Configure may leave `variables.required` empty so offline initialize and tool discovery can run without a token.
+npm 套件會打包可攜與 Codex 檔案。`plugins/cursor/`、`.cursor-plugin/` 底下的 Cursor marketplace 檔案只放在 Git，若出現在 tarball，`package:check` 會直接失敗。Cursor 的 Configure 可以讓 `variables.required` 保持空陣列，這樣沒有權杖也能完成離線 initialize 和工具探索。
 
 ## Configure
 
