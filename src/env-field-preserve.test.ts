@@ -33,7 +33,7 @@ function compareEnvRowsByFieldUnion(
 ): FieldMismatch[] {
   const expectedChanges = options.expectedChanges ?? {};
   const allowedVolatileFields = options.allowedVolatileFields ?? new Set<string>();
-  const fields = [...new Set([...Object.keys(before), ...Object.keys(after)])].sort();
+  const fields = [...new Set([...Object.keys(before), ...Object.keys(after), ...Object.keys(expectedChanges)])].sort();
   const mismatches: FieldMismatch[] = [];
 
   for (const field of fields) {
@@ -94,14 +94,14 @@ describe("application env 局部更新欄位保留（JUR-1023 驗收第 2 項）
     }
   });
 
-  test("預覽那筆：除明列伺服器時間欄位外，所有欄位（含 is_buildtime 仍為 true）完全不變", () => {
+  test("預覽那筆：所有欄位（含 updated_at，is_buildtime 仍為 true）完全不變", () => {
     const before = rowByUuid(fixture.before.envs, fixture.preview_env_uuid);
     const after = rowByUuid(fixture.after.envs, fixture.preview_env_uuid);
     expect(before.is_preview).toBe(true);
     expect(after.is_preview).toBe(true);
     expect(before.is_buildtime).toBe(true);
     expect(after.is_buildtime).toBe(true);
-    expect(compareEnvRowsByFieldUnion(before, after, { allowedVolatileFields: volatile })).toEqual([]);
+    expect(compareEnvRowsByFieldUnion(before, after)).toEqual([]);
   });
 
   test("比對函式會抓出非目標欄位被改壞（改 value 應失敗）", () => {
@@ -117,8 +117,26 @@ describe("application env 局部更新欄位保留（JUR-1023 驗收第 2 項）
   test("比對函式會抓出預覽列非目標欄位被改壞（改 is_preview 應失敗）", () => {
     const before = rowByUuid(fixture.before.envs, fixture.preview_env_uuid);
     const after = { ...rowByUuid(fixture.after.envs, fixture.preview_env_uuid), is_preview: false };
-    expect(compareEnvRowsByFieldUnion(before, after, { allowedVolatileFields: volatile })).toEqual([
+    expect(compareEnvRowsByFieldUnion(before, after)).toEqual([
       { field: "is_preview", before: true, after: false },
     ]);
+  });
+
+  test("比對函式會抓出預覽列 updated_at 被刷新（預覽列不得被 PATCH 碰到）", () => {
+    const before = rowByUuid(fixture.before.envs, fixture.preview_env_uuid);
+    const after = { ...rowByUuid(fixture.after.envs, fixture.preview_env_uuid), updated_at: "2099-01-01T00:00:00.000000Z" };
+    expect(compareEnvRowsByFieldUnion(before, after).map((item) => item.field)).toEqual(["updated_at"]);
+  });
+
+  test("比對函式會抓出目標欄位在前後快照都缺漏（is_buildtime 不見應失敗）", () => {
+    const before = { ...rowByUuid(fixture.before.envs, fixture.production_env_uuid) };
+    const after = { ...rowByUuid(fixture.after.envs, fixture.production_env_uuid) };
+    delete before.is_buildtime;
+    delete after.is_buildtime;
+    const mismatches = compareEnvRowsByFieldUnion(before, after, {
+      expectedChanges: { is_buildtime: { from: true, to: false } },
+      allowedVolatileFields: volatile,
+    });
+    expect(mismatches).toEqual([{ field: "is_buildtime", before: undefined, after: undefined }]);
   });
 });
