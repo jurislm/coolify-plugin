@@ -27,8 +27,8 @@
       },
       "assertions": {
         "request_omits_value": true,
-        "value_preserved": true,
-        "is_buildtime": false
+        "is_buildtime": false,
+        "field_preservation": "由 src/env-field-preserve.test.ts 以真實前後 GET 欄位聯集比對證明，不再用寫死 value_preserved"
       }
     },
     {
@@ -61,8 +61,8 @@
       ],
       "assertions": {
         "request_omits_value": true,
-        "value_preserved": true,
-        "is_buildtime": false
+        "is_buildtime": false,
+        "field_preservation": "由 src/env-field-preserve.test.ts 以真實前後 GET 欄位聯集比對證明，不再用寫死 value_preserved"
       }
     },
     {

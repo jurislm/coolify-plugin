@@ -13,7 +13,6 @@ const fixture = await Bun.file(new URL("./fixtures/jur-1023-env-partial-update.j
     response: EnvRecord | EnvRecord[];
     assertions: {
       request_omits_value?: boolean;
-      value_preserved?: boolean;
       request_includes_empty_string_value?: boolean;
       readback_value_is_null?: boolean;
       value_updated?: boolean;
@@ -173,7 +172,6 @@ describe("環境變數局部更新契約", () => {
             expect(Object.prototype.hasOwnProperty.call(entry, "value")).toBe(false);
           }
         }
-        expect(item.assertions.value_preserved).toBe(true);
         expect(response.is_buildtime).toBe(false);
       }
       if (item.assertions.request_includes_empty_string_value) {
