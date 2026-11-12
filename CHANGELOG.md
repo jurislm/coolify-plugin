@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [4.2.2](https://github.com/jurislm/coolify-plugin/compare/v4.2.1...v4.2.2) (2026-11-12)
+
+
+### Documentation
+
+* Grok Bot 平台依據改為官方 teams／security 頁原文（JUR-1027，回應 Buzz 驗證備註） ([9e1f44c](https://github.com/jurislm/coolify-plugin/commit/9e1f44c75ba0adb5dc65d7bc2e75e4eb52a5673a))
+
 ## [4.2.1](https://github.com/jurislm/coolify-plugin/compare/v4.2.0...v4.2.1) (2026-11-07)
 
 
