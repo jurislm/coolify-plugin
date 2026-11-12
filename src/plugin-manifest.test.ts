@@ -63,3 +63,19 @@ test("native MCP must keep the portable server identity and launch target", asyn
   expect(result.code).not.toBe(0);
   expect(result.error).toContain("registrations");
 });
+
+const launchRegistrationFiles = ["mcp.json", ".mcp.json", ".mcp.json.example", "plugins/cursor/mcp.json"];
+
+for (const file of launchRegistrationFiles) {
+  test(`${file} must launch the package.json name at @latest`, async () => {
+    const result = await validate((manifests) => { server(manifests[file]).args = ["x", "@other/coolify-plugin@latest"]; });
+    expect(result.code).not.toBe(0);
+    expect(result.error).toContain(`${file} must launch exactly: bun x @jurislm/coolify-plugin@latest`);
+  });
+
+  test(`${file} must keep the package as the argument right after x`, async () => {
+    const result = await validate((manifests) => { server(manifests[file]).args = ["x", "--bun", "@jurislm/coolify-plugin@latest"]; });
+    expect(result.code).not.toBe(0);
+    expect(result.error).toContain(`${file} must launch exactly: bun x @jurislm/coolify-plugin@latest`);
+  });
+}

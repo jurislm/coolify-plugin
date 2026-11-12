@@ -10,6 +10,25 @@ Follow the shared [JurisLM Plugin Architecture v1](https://github.com/jurislm/wo
 
 This repository provides a local Codex and Cursor plugin. It runs a stdio MCP server against a user-configured Coolify instance. OpenAI public Plugin Directory submission is outside this scope; public HTTPS, OAuth, and listing requirements are not acceptance criteria for this local plugin.
 
+## 平台分發
+
+| 介面 | 內容 | 官方依據 |
+| --- | --- | --- |
+| 共用 MCP stdio | `bun x @jurislm/coolify-plugin@latest` 行程 | [MCP transports（2025-11-25）](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)：stdout 只能輸出 MCP 訊息 |
+| 可攜套件／npm | `plugin.json`、`mcp.json`、package `files` | Agent Plugins 可攜套件格式，發布到 npm |
+| Codex | `.agents/plugins/marketplace.json`、`.codex-plugin/`、`.mcp.json` | 從 Git repo 根目錄以 Codex marketplace 安裝 |
+| Cursor | `.cursor-plugin/marketplace.json` 指向 `plugins/cursor/` | [Cursor Plugins](https://cursor.com/docs/plugins.md)：`.cursor-plugin/plugin.json` 只要求 `name`，`version` 可省略 |
+| Grok Bot | 本 repo 沒有 Grok Bot 專用的 Coolify manifest | [Grok Bot teams：Connector policy](https://docs.x.ai/grok-bot/teams-and-enterprises)：Grok Bot 沿用團隊在 Team Marketplace（Plugins & MCPs 頁）設定的 Cursor connector 政策，沒有另一份 Grok Bot connector 清單。[Grok Bot security](https://docs.x.ai/grok-bot/security)：Grok Bot 網路政策的「Apply to MCP servers」開關，和 Team Settings 裡管 Cursor 編輯器的 MCP Configuration 是分開的，改一個不會改另一個。目前找不到 Grok Bot 專用的外掛 schema，本 repo 不宣稱符合 |
+
+驗收分成四層，彼此不能互相代替：
+
+1. **安裝**：在宿主（Codex／Cursor）用 Git marketplace 或本機載入外掛。只跑離線 stdio 不能證明這一層。
+2. **發布**：npm 套件內容，以及 Release Please 對 `package.json`、可攜 manifest、Codex manifest 的版本更新。
+3. **載入**：宿主啟動 MCP 註冊（`bun x …@latest` 或選用的啟動器）。
+4. **版本與行為**：`coolify_get_mcp_version` 和 `initialize.serverInfo` 回報實際解析到的套件版本；需要權杖的 Coolify 讀取是再下一步。
+
+npm 套件會打包可攜與 Codex 檔案。`plugins/cursor/`、`.cursor-plugin/` 底下的 Cursor marketplace 檔案只放在 Git，若出現在 tarball，`package:check` 會直接失敗。Cursor 的 Configure 可以讓 `variables.required` 保持空陣列，這樣沒有權杖也能完成離線 initialize 和工具探索。
+
 ## Configure
 
 The plugin reads the same global environment variables used by the Coolify setup:

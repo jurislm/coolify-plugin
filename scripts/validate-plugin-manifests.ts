@@ -11,8 +11,16 @@ for (const [file, schemaFile] of [["plugin.json", "plugin.schema.json"], ["mcp.j
 }
 const packageJson = JSON.parse(await Bun.file("package.json").text()) as Json;
 const packageVersion = String(packageJson.version);
+const packageName = String(packageJson.name);
+const launchPackage = `${packageName}@latest`;
 const officialWebsite = "https://jurislm.github.io/coolify-plugin/";
 const repositoryUrl = "https://github.com/jurislm/coolify-plugin";
+if (packageName !== "@jurislm/coolify-plugin") throw new Error("package.json name must remain @jurislm/coolify-plugin");
+const launchRegistrationFiles = ["mcp.json", ".mcp.json", ".mcp.json.example", "plugins/cursor/mcp.json"] as const;
+for (const file of launchRegistrationFiles) {
+  const entry = (parsed[file].mcpServers as Json).coolify as Json;
+  if (entry.command !== "bun" || !isDeepStrictEqual(entry.args, ["x", launchPackage])) throw new Error(`${file} must launch exactly: bun x ${launchPackage}`);
+}
 const portableKeys = ["$schema", "name", "version", "description", "author", "homepage", "repository", "license", "keywords", "extensions"];
 const unexpectedPortableKeys = Object.keys(parsed["plugin.json"]).filter((key) => !portableKeys.includes(key));
 if (unexpectedPortableKeys.length > 0) throw new Error(`plugin.json contains non-portable fields: ${unexpectedPortableKeys.join(", ")}`);
@@ -37,9 +45,10 @@ for (const file of ["plugin.json", ".codex-plugin/plugin.json"]) {
 }
 if (parsed[".codex-plugin/plugin.json"].mcpServers !== "./.mcp.json" || "apps" in parsed[".codex-plugin/plugin.json"]) throw new Error("fallback manifest must reference ./.mcp.json and omit apps");
 const server = (parsed[".mcp.json"].mcpServers as Json).coolify as Json;
+const portableMcpServer = ((parsed["mcp.json"].mcpServers as Json).coolify as Json);
 const launchesWithBunX = (entry: Json) => entry.command === "bun" && (entry.args as string[])[0] === "x" && !(entry.args as string[]).includes("-y");
 if (!launchesWithBunX(server)) throw new Error(".mcp.json must launch with bun x (the bunx shim is not portable)");
-if (server.type !== "stdio" || "cwd" in server || "url" in server || "serverUrl" in server || !(server.args as string[]).includes("@jurislm/coolify-plugin@latest")) throw new Error(".mcp.json must match the bun x stdio registration");
+if (server.type !== "stdio" || "cwd" in server || "url" in server || "serverUrl" in server ) throw new Error(".mcp.json must match the bun x stdio registration");
 if (!isDeepStrictEqual(server.env_vars, ["COOLIFY_CLOUD_BASE_URL", "COOLIFY_CLOUD_ACCESS_TOKEN", "CURSOR_COOLIFY_BASE_URL", "CURSOR_COOLIFY_ACCESS_TOKEN", "COOLIFY_BASE_URL", "COOLIFY_ACCESS_TOKEN"])) throw new Error("Codex MCP must forward the six supported Coolify connection variables");
 const portableServers = parsed["mcp.json"].mcpServers as Record<string, Json>;
 for (const portableServer of Object.values(portableServers)) {
@@ -49,7 +58,6 @@ const nativeServers = Object.fromEntries(Object.entries(parsed[".mcp.json"].mcpS
 if (!isDeepStrictEqual(nativeServers, portableServers)) throw new Error("Codex and portable MCP registrations must agree on server identity, transport and launch target");
 const exampleServer = (parsed[".mcp.json.example"].mcpServers as Json).coolify as Json;
 if (!launchesWithBunX(exampleServer)) throw new Error(".mcp.json.example must launch with bun x (the bunx shim is not portable)");
-if (!(exampleServer.args as string[]).includes("@jurislm/coolify-plugin@latest")) throw new Error(".mcp.json.example must match the bun x registration");
 const exampleEnv = exampleServer.env as Json;
 if (!("COOLIFY_BASE_URL" in exampleEnv) || !("COOLIFY_ACCESS_TOKEN" in exampleEnv) || "COOLIFY_URL" in exampleEnv || "COOLIFY_TOKEN" in exampleEnv) throw new Error(".mcp.json.example must use the global Coolify environment variable names");
 const cursorPlugin = parsed["plugins/cursor/.cursor-plugin/plugin.json"];
@@ -59,7 +67,6 @@ const cursorVariables = cursorPlugin.variables as Json;
 const cursorVariableProperties = cursorVariables.properties as Json;
 const cursorMcpServer = ((parsed["plugins/cursor/mcp.json"].mcpServers as Json).coolify as Json);
 const cursorMcpEnv = cursorMcpServer.env as Json;
-const portableMcpServer = ((parsed["mcp.json"].mcpServers as Json).coolify as Json);
 if (cursorPlugin.name !== "coolify-plugin" || cursorPlugin.skills !== "./skills/" || cursorPlugin.mcpServers !== "./mcp.json" || cursorPlugin.logo !== "assets/coolify.png" || cursorPlugin.homepage !== officialWebsite) throw new Error("Cursor plugin manifest must reference the official website and shipped components");
 if (await Bun.file("plugins/cursor/skills/coolify/SKILL.md").text() !== await Bun.file("skills/coolify/SKILL.md").text()) throw new Error("Cursor skill must match the root Coolify skill");
 if (!(await Bun.file("plugins/cursor/assets/coolify.png").exists())) throw new Error("Cursor plugin logo is missing");

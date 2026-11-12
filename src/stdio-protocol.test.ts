@@ -24,6 +24,10 @@ test("serves the generated tool catalog over local stdio", async () => {
   await client.connect(transport);
   const result = await client.listTools();
   expect(result.tools.some((tool) => tool.name === "coolify_list_applications")).toBe(true);
+  expect(result.tools.some((tool) => tool.name === "coolify_get_mcp_version")).toBe(true);
+  const version = await client.callTool({ name: "coolify_get_mcp_version", arguments: {} });
+  expect(version.isError).not.toBe(true);
+  expect(version.structuredContent).toMatchObject({ data: { name: "@jurislm/coolify-plugin" } });
   const call = await client.callTool({ name: "coolify_list_applications", arguments: {} });
   expect(call.isError).toBe(true);
   expect(call.content).toContainEqual(expect.objectContaining({ text: expect.stringContaining("COOLIFY_BASE_URL is required") }));
