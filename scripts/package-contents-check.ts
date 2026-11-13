@@ -1,6 +1,7 @@
 export const requiredPackedPaths = [
   "dist/index.js",
   "launchers/coolify-desktop.zsh",
+  "launchers/validate-coolify-runtime.mjs",
   "api/manifest.json",
   "openapi/coolify-openapi.json",
   "plugin.json",
