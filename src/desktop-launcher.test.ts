@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -26,8 +26,19 @@ function launch(startup: string, environment: Record<string, string | undefined>
     mkdirSync(startupDirectory);
     writeFileSync(join(fixtureHome, ".zshenv"), "return 88\n");
     writeFileSync(join(startupDirectory, ".zshenv"), startup);
+    const runtime = join(fixtureHome, ".local/share/jurislm/mcp/coolify-plugin");
+    const installed = join(runtime, "node_modules/@jurislm/coolify-plugin");
+    mkdirSync(join(installed, "dist"), { recursive: true });
+    mkdirSync(join(runtime, "node_modules/.bin"), { recursive: true });
+    const dependencies = { "@jurislm/coolify-plugin": "4.2.2" };
+    writeFileSync(join(runtime, "package.json"), JSON.stringify({ dependencies }));
+    writeFileSync(join(runtime, "bun.lock"), JSON.stringify({ workspaces: { "": { dependencies } }, packages: { "@jurislm/coolify-plugin": ["@jurislm/coolify-plugin@4.2.2", "", {}, "sha512-fixture"] } }));
+    writeFileSync(join(installed, "package.json"), JSON.stringify({ name: "@jurislm/coolify-plugin", version: "4.2.2", bin: { "coolify-plugin": "dist/index.js" } }));
+    writeFileSync(join(installed, "dist/index.js"), "");
+    symlinkSync("../@jurislm/coolify-plugin/dist/index.js", join(runtime, "node_modules/.bin/coolify-plugin"));
+    writeFileSync(join(runtime, ".env"), "PARENT_SECRET=unexpected-runtime-env\n");
     const executable = join(bin, "bun");
-    writeFileSync(executable, `#!/bin/sh\n[ "$1" = x ] || exit 11\n[ "$2" = @jurislm/coolify-plugin@latest ] || exit 12\n[ "$3" = --require-config ] || exit 13\n[ "$PATH" = "$HOME/.bun/bin:/usr/bin:/bin" ] || exit 14\n[ -z "\${UNRELATED_SECRET+x}" ] || exit 15\n[ -z "\${PARENT_SECRET+x}" ] || exit 16\n[ -z "\${ZDOTDIR+x}" ] || exit 17\nexec '${process.execPath}' '${resolve("src/index.ts")}' --require-config\n`);
+    writeFileSync(executable, `#!/bin/sh\n[ "$1" = --no-env-file ] || exit 11\n[ "$2" = --no-install ] || exit 12\ncase "$3" in */validate-coolify-runtime.mjs) exec '${process.execPath}' "$@" ;; esac\n[ "$3" = "$HOME/.local/share/jurislm/mcp/coolify-plugin/node_modules/@jurislm/coolify-plugin/dist/index.js" ] || exit 13\n[ "$4" = --require-config ] || exit 18\n[ "$PATH" = "$HOME/.bun/bin:/usr/bin:/bin" ] || exit 14\n[ -z "\${UNRELATED_SECRET+x}" ] || exit 15\n[ -z "\${PARENT_SECRET+x}" ] || exit 16\n[ -z "\${ZDOTDIR+x}" ] || exit 17\nexec '${process.execPath}' --no-env-file '${resolve("src/index.ts")}' --require-config\n`);
     chmodSync(executable, 0o700);
     const result = Bun.spawnSync(["/bin/zsh", "-f", resolve("launchers/coolify-desktop.zsh")], {
       env: { HOME: fixtureHome, ZDOTDIR: startupDirectory, PATH: "/usr/bin:/bin", LANG: "C", PARENT_SECRET: "fixture-parent", ...environment }, stdin: Buffer.from(initialize), stdout: "pipe", stderr: "pipe",

@@ -20,4 +20,6 @@ for name in ${(k)parameters}; do
       ;;
   esac
 done
-exec "$HOME/.bun/bin/bun" x @jurislm/coolify-plugin@latest --require-config
+runtime="$HOME/.local/share/jurislm/mcp/coolify-plugin"
+"$HOME/.bun/bin/bun" --no-env-file --no-install "${${(%):-%x}:A:h}/validate-coolify-runtime.mjs" "$runtime" @jurislm/coolify-plugin coolify-plugin || exit $?
+exec "$HOME/.bun/bin/bun" --no-env-file --no-install "$runtime/node_modules/@jurislm/coolify-plugin/dist/index.js" --require-config
