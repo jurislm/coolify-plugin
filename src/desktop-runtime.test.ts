@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, symlinkSync, rmSync } from "node:fs";
+import { cpSync, mkdtempSync, mkdirSync, writeFileSync, readFileSync, symlinkSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -60,7 +60,10 @@ test("runtime validates an internal fixed tarball and rejects integrity drift", 
   const root = fixture("file:./packages/coolify.tgz");
   try {
     mkdirSync(join(root, "packages"));
-    const packed = Bun.spawnSync(["/usr/bin/tar", "-czf", join(root, "packages/coolify.tgz"), "-C", join(root, "node_modules/@jurislm"), "-s", "/coolify-plugin/package/", "coolify-plugin"]);
+    const staging = join(root, "packing");
+    mkdirSync(staging);
+    cpSync(join(root, "node_modules/@jurislm/coolify-plugin"), join(staging, "package"), { recursive: true });
+    const packed = Bun.spawnSync(["tar", "-czf", join(root, "packages/coolify.tgz"), "-C", staging, "package"]);
     expect(packed.exitCode).toBe(0);
     const lockPath = join(root, "bun.lock");
     const lock = JSON.parse(readFileSync(lockPath, "utf8"));

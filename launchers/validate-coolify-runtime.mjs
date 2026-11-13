@@ -25,7 +25,7 @@ try {
     resolved = normalize(relative);
     const integrity = "sha512-" + createHash("sha512").update(readFileSync(archive)).digest("base64");
     if (locked.at(-1) !== integrity) throw new Error();
-    const packed = Bun.spawnSync(["/usr/bin/tar", "-xOf", archive, "package/package.json"], { stdout: "pipe", stderr: "pipe", env: { PATH: "/usr/bin:/bin" } });
+    const packed = Bun.spawnSync(["tar", "-xOf", archive, "package/package.json"], { stdout: "pipe", stderr: "pipe", env: { PATH: "/usr/bin:/bin" } });
     if (packed.exitCode !== 0) throw new Error();
     const metadata = JSON.parse(new TextDecoder().decode(packed.stdout));
     if (metadata.name !== name) throw new Error();
