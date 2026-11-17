@@ -58,14 +58,14 @@ test("workflow is manual main only and consumes the existing secret", () => {
 
 test("cancellation cannot report authentication success", async () => {
   const dir = mkdtempSync(join(tmpdir(), "npm-auth-cancel-"));
-  let child: ReturnType<typeof Bun.spawn> | undefined;
+  let child: Bun.Subprocess<"ignore", "pipe", "pipe"> | undefined;
   try {
     mkdirSync(join(dir, "bin"));
     const record = join(dir, "record");
     writeFileSync(join(dir, "bin", "npm"), '#!/bin/sh\nprintf "%s" "$NPM_CONFIG_USERCONFIG" > "$RECORD"\nwhile ! test -f "$RELEASE"; do sleep 0.01; done\nprintf "terry.ty\\n"\n', { mode: 0o700 });
     child = Bun.spawn(["sh", "scripts/ci/npm-auth-check.sh"], {
       env: { PATH: `${dir}/bin:/usr/bin:/bin`, NPM_TOKEN: "test-only-not-a-real-secret", RECORD: record, RELEASE: join(dir, "release") },
-      stdout: "pipe", stderr: "pipe",
+      stdin: "ignore", stdout: "pipe", stderr: "pipe",
     });
     for (let attempt = 0; attempt < 100 && !existsSync(record); attempt++) await Bun.sleep(10);
     expect(existsSync(record)).toBe(true);
