@@ -38,6 +38,6 @@ assert(npmRelease.steps?.[0]?.commands?.includes("apk add --no-cache git zsh"), 
 assert(npmRelease.steps?.[1]?.commands?.includes("apk add --no-cache git nodejs npm zsh"), "npm publishing must install zsh for prepublish launcher checks");
 assert(npmRelease.steps?.[1]?.environment?.NPM_TOKEN?.from_secret === "npm_token", "npm release must use npm_token");
 assert(npmRelease.steps?.[0]?.commands?.some((command: string) => command.includes("check-release-tag")), "npm release must validate the tag");
-assert(npmRelease.steps?.[1]?.commands?.includes("npm publish --access public"), "npm release must publish with npm");
+assert(npmRelease.steps?.[1]?.commands?.includes("bun scripts/ci/verification-release.ts publish"), "npm release must publish with npm");
 
 console.log("release workflow contracts passed");
