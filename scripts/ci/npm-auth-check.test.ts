@@ -58,21 +58,29 @@ test("workflow is manual main only and consumes the existing secret", () => {
 
 test("cancellation cannot report authentication success", async () => {
   const dir = mkdtempSync(join(tmpdir(), "npm-auth-cancel-"));
+  let child: ReturnType<typeof Bun.spawn> | undefined;
   try {
     mkdirSync(join(dir, "bin"));
     const record = join(dir, "record");
-    writeFileSync(join(dir, "bin", "npm"), '#!/bin/sh\nprintf "%s" "$NPM_CONFIG_USERCONFIG" > "$RECORD"\nsleep 1\nprintf "terry.ty\\n"\n', { mode: 0o700 });
-    const process = Bun.spawn(["sh", "scripts/ci/npm-auth-check.sh"], {
-      env: { PATH: `${dir}/bin:/usr/bin:/bin`, NPM_TOKEN: "test-only-not-a-real-secret", RECORD: record },
+    writeFileSync(join(dir, "bin", "npm"), '#!/bin/sh\nprintf "%s" "$NPM_CONFIG_USERCONFIG" > "$RECORD"\nwhile ! test -f "$RELEASE"; do sleep 0.01; done\nprintf "terry.ty\\n"\n', { mode: 0o700 });
+    child = Bun.spawn(["sh", "scripts/ci/npm-auth-check.sh"], {
+      env: { PATH: `${dir}/bin:/usr/bin:/bin`, NPM_TOKEN: "test-only-not-a-real-secret", RECORD: record, RELEASE: join(dir, "release") },
       stdout: "pipe", stderr: "pipe",
     });
     for (let attempt = 0; attempt < 100 && !existsSync(record); attempt++) await Bun.sleep(10);
     expect(existsSync(record)).toBe(true);
-    process.kill("SIGTERM");
-    expect(await process.exited).not.toBe(0);
-    expect(await new Response(process.stdout).text()).not.toContain("authentication verified");
+    await Bun.sleep(1500);
+    child.kill("SIGTERM");
+    writeFileSync(join(dir, "release"), "");
+    expect(await child.exited).not.toBe(0);
+    expect(await new Response(child.stdout).text()).not.toContain("authentication verified");
     expect(existsSync(readFileSync(record, "utf8"))).toBe(false);
   } finally {
+    if (child) {
+      child.kill("SIGTERM");
+      writeFileSync(join(dir, "release"), "");
+      await child.exited;
+    }
     rmSync(dir, { recursive: true, force: true });
   }
 });
