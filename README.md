@@ -84,11 +84,30 @@ Check the active MCP registration separately. A standalone server named `coolify
 
 ## Install in Cursor
 
-In Cursor, open **Customize → Plugins → Add Marketplace → Import from Repo**, enter `https://github.com/jurislm/coolify-plugin`, then install **Coolify Plugin**. The marketplace selects `plugins/cursor`, keeping the Codex-only root `.mcp.json` out of Cursor's plugin root. For Cloud Agents, set both `COOLIFY_BASE_URL` and `COOLIFY_ACCESS_TOKEN` in the Cloud environment's secrets and start a new agent from that environment. Local agents can use the plugin's **Configure** panel. After updating from v4.0.16 or earlier, re-enter both Local Configure fields because their variable names changed. If either Cloud environment variable is set, the plugin uses only the Cloud pair and does not mix it with Configure values. Run a read-only Coolify tool to verify provider access.
+In Cursor, open the dashboard's **Plugins & MCPs** page (<https://cursor.com/dashboard/plugins>), click **Add Marketplace → Import from Repo**, enter `https://github.com/jurislm/coolify-plugin`, then install **Coolify Plugin**. The marketplace selects `plugins/cursor`, keeping the Codex-only root `.mcp.json` out of Cursor's plugin root. For Cloud Agents, set both `COOLIFY_BASE_URL` and `COOLIFY_ACCESS_TOKEN` in the Cloud environment's secrets and start a new agent from that environment. Local agents can use the plugin's **Configure** panel. After updating from v4.0.16 or earlier, re-enter both Local Configure fields because their variable names changed. If either Cloud environment variable is set, the plugin uses only the Cloud pair and does not mix it with Configure values. Run a read-only Coolify tool to verify provider access.
 
 If Cursor Cloud passes literal `${COOLIFY_BASE_URL}` and `${COOLIFY_ACCESS_TOKEN}` to a stdio server, also set `COOLIFY_CLOUD_BASE_URL` and `COOLIFY_CLOUD_ACCESS_TOKEN` in the same Cloud environment. The plugin uses this pair first and never mixes it with the canonical or Configure pair.
 
 For local agents, a complete saved Configure URL/token pair takes precedence over inherited `COOLIFY_BASE_URL` and `COOLIFY_ACCESS_TOKEN` values. It does not combine values from different sources.
+
+### 在 Cursor 管理頁填寫安裝欄位
+
+外掛參數（`CURSOR_COOLIFY_BASE_URL`、`CURSOR_COOLIFY_ACCESS_TOKEN`）改在 Cursor 管理頁 <https://cursor.com/dashboard/plugins> 的安裝欄位（Plugins → Configure）填寫，不需要再放進 `~/.config/jurislm/plugin.env`。外掛只在 `.cursor-plugin/plugin.json` 的 `variables` 宣告變數名稱，不含任何值；Cursor 會把你填的值代入 `mcp.json` 裡對應的 `${VAR}` 佔位符。
+
+- 匯入：在管理頁的 Plugins & MCPs 點 Add Marketplace，選 Import from Repo，貼上 `https://github.com/jurislm/coolify-plugin`，再安裝外掛。
+- 欄位範例（假值，請換成自己的）：
+
+  ```text
+  CURSOR_COOLIFY_BASE_URL     = https://coolify.example.com
+  CURSOR_COOLIFY_ACCESS_TOKEN = coolify-example-token-0000
+  ```
+
+驗證方式：
+
+1. 在新對話跑一個唯讀呼叫（例如 list servers 類工具）。回應成功代表值有傳進去；HTTP 401 表示值錯誤或已過期，缺值錯誤表示沒有傳進程序。
+2. 也可看新啟動的 MCP 程序的環境變數：值應為實際內容，而不是未代入的 `${VAR}` 佔位符。只檢查長度與是否以 `${` 開頭，不要把值貼到對話、Issue 或 PR。
+
+官方依據：[Cursor Plugins](https://cursor.com/docs/plugins)、[Plugins reference：Variables](https://cursor.com/docs/reference/plugins)。
 
 ## OpenAPI contract
 
