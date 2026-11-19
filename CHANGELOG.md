@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [4.2.4](https://github.com/jurislm/coolify-plugin/compare/v4.2.3...v4.2.4) (2026-11-19)
+
+
+### Documentation
+
+* README 補上 Cursor 管理頁安裝欄位說明 ([#98](https://github.com/jurislm/coolify-plugin/issues/98)) ([71d7203](https://github.com/jurislm/coolify-plugin/commit/71d7203bbc754f654ed6dbac63b1ccddb1c2161c))
+
 ## [4.2.3](https://github.com/jurislm/coolify-plugin/compare/v4.2.2...v4.2.3) (2026-11-13)
 
 
