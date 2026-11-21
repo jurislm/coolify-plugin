@@ -45,7 +45,7 @@ export async function runReleasePlease(
     }
     const canonical = parseReleaseRepository(await readGitHub(`/repos/${repository.fullName}`));
     if (canonical.fullName !== repository.fullName) throw new Error("GitHub release repository identity mismatch");
-    const ref = await readGitHub(`/repos/${repository.fullName}/git/ref/heads/main`);
+    const ref = await readGitHub(`/repositories/${releaseRepoId}/git/ref/heads/main`);
     const currentSha = (ref as { object?: { sha?: unknown } } | null)?.object?.sha;
     if (typeof currentSha !== "string" || !/^[a-f0-9]{40}$/.test(currentSha))
       throw new Error("GitHub release main SHA is invalid");

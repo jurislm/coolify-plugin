@@ -108,6 +108,7 @@ function fakeFetch(responses: Response[], requests: Request[]): typeof fetch {
     const request = new Request(input, init);
     if (new URL(request.url).pathname === "/repositories/1373042960")
       return jsonResponse(releaseRepository());
+    assert(new URL(request.url).pathname.startsWith("/repositories/1373042960/"), "auto-merge must use repository ID for all GitHub operations");
     requests.push(request);
     const response = responses.shift();
     if (!response) throw new Error("unexpected request");
@@ -147,7 +148,6 @@ async function testMergeAndNoOp(): Promise<void> {
     ] }),
     jsonResponse({ ...candidate(), mergeable: null }),
     jsonResponse({ ...candidate(), mergeable: true }),
-    jsonResponse(releaseRepository()),
     jsonResponse({ ref: "refs/heads/main", object: { sha: BASE_SHA } }),
     jsonResponse({ merged: true, sha: "merge-sha" }),
   ];
@@ -175,8 +175,8 @@ async function testMergeAndNoOp(): Promise<void> {
       productionPath.push(url.pathname);
       if (url.pathname === "/repositories/1373042960") return jsonResponse(releaseRepository(owner));
       if (url.pathname === `/repos/${owner}/coolify-plugin`) return jsonResponse(releaseRepository(owner));
-      if (url.pathname.endsWith("/git/ref/heads/main")) return jsonResponse({ object: { sha: "a".repeat(40) } });
-      assert(url.pathname === `/repos/${owner}/coolify-plugin/pulls`, "must use canonical pull path");
+      if (url.pathname === "/repositories/1373042960/git/ref/heads/main") return jsonResponse({ object: { sha: "a".repeat(40) } });
+      assert(url.pathname === "/repositories/1373042960/pulls", "must use numeric pull path");
       assert(url.searchParams.get("head") === `${owner}:${RELEASE_BRANCH}`, "must use canonical head owner");
       return jsonResponse([]);
     }, { preconnect: () => {} }) as typeof fetch;
@@ -356,7 +356,6 @@ async function testFailureGuards(): Promise<void> {
       { context: "ci/woodpecker/pr/ci", state: "success" },
     ] }),
     jsonResponse({ ...candidate(), mergeable: true }),
-    jsonResponse(releaseRepository()),
     jsonResponse({ ref: "refs/heads/main", object: { sha: BASE_SHA } }),
     jsonResponse({ merged: true, sha: "slow-merge-sha" }),
   ];
@@ -391,7 +390,7 @@ interface FakeRepoOptions {
   compareStatus?: string;
   update?: { headSha: string; baseSha: string } | "never";
   mainSha?: string;
-  canonicalRepoId?: number;
+  recheckOrganizationId?: number;
   mainShaAfterUpdate?: string;
   files?: Array<{ filename: string; status: string }>;
   pendingStatusPolls?: number;
@@ -408,6 +407,7 @@ function fakeRepo(options: FakeRepoOptions = {}) {
   });
   let current = withRefs(prBaseSha, HEAD_SHA);
   let statusPolls = 0;
+  let repositoryReads = 0;
   const baseRefs = new Set([BASE_SHA, CI_SHA, "newer-main-sha"]);
   const fileText: Record<string, [string, string]> = {
     ".release-please-manifest.json": [contents.baseManifestText, contents.headManifestText],
@@ -419,10 +419,14 @@ function fakeRepo(options: FakeRepoOptions = {}) {
   const fetchImpl = Object.assign(async (input: string | URL | Request, init?: RequestInit) => {
     const url = new URL(String(input));
     const method = init?.method ?? "GET";
-    const path = url.pathname.replace("/repos/jurislm/coolify-plugin", "");
+    assert(url.pathname.startsWith("/repositories/1373042960"), "must address release operations by stable repo ID");
+    const path = url.pathname.slice("/repositories/1373042960".length);
     const body = typeof init?.body === "string" ? init.body : "";
-    if (path === "/repositories/1373042960") return jsonResponse(releaseRepository());
-    if (path === "") return jsonResponse({ ...releaseRepository(), id: options.canonicalRepoId ?? 1373042960 });
+    if (path === "") {
+      const metadata = releaseRepository();
+      if (++repositoryReads > 1 && options.recheckOrganizationId) metadata.owner.id = options.recheckOrganizationId;
+      return jsonResponse(metadata);
+    }
     requests.push({ method, path, body });
     const head = (current.head as { sha: string }).sha;
     if (method === "GET" && path === "/pulls") return jsonResponse([current]);
@@ -474,12 +478,12 @@ async function testBehindReleasePr(): Promise<void> {
   assert(stuck.merges().length === 0, "release PR must not merge when the branch update never lands");
 
   for (const options of [{}, { mainSha: CI_SHA, update: { headSha: NEW_HEAD_SHA, baseSha: CI_SHA } }]) {
-    const rebound = fakeRepo({ ...options, canonicalRepoId: 999 });
+    const rebound = fakeRepo({ ...options, recheckOrganizationId: 999 });
     await expectRejects(() => runReleasePrAutoMerge({
       token: "token", expectedBaseSha: options.mainSha ?? BASE_SHA,
       fetchImpl: rebound.fetchImpl, sleep: async () => {},
     }), "repository identity mismatch");
-    assert(rebound.updates().length === 0 && rebound.merges().length === 0, "rebound slug must never receive a write");
+    assert(rebound.updates().length === 0 && rebound.merges().length === 0, "transferred repository must not receive a write");
   }
 
   const stale = fakeRepo({ mainSha: "newer-main-sha", update: { headSha: NEW_HEAD_SHA, baseSha: "newer-main-sha" } });
