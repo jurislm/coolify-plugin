@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [4.2.8](https://github.com/r-seriesx/coolify-plugin/compare/v4.2.7...v4.2.8) (2026-11-21)
+
+
+### Documentation
+
+* update public links to r-seriesx (JUR-1111) ([#104](https://github.com/r-seriesx/coolify-plugin/issues/104)) ([9b53a4b](https://github.com/r-seriesx/coolify-plugin/commit/9b53a4be0876342b514966748e894aa48bca64da))
+
 ## [4.2.7](https://github.com/jurislm/coolify-plugin/compare/v4.2.6...v4.2.7) (2026-11-21)
 
 
