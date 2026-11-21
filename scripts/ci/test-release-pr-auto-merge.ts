@@ -147,6 +147,7 @@ async function testMergeAndNoOp(): Promise<void> {
     ] }),
     jsonResponse({ ...candidate(), mergeable: null }),
     jsonResponse({ ...candidate(), mergeable: true }),
+    jsonResponse(releaseRepository()),
     jsonResponse({ ref: "refs/heads/main", object: { sha: BASE_SHA } }),
     jsonResponse({ merged: true, sha: "merge-sha" }),
   ];
@@ -173,13 +174,15 @@ async function testMergeAndNoOp(): Promise<void> {
       assert(init?.redirect === "error", "requests must reject redirects");
       productionPath.push(url.pathname);
       if (url.pathname === "/repositories/1373042960") return jsonResponse(releaseRepository(owner));
+      if (url.pathname === `/repos/${owner}/coolify-plugin`) return jsonResponse(releaseRepository(owner));
+      if (url.pathname.endsWith("/git/ref/heads/main")) return jsonResponse({ object: { sha: "a".repeat(40) } });
       assert(url.pathname === `/repos/${owner}/coolify-plugin/pulls`, "must use canonical pull path");
       assert(url.searchParams.get("head") === `${owner}:${RELEASE_BRANCH}`, "must use canonical head owner");
       return jsonResponse([]);
     }, { preconnect: () => {} }) as typeof fetch;
     await runReleasePrAutoMerge({ token: "token", expectedBaseSha: BASE_SHA, fetchImpl: stub });
     for (const mode of ["github-release", "release-pr"]) {
-      await runReleasePlease(mode, marker, stub, async (args) => {
+      await runReleasePlease(mode, marker, "a".repeat(40), stub, async (args) => {
         const path = args[3]?.slice("--token=".length) ?? "";
         assert(args[3]?.startsWith("--token=") && isAbsolute(path), "CLI token option must contain a plain path");
         assert(args.every((arg) => !arg.includes(marker)), "credential must not be in CLI arguments");
@@ -192,7 +195,7 @@ async function testMergeAndNoOp(): Promise<void> {
       });
       await expectRejects(() => stat(dirname(tokenPaths.at(-1)!)), "ENOENT");
     }
-    assert(productionPath.length === 4, "expected metadata resolution before all consumers");
+    assert(productionPath.length === 8, "expected metadata resolution before all consumers");
     for (const [index, mode] of ["github-release", "release-pr"].entries()) {
       const expectedArgs = [
         "bunx", "release-please", mode, `--token=${tokenPaths[index]}`,
@@ -204,7 +207,7 @@ async function testMergeAndNoOp(): Promise<void> {
     let failedDirectory = "";
     await expectRejects(async () => {
       try {
-        await runReleasePlease("github-release", marker, stub, async (args) => {
+        await runReleasePlease("github-release", marker, "a".repeat(40), stub, async (args) => {
           failedDirectory = dirname(args[3]!.slice("--token=".length));
           throw new Error(marker);
         });
@@ -224,8 +227,23 @@ async function testMergeAndNoOp(): Promise<void> {
     { preconnect: () => {} }) as typeof fetch;
   await expectRejects(() => runReleasePrAutoMerge({ token: "token", expectedBaseSha: BASE_SHA, fetchImpl: wrong }),
     "repository identity mismatch");
-  await expectRejects(() => runReleasePlease("github-release", "token", wrong,
+  await expectRejects(() => runReleasePlease("github-release", "token", "a".repeat(40), wrong,
     async () => { throw new Error("must not launch"); }), "repository identity mismatch");
+
+  for (const mode of ["github-release", "release-pr"]) {
+    const stale = Object.assign(async (input: Request | URL | string) => {
+      const path = new URL(String(input)).pathname;
+      return jsonResponse(path.endsWith("/git/ref/heads/main")
+        ? { object: { sha: "b".repeat(40) } }
+        : releaseRepository());
+    }, { preconnect: () => {} }) as typeof fetch;
+    let launches = 0;
+    await runReleasePlease(mode, "token", "a".repeat(40), stale, async () => {
+      launches++;
+      return 0;
+    });
+    assert(launches === 0, "stale release job must not spawn Release Please");
+  }
 
   const marker = "synthetic-stdout-stderr-credential";
   const logs: string[] = [];
@@ -338,6 +356,7 @@ async function testFailureGuards(): Promise<void> {
       { context: "ci/woodpecker/pr/ci", state: "success" },
     ] }),
     jsonResponse({ ...candidate(), mergeable: true }),
+    jsonResponse(releaseRepository()),
     jsonResponse({ ref: "refs/heads/main", object: { sha: BASE_SHA } }),
     jsonResponse({ merged: true, sha: "slow-merge-sha" }),
   ];
@@ -372,6 +391,7 @@ interface FakeRepoOptions {
   compareStatus?: string;
   update?: { headSha: string; baseSha: string } | "never";
   mainSha?: string;
+  canonicalRepoId?: number;
   mainShaAfterUpdate?: string;
   files?: Array<{ filename: string; status: string }>;
   pendingStatusPolls?: number;
@@ -402,6 +422,7 @@ function fakeRepo(options: FakeRepoOptions = {}) {
     const path = url.pathname.replace("/repos/jurislm/coolify-plugin", "");
     const body = typeof init?.body === "string" ? init.body : "";
     if (path === "/repositories/1373042960") return jsonResponse(releaseRepository());
+    if (path === "") return jsonResponse({ ...releaseRepository(), id: options.canonicalRepoId ?? 1373042960 });
     requests.push({ method, path, body });
     const head = (current.head as { sha: string }).sha;
     if (method === "GET" && path === "/pulls") return jsonResponse([current]);
@@ -451,6 +472,15 @@ async function testBehindReleasePr(): Promise<void> {
   const stuck = fakeRepo({ mainSha: CI_SHA, update: "never" });
   await expectRejects(() => run(stuck, 3), "branch update");
   assert(stuck.merges().length === 0, "release PR must not merge when the branch update never lands");
+
+  for (const options of [{}, { mainSha: CI_SHA, update: { headSha: NEW_HEAD_SHA, baseSha: CI_SHA } }]) {
+    const rebound = fakeRepo({ ...options, canonicalRepoId: 999 });
+    await expectRejects(() => runReleasePrAutoMerge({
+      token: "token", expectedBaseSha: options.mainSha ?? BASE_SHA,
+      fetchImpl: rebound.fetchImpl, sleep: async () => {},
+    }), "repository identity mismatch");
+    assert(rebound.updates().length === 0 && rebound.merges().length === 0, "rebound slug must never receive a write");
+  }
 
   const stale = fakeRepo({ mainSha: "newer-main-sha", update: { headSha: NEW_HEAD_SHA, baseSha: "newer-main-sha" } });
   const staleResult = await run(stale);

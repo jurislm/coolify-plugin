@@ -287,6 +287,11 @@ export async function runReleasePrAutoMerge(options: AutoMergeOptions): Promise<
     return requiredString(value.status, "commit comparison status");
   }
 
+  async function assertCurrentRepository(): Promise<void> {
+    const canonical = parseReleaseRepository(await githubRequest(`/repos/${repository.fullName}`));
+    if (canonical.fullName !== repository.fullName) throw new Error("GitHub release repository identity mismatch");
+  }
+
   async function mainSha(): Promise<string> {
     const value = requiredRecord(await githubRequest(`/repos/${repository.fullName}/git/ref/heads/${BASE_BRANCH}`), "base branch ref");
     return requiredString(requiredRecord(value.object, "base branch ref.object").sha, "base branch ref.object.sha");
@@ -339,6 +344,7 @@ export async function runReleasePrAutoMerge(options: AutoMergeOptions): Promise<
     if (relation !== "behind") {
       throw new Error(`release PR base SHA does not match CI commit (pr=${detail.baseSha}, ci=${options.expectedBaseSha}, relation=${relation})`);
     }
+    await assertCurrentRepository();
     if (await mainSha() !== options.expectedBaseSha) { logger.log("main advanced before branch update; yielding to newer build."); return { status: "no-op" }; }
     logger.log(`Release PR #${detail.number} base is behind ${options.expectedBaseSha}; updating its branch.`);
     await githubRequest(`/repos/${repository.fullName}/pulls/${detail.number}/update-branch`, {
@@ -406,6 +412,7 @@ export async function runReleasePrAutoMerge(options: AutoMergeOptions): Promise<
     if (attempt < maxAttempts) await sleep(pollDelayMs);
   }
   if (!mergeable) throw new Error("release PR mergeability check timed out");
+  await assertCurrentRepository();
   if (await mainSha() !== options.expectedBaseSha) { logger.log("main advanced during validation; yielding to newer build."); return { status: "no-op" }; }
 
   const merged = requiredRecord(await githubRequest(`/repos/${repository.fullName}/pulls/${detail.number}/merge`, {
