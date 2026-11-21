@@ -4,9 +4,9 @@
   "description": "Fallback Codex metadata for local stdio Coolify tools.",
   "author": {
     "name": "JurisLM",
-    "url": "https://github.com/jurislm"
+    "url": "https://github.com/r-seriesx"
   },
-  "repository": "https://github.com/jurislm/coolify-plugin",
+  "repository": "https://github.com/r-seriesx/coolify-plugin",
   "license": "MIT",
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
@@ -22,7 +22,7 @@
     ],
     "composerIcon": "./assets/coolify.png",
     "logo": "./assets/coolify.png",
-    "websiteURL": "https://jurislm.github.io/coolify-plugin/",
+    "websiteURL": "https://r-seriesx.github.io/coolify-plugin/",
     "defaultPrompt": "List my Coolify resources."
   }
 }

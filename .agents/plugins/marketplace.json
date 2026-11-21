@@ -8,7 +8,7 @@
       "name": "coolify-plugin",
       "source": {
         "source": "url",
-        "url": "https://github.com/jurislm/coolify-plugin",
+        "url": "https://github.com/r-seriesx/coolify-plugin",
         "ref": "main"
       },
       "policy": {

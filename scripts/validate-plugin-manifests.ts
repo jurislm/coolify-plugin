@@ -13,8 +13,8 @@ const packageJson = JSON.parse(await Bun.file("package.json").text()) as Json;
 const packageVersion = String(packageJson.version);
 const packageName = String(packageJson.name);
 const launchPackage = `${packageName}@latest`;
-const officialWebsite = "https://jurislm.github.io/coolify-plugin/";
-const repositoryUrl = "https://github.com/jurislm/coolify-plugin";
+const officialWebsite = "https://r-seriesx.github.io/coolify-plugin/";
+const repositoryUrl = "https://github.com/r-seriesx/coolify-plugin";
 if (packageName !== "@jurislm/coolify-plugin") throw new Error("package.json name must remain @jurislm/coolify-plugin");
 const launchRegistrationFiles = ["mcp.json", ".mcp.json", ".mcp.json.example", "plugins/cursor/mcp.json"] as const;
 for (const file of launchRegistrationFiles) {
