@@ -5,10 +5,10 @@
   "description": "Portable Coolify MCP plugin with local stdio tools generated from the official OpenAPI contract.",
   "author": {
     "name": "JurisLM",
-    "url": "https://github.com/jurislm"
+    "url": "https://github.com/r-seriesx"
   },
-  "homepage": "https://jurislm.github.io/coolify-plugin/",
-  "repository": "https://github.com/jurislm/coolify-plugin",
+  "homepage": "https://r-seriesx.github.io/coolify-plugin/",
+  "repository": "https://github.com/r-seriesx/coolify-plugin",
   "license": "MIT",
   "keywords": [
     "coolify",
@@ -33,7 +33,7 @@
         ],
         "composerIcon": "./assets/coolify.png",
         "logo": "./assets/coolify.png",
-        "websiteURL": "https://jurislm.github.io/coolify-plugin/"
+        "websiteURL": "https://r-seriesx.github.io/coolify-plugin/"
       }
     }
   }
