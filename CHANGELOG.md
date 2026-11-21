@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 This plugin starts from the `@jurislm/coolify-mcp@3.6.0` capability baseline.
 
+## [4.2.7](https://github.com/jurislm/coolify-plugin/compare/v4.2.6...v4.2.7) (2026-11-21)
+
+
+### Bug Fixes
+
+* **ci:** address Coolify release operations by stable repository ID (JUR-1111) ([c559019](https://github.com/jurislm/coolify-plugin/commit/c559019d20fc4bf3fa366426ec390c451668edfd))
+* **ci:** bind Coolify releases to repository identity (JUR-1111) ([87a8de7](https://github.com/jurislm/coolify-plugin/commit/87a8de7e84e1cd1b64477e5d071d58a5face6288))
+* **ci:** bind Coolify releases to repository identity (JUR-1111) ([e1a97ca](https://github.com/jurislm/coolify-plugin/commit/e1a97cadae7da7d53e8a4b95162b1f1b5a69c4b8))
+* **ci:** recheck Coolify release identity before writes (JUR-1111) ([2e27246](https://github.com/jurislm/coolify-plugin/commit/2e27246e4b315a82db99d7f927ecca429fbf41ed))
+
 ## [4.2.6](https://github.com/jurislm/coolify-plugin/compare/v4.2.5...v4.2.6) (2026-11-20)
 
 
